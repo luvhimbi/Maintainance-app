@@ -1,0 +1,104 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TechnicianController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\IssueController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\notificationController;
+use App\Http\Controllers\HomeController;
+
+// Show login form and handle submissions
+Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+
+// Password reset route (optional)
+Route::get('/reset-password', [AuthController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset.form');
+Route::post('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.update');
+
+// guarded  routes for authenticated users
+Route::middleware('auth')->group(function () {
+    Route::get('/student/dashboard', [StudentController::class, 'dashboard'])->name('Student.dashboard');
+    Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
+    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+});
+
+// profile update routes for students
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+   Route::get('/test-profile', [ProfileController::class, 'edit'])->name('test.profile.edit');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+});
+//this is a profile for technician
+Route::get('/techProfile', [ProfileController::class, 'editProfile'])->name('tech_edit');
+Route::get('/techProfile', [ProfileController::class, 'techProfile'])->name('techProfile');
+Route::get('/adminProfile', [ProfileController::class, 'adminProfile'])->name('adminProfile');
+Route::get('/home', function () {
+    return redirect()->route('Student.dashboard');
+})->name('home');
+//all issues related urls for the student
+Route::post('/report-issue', [IssueController::class, 'store'])->name('issue.store');
+Route::post('/save-issue', [IssueController::class, 'save'])->name('issue.save');
+Route::get('/view-issues', [IssueController::class, 'viewAllIssues'])->name('Student.view_issues');
+Route::get('/view-issues/{id}', [IssueController::class, 'viewIssueDetails'])->name('Student.issue_details');
+Route::get('/report-issue', [IssueController::class, 'create'])->name('Student.createissue');
+Route::get('/report-issue/confirm', [IssueController::class, 'confirm'])->name('Student.confirmissue');
+
+
+
+Route::get('/issue/success', [IssueController::class, 'success'])->name('issue.success');
+Route::get('/notifications', [NotificationController::class, 'index'])
+    ->name('notifications.index')
+    ->middleware('auth');
+
+// Mark all as read (optional)
+Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
+    ->name('notifications.markAllRead')
+    ->middleware('auth');
+
+Route::get('/assigned-tasks', [TaskController::class, 'assignedTasks'])->name('Assigned_tasks');
+Route::get('/technician/tasks/{task_id}', [TechnicianController::class, 'viewTaskDetails'])->name('technician.task_details');
+
+Route::post('/issue/{issueId}/comment', [StudentController::class, 'storeComment'])->name('issue.comment.store');
+// Allow the user to go back and edit the form
+
+Route::get('/edit-issue', [IssueController::class, 'edit'])->name('issue.edit');
+
+// Route to display the update form
+Route::get('/tasks/update/{task_id}', [TaskController::class, 'showUpdateForm'])->name('tasks.update.form');
+
+// Route to handle the update submission
+Route::post('/tasks/update/{task_id}', [TaskController::class, 'updateTask'])->name('tasks.update');
+
+// Route to delete a comment
+Route::delete('/comment/{comment}', [TaskController::class, 'destroy'])->name('comment.delete');
+
+// Route to update a comment
+Route::put('/comment/{comment}', [TaskController::class, 'update'])->name('comment.update');
+// Route to delete a comment
+Route::delete('/comment/{comment}', [HomeController::class, 'destroy'])->name('comment.delete');
+
+// Route to update a comment
+Route::put('/comment/{comment}', [HomeController::class, 'update'])->name('comment.update');
+Route::post('/logout', function () {
+    Auth::logout();
+    return redirect()->route('login');
+})->name('logout');
+
+// Route to view completed tasks
+Route::get('/completed-tasks', [TaskController::class, 'completedTasks'])->name('completed.tasks');
+// Route to view tasks updates
+Route::get('/tasks/{task_id}/updates', [TaskController::class, 'taskUpdates'])->name('tasks.updates');
+
+Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('admin.tasks.view');
+
+
+
+
