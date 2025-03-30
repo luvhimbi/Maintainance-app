@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -92,5 +92,9 @@ public function isStudent()
     public function sendWelcomeNotification()
     {
         $this->notify(new DatabaseNotification('Welcome to our app support!', url('/')));
+    }
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assignee_id');
     }
 }

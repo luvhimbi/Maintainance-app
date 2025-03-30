@@ -12,6 +12,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\notificationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\LocationQrController;
+use App\Http\Controllers\Admin\TechnicianControllers;
 // Show login form and handle submissions
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
@@ -130,3 +131,16 @@ Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('adm
                 'destroy' => 'admin.students.destroy'
             ]);
     });
+
+
+        Route::resource('technicians', TechnicianControllers::class)
+            ->names([
+                'index' => 'admin.technicians.index',
+                'create' => 'admin.technicians.create',
+                'store' => 'admin.technicians.store',
+                'show' => 'admin.technicians.show',
+                'edit' => 'admin.technicians.edit',
+                'update' => 'admin.technicians.update',
+                'destroy' => 'admin.technicians.destroy'
+            ]);
+  

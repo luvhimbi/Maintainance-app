@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
+    
     <link rel="stylesheet" href="{{ asset('./css/global.css') }}">
 </head>
 <body>
@@ -41,13 +42,10 @@
 
                 <!-- Reports -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link " href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
                         Reports
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
-                        <li><a class="dropdown-item" >System Performance</a></li>
-                        <li><a class="dropdown-item" >Staff Efficiency</a></li>
-                    </ul>
+                
                 </li>
 
                 <!-- User Management -->
@@ -57,7 +55,7 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="usersDropdown">
                         <li><a class="dropdown-item" href="{{route('admin.students.index')}}">Manage Students</a></li>
-                        <li><a class="dropdown-item" >Manage Staff</a></li>
+                        <li><a class="dropdown-item" href="{{route('admin.technicians.index')}}" >Manage Staff</a></li>
 
                     </ul>
                 </li>
