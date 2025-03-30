@@ -9,6 +9,7 @@ use App\Models\IssueAttachment;
 use Carbon\Carbon;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\MaintenanceStaff;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 class IssueController extends Controller
@@ -274,20 +275,21 @@ private function assignQueuedTasks($technicianId)
     }
 
 
-     public function viewIssueDetails($id)
+    public function viewIssueDetails($id)
     {
         $issue = Issue::where('reporter_id', auth()->id())
-        ->with([
-            'location',
-            'attachments',
-            'tasks.assignee', // Works if relationships are properly defined
-            'comments' => function ($query) {
-                $query->orderBy('created_at', 'desc')->with('user');
-            }
-        ])
-        ->findOrFail($id);
-    
-    return view('Student.issue_details', compact('issue'));
-     }
+            ->with([
+                'location',
+                'attachments',
+                'task' => function($query) {
+                    $query->with(['assignee', 'updates' => function($q) {
+                        $q->with('staff')->latest('update_timestamp');
+                    }]);
+                }
+            ])
+            ->findOrFail($id);
+        
+        return view('Student.issue_details', compact('issue'));
+    }
    
 }

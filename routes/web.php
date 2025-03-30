@@ -11,7 +11,7 @@ use App\Http\Controllers\IssueController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\notificationController;
 use App\Http\Controllers\HomeController;
-
+use App\Http\Controllers\Admin\LocationQrController;
 // Show login form and handle submissions
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
@@ -102,3 +102,31 @@ Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('adm
 
 
 
+
+    // Location Management Routes
+    Route::resource('locations', LocationQrController::class)->except(['show']);
+    
+    // If you need custom names:
+    Route::get('locations', [LocationQRController::class, 'index'])->name('admin.locations.index');
+    Route::get('locations/create', [LocationQrController::class, 'create'])->name('admin.locations.create');
+    Route::post('locations', [LocationQrController::class, 'store'])->name('admin.locations.store');
+    Route::get('locations/{location}/edit', [LocationQrController::class, 'edit'])->name('admin.locations.edit');
+    Route::delete('locations/{location}', [LocationQrController::class, 'destroy'])->name('admin.locations.destroy');
+    Route::put('locations', [LocationQrController::class, 'update'])->name('admin.locations.update');
+
+
+
+    // Route::get('/tasks/assign', [TaskController::class, 'showAssignForm'])->name('tasks.assign');
+    // Route::get('/tasks/{task}/progress', [TaskController::class, 'showProgress'])->name('tasks.progress');
+    // Route::get('/tasks/{task}/reassign', [TaskController::class, 'showReassignForm'])->name('tasks.reassign');
+    Route::prefix('admin')->group(function() {
+        Route::resource('students', \App\Http\Controllers\Admin\StudentController::class)
+            ->names([
+                'index' => 'admin.students.index',
+                'create' => 'admin.students.create',
+                'store' => 'admin.students.store',
+                'edit' => 'admin.students.edit',
+                'update' => 'admin.students.update',
+                'destroy' => 'admin.students.destroy'
+            ]);
+    });

@@ -33,8 +33,8 @@
                         Maintenance Tasks
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="tasksDropdown">
-                        <li><a class="dropdown-item" href="{{ route('admin.tasks.view') }}" >View Tasks</a></li>
-                        <li><a class="dropdown-item" >Assign Tasks</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.tasks.view') }}" >Manage Tasks</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.locations.index')}}" >Location(Qr code generator)</a></li>
                     </ul>
                 </li>
 
@@ -56,8 +56,9 @@
                         User Management
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="usersDropdown">
-                        <li><a class="dropdown-item" >Manage Students</a></li>
+                        <li><a class="dropdown-item" href="{{route('admin.students.index')}}">Manage Students</a></li>
                         <li><a class="dropdown-item" >Manage Staff</a></li>
+
                     </ul>
                 </li>
 

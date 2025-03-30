@@ -39,6 +39,10 @@ class Issue extends Model
     {
         return $this->hasMany(Comment::class, 'issue_id');
     }
+    public function task()
+{
+    return $this->hasOne(Task::class, 'issue_id');
+}
     public function tasks()
     {
         return $this->hasMany(Task::class, 'issue_id');

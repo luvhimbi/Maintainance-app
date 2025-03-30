@@ -38,8 +38,8 @@ class TechnicianController extends Controller
         $task = Task::with([
                 'issue.location', // Include issue and its location
                 'issue.attachments', // Include issue attachments
-                'assignee', // Include assigned technician
-                'issue.comments.user', // Include comments and the user who posted them
+                'assignee'
+            
             ])
             ->findOrFail($task_id);
 

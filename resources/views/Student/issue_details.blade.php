@@ -141,101 +141,122 @@
             @endif
         </div>
     </div>
-    <!-- Comment Section -->
+
+    <!-- Task Updates Section -->
     <div class="mt-4">
-        <h5>Comments</h5>
+        <h5 class="mb-3">
+            <i class="fas fa-tasks me-2"></i>Task Updates
+        </h5>
 
-        <!-- Add Comment Form -->
-        @auth
-            <form action="{{ route('issue.comment.store', $issue->issue_id) }}" method="POST" class="mb-4">
-                @csrf
-                <div class="form-group">
-                    <textarea name="comment" class="form-control" rows="3" placeholder="Add a comment..." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-paper-plane me-2"></i>Submit
-                </button>
-            </form>
-        @else
-            <div class="alert alert-info mb-4">
-                <i class="fas fa-info-circle me-2"></i>Please <a href="{{ route('login') }}">login</a> to post a comment
-            </div>
-        @endauth
-
-        <!-- Display Comments -->
-        @if ($issue->comments->count() > 0)
-            <div class="list-group">
-                @foreach ($issue->comments as $comment)
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ $comment->user->username }}</strong>
-                                <span class="badge bg-secondary">{{ $comment->user->user_role }}</span>
-                            </div>
-                            <small class="text-muted">{{ $comment->created_at->format('Y-m-d H:i') }}</small>
+        @if ($issue->task && $issue->task->updates->count() > 0)
+            <div class="timeline">
+                @foreach ($issue->task->updates->sortByDesc('update_timestamp') as $update)
+                    <div class="timeline-item mb-4">
+                        <div class="timeline-badge 
+                            @if($update->status_change == 'In Progress') bg-warning
+                            @elseif($update->status_change == 'Resolved') bg-success
+                            @else bg-primary @endif">
+                            <i class="fas 
+                                @if($update->status_change == 'In Progress') fa-wrench
+                                @elseif($update->status_change == 'Resolved') fa-check
+                                @else fa-info @endif"></i>
                         </div>
-                        <p class="mb-0">{{ $comment->comment }}</p>
-
-                        <!-- Edit and Delete Buttons (only for the comment owner) -->
-                        @auth
-                            @if (auth()->id() === $comment->user_id)
-                                <div class="mt-2">
-                                    <button class="btn btn-sm btn-outline-primary edit-comment-btn" data-comment-id="{{ $comment->id }}" data-comment-text="{{ $comment->comment }}">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
-                                    <form action="{{ route('comment.delete', $comment->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this comment?')">
-                                            <i class="fas fa-trash me-1"></i>Delete
-                                        </button>
-                                    </form>
+                        <div class="timeline-content card shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center">
+                                        @if($update->staff)
+                                            <div class="symbol symbol-35px symbol-circle me-2">
+                                                <span class="symbol-label bg-light-primary text-primary fw-bold">
+                                                    {{ substr($update->staff->username, 0, 1) }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <strong>{{ $update->staff->username }}</strong>
+                                                <span class="badge bg-secondary ms-2">{{ $update->staff->user_role }}</span>
+                                            </div>
+                                        @else
+                                            <span class="text-muted">[Staff removed]</span>
+                                        @endif
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y g:i A') }}
+                                    </small>
                                 </div>
-                            @endif
-                        @endauth
+                                <div class="mb-2">
+                                    <span class="badge 
+                                        @if($update->status_change == 'In Progress') bg-warning text-dark
+                                        @elseif($update->status_change == 'Resolved') bg-success
+                                        @else bg-primary @endif">
+                                        {{ $update->status_change }}
+                                    </span>
+                                </div>
+                                <p class="mb-0">{{ $update->update_description }}</p>
+                            </div>
+                        </div>
                     </div>
                 @endforeach
             </div>
         @else
-            <p>No comments yet.</p>
+            <div class="alert alert-secondary">
+                <i class="fas fa-info-circle me-2"></i>No task updates available yet
+            </div>
         @endif
     </div>
+</div>
 @endsection
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Handle edit button clicks
-        document.querySelectorAll('.edit-comment-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                const commentId = this.getAttribute('data-comment-id');
-                const commentText = this.getAttribute('data-comment-text');
 
-                // Create a form for editing
-                const editForm = `
-                    <form action="/comment/${commentId}" method="POST" class="mt-2">
-                        @csrf
-                        @method('PUT')
-                        <textarea name="comment" class="form-control mb-2" rows="3" required>${commentText}</textarea>
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="fas fa-save me-1"></i>Save
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn">
-                            <i class="fas fa-times me-1"></i>Cancel
-                        </button>
-                    </form>
-                `;
-
-                // Replace the comment text with the edit form
-                this.closest('.list-group-item').querySelector('p').innerHTML = editForm;
-
-                // Handle cancel button clicks
-                const cancelButton = this.closest('.list-group-item').querySelector('.cancel-edit-btn');
-                if (cancelButton) {
-                    cancelButton.addEventListener('click', function () {
-                        // Restore the original comment text
-                        this.closest('.list-group-item').querySelector('p').textContent = commentText;
-                    });
-                }
-            });
-        });
-    });
-</script>
+@push('styles')
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 40px;
+    }
+    .timeline-item {
+        position: relative;
+    }
+    .timeline-badge {
+        position: absolute;
+        left: -20px;
+        top: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        z-index: 1;
+    }
+    .timeline-content {
+        position: relative;
+        margin-left: 20px;
+        border-left: 3px solid #dee2e6;
+        padding-left: 20px;
+    }
+    .timeline-item:last-child .timeline-content {
+        border-left-color: transparent;
+    }
+    .symbol {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .symbol-35px {
+        width: 35px;
+        height: 35px;
+    }
+    .symbol-circle {
+        border-radius: 50%;
+    }
+    .symbol-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        width: 100%;
+        height: 100%;
+    }
+</style>
+@endpush

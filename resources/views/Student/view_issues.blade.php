@@ -4,95 +4,30 @@
 <div class="container mt-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h2 fw-bold mb-1">All Issues</h1>
-            <p class="text-muted">Track and manage your reported maintenance requests</p>
-        </div>
-       
-    </div>
-
-    <!-- Filter Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light h-100 cursor-pointer hover-shadow">
-                <div class="card-body d-flex align-items-center">
-                    <div class="me-3 bg-primary rounded p-2 text-white">
-                        <i class="fas fa-exclamation-circle fa-lg"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small">Open Issues</div>
-                        <div class="h5 mb-0">{{ $issues->where('issue_status', 'Open')->count() }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light h-100 cursor-pointer hover-shadow">
-                <div class="card-body d-flex align-items-center">
-                    <div class="me-3 bg-warning rounded p-2 text-dark">
-                        <i class="fas fa-tools fa-lg"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small">In Progress</div>
-                        <div class="h5 mb-0">{{ $issues->where('issue_status', 'In Progress')->count() }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light h-100 cursor-pointer hover-shadow">
-                <div class="card-body d-flex align-items-center">
-                    <div class="me-3 bg-success rounded p-2 text-white">
-                        <i class="fas fa-check-circle fa-lg"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small">Resolved</div>
-                        <div class="h5 mb-0">{{ $issues->where('issue_status', 'Resolved')->count() }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 bg-light h-100 cursor-pointer hover-shadow">
-                <div class="card-body d-flex align-items-center">
-                    <div class="me-3 bg-danger rounded p-2 text-white">
-                        <i class="fas fa-fire-alt fa-lg"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small">High Urgency</div>
-                        <div class="h5 mb-0">{{ $issues->where('urgency_level', 'High')->count() }}</div>
-                    </div>
-                </div>
-            </div>
+            <h1 class="h2 fw-bold mb-1">Completed Issues</h1>
+            <p class="text-muted mb-0">View All Completed Tasks</p>
         </div>
     </div>
 
     <!-- Search and Filter -->
-    <div class="card shadow-sm border-0 rounded-3 mb-4">
+    <div class="card shadow-sm border-0 rounded-3 mb-4 hover-lift">
         <div class="card-body">
-            <div class="row g-2">
+            <div class="row g-3">
                 <div class="col-12 col-md-6">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="fas fa-search text-muted"></i>
+                    <div class="input-group input-group-merge">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="fas fa-search text-primary"></i>
                         </span>
-                        <input type="text" id="issueSearch" class="form-control border-start-0" placeholder="Search issues...">
+                        <input type="text" id="issueSearch" class="form-control border-start-0 ps-0" placeholder="Search by issue type or location...">
                     </div>
                 </div>
                 <div class="col-12 col-md-6">
-                    <div class="d-flex flex-wrap gap-2">
-                        <select class="form-select" id="statusFilter">
-                            <option value="">All Statuses</option>
-                            <option value="Open">Open</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Resolved">Resolved</option>
-                        </select>
-                        <select class="form-select" id="urgencyFilter">
-                            <option value="">All Urgency Levels</option>
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                        </select>
-                    </div>
+                    <select class="form-select form-select-lg" id="urgencyFilter">
+                        <option value="">All Urgency Levels</option>
+                        <option value="Low">Low Priority</option>
+                        <option value="Medium">Medium Priority</option>
+                        <option value="High">High Priority</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -100,76 +35,77 @@
 
     <!-- Issues List -->
     @if($issues->count() > 0)
-        <div class="card shadow-sm border-0 rounded-3">
+        <div class="card shadow-sm border-0 rounded-3 hover-lift">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
                         <tr>
-                            <th class="ps-4">Issue Type</th>
-                            <th>Urgency</th>
-                            <th>Status</th>
-                            <th>Date Submitted</th>
-                            <th>Location</th>
-                            <th class="text-end pe-4">Actions</th>
+                            <th class="ps-4 py-3">Issue Type</th>
+                            <th class="py-3">Urgency</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3">Date Submitted</th>
+                            <th class="py-3">Location</th>
+                            <th class="text-end pe-4 py-3">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="issuesTableBody">
                         @foreach ($issues as $issue)
-                            <tr class="align-middle">
+                            <tr class="border-bottom">
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center">
                                         @php
-                                            $iconClass = 'fa-question-circle';
-                                            if ($issue->issue_type == 'Plumbing') {
-                                                $iconClass = 'fa-faucet';
-                                            } elseif ($issue->issue_type == 'Electrical') {
-                                                $iconClass = 'fa-bolt';
-                                            } elseif ($issue->issue_type == 'Furniture') {
-                                                $iconClass = 'fa-chair';
-                                            } elseif ($issue->issue_type == 'HVAC') {
-                                                $iconClass = 'fa-temperature-high';
-                                            } elseif ($issue->issue_type == 'Internet') {
-                                                $iconClass = 'fa-wifi';
-                                            } elseif ($issue->issue_type == 'Cleaning') {
-                                                $iconClass = 'fa-broom';
-                                            }
+                                            $iconClass = match($issue->issue_type) {
+                                                'Plumbing' => 'fa-faucet',
+                                                'Electrical' => 'fa-bolt',
+                                                'Furniture' => 'fa-chair',
+                                                'HVAC' => 'fa-temperature-high',
+                                                'Internet' => 'fa-wifi',
+                                                'Cleaning' => 'fa-broom',
+                                                default => 'fa-question-circle'
+                                            };
                                         @endphp
-                                        <span class="me-2 text-secondary">
-                                            <i class="fas {{ $iconClass }}"></i>
-                                        </span>
-                                        <span>{{ $issue->issue_type }}</span>
+                                        <div class="icon-circle bg-light-primary me-3">
+                                            <i class="fas {{ $iconClass }} text-primary"></i>
+                                        </div>
+                                        <span class="fw-medium">{{ $issue->issue_type }}</span>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge rounded-pill 
-                                        @if($issue->urgency_level == 'Low') bg-success
-                                        @elseif($issue->urgency_level == 'Medium') bg-warning text-dark
-                                        @elseif($issue->urgency_level == 'High') bg-danger
-                                        @endif px-2 py-1">
+                                        @if($issue->urgency_level == 'Low') bg-success-subtle text-success
+                                        @elseif($issue->urgency_level == 'Medium') bg-warning-subtle text-warning
+                                        @elseif($issue->urgency_level == 'High') bg-danger-subtle text-danger
+                                        @endif px-3 py-2">
                                         {{ $issue->urgency_level }}
                                     </span>
                                 </td>
                                 <td>
                                     <span class="badge rounded-pill 
-                                        @if($issue->issue_status == 'Open') bg-primary
-                                        @elseif($issue->issue_status == 'In Progress') bg-warning text-dark
-                                        @elseif($issue->issue_status == 'Resolved') bg-success
-                                        @endif px-2 py-1">
+                                        @if($issue->issue_status == 'Open') bg-primary-subtle text-primary
+                                        @elseif($issue->issue_status == 'In Progress') bg-warning-subtle text-warning
+                                        @elseif($issue->issue_status == 'Resolved') bg-success-subtle text-success
+                                        @endif px-3 py-2">
                                         {{ $issue->issue_status }}
                                     </span>
                                 </td>
-                                <td>{{ \Carbon\Carbon::parse($issue->report_date)->format('M d, Y') }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <span class="me-2 text-secondary">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                        </span>
+                                        <i class="far fa-calendar-alt text-muted me-2"></i>
+                                        <span>{{ \Carbon\Carbon::parse($issue->report_date)->format('M d, Y') }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-circle bg-light-secondary me-2">
+                                            <i class="fas fa-map-marker-alt text-secondary"></i>
+                                        </div>
                                         <span>{{ $issue->location->building_name }}</span>
                                     </div>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <a href="{{ route('Student.issue_details', $issue->issue_id) }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye me-1"></i> View Details
+                                    <a href="{{ route('Student.issue_details', $issue->issue_id) }}" 
+                                       class="btn btn-primary btn-sm px-3">
+                                        <i class="fas fa-eye me-2"></i>View Details
                                     </a>
                                 </td>
                             </tr>
@@ -183,67 +119,123 @@
             {{ $issues->links('pagination::bootstrap-5') }}
         </div>
     @else
-        <div class="card shadow-sm border-0 rounded-3">
+        <div class="card shadow-sm border-0 rounded-3 hover-lift">
             <div class="card-body py-5">
                 <div class="text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-clipboard-list fa-3x text-muted"></i>
+                    <div class="empty-state-icon mb-4">
+                        <i class="fas fa-clipboard-list fa-4x text-primary-subtle"></i>
                     </div>
-                    <h4>No Issues Found</h4>
-                    <p class="text-muted">You haven't reported any maintenance issues yet.</p>
-                    
+                    <h4 class="fw-bold mb-2">No Issues Found</h4>
+                    <p class="text-muted mb-4">You haven't reported any maintenance issues yet.</p>
+                    <a href="{{ route('Student.report_issue') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Report New Issue
+                    </a>
                 </div>
             </div>
-          
         </div>
-        <!-- Pagination -->
-
     @endif
 </div>
 
 <style>
-    /* .hover-shadow:hover {
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
-        transition: box-shadow 0.3s ease;
-    } */
-    .cursor-pointer {
-        cursor: pointer;
-    }
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.08);
+}
+
+.icon-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-light-primary {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.bg-light-secondary {
+    background-color: rgba(var(--bs-secondary-rgb), 0.1);
+}
+
+.input-group-merge .input-group-text {
+    border-right: 0;
+}
+
+.input-group-merge .form-control:focus {
+    border-color: #dee2e6;
+    box-shadow: none;
+}
+
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border-radius: 50%;
+}
+
+.table > :not(caption) > * > * {
+    padding: 1rem 0.75rem;
+}
+
+.badge {
+    font-weight: 500;
+}
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('issueSearch');
-    const statusFilter = document.getElementById('statusFilter');
     const urgencyFilter = document.getElementById('urgencyFilter');
-    const tableRows = document.querySelectorAll('tbody tr');
+    const tableBody = document.getElementById('issuesTableBody');
     
-    function filterTable() {
+    function filterIssues() {
         const searchTerm = searchInput.value.toLowerCase();
-        const statusValue = statusFilter.value;
         const urgencyValue = urgencyFilter.value;
+        const rows = tableBody.getElementsByTagName('tr');
         
-        tableRows.forEach(row => {
+        Array.from(rows).forEach(row => {
             const issueType = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
             const urgency = row.querySelector('td:nth-child(2)').textContent.trim();
-            const status = row.querySelector('td:nth-child(3)').textContent.trim();
             const location = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
             
             const matchesSearch = issueType.includes(searchTerm) || location.includes(searchTerm);
-            const matchesStatus = statusValue === '' || status === statusValue;
-            const matchesUrgency = urgencyValue === '' || urgency === urgencyValue;
+            const matchesUrgency = !urgencyValue || urgency.includes(urgencyValue);
             
-            if (matchesSearch && matchesStatus && matchesUrgency) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = matchesSearch && matchesUrgency ? '' : 'none';
         });
+        
+        // Show/hide empty state
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+        const emptyState = document.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.style.display = visibleRows.length === 0 ? 'block' : 'none';
+        }
     }
     
-    searchInput.addEventListener('input', filterTable);
-    statusFilter.addEventListener('change', filterTable);
-    urgencyFilter.addEventListener('change', filterTable);
+    // Add debounce to search
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterIssues, 300);
+    });
+    
+    urgencyFilter.addEventListener('change', filterIssues);
+    
+    // Initialize tooltips if using Bootstrap 5
+    if (typeof bootstrap !== 'undefined') {
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
+    }
 });
 </script>
 @endsection

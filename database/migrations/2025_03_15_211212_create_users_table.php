@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('email', 200)->unique(); // Unique email
             $table->string('phone_number', 20)->nullable()->unique(); // Optional, unique phone number
             $table->enum('user_role', ['Student', 'Technician', 'Admin'])->default('Student'); // User role
+            $table->enum('status', ['Active', 'Inactive', 'Suspended'])->default('Active');
             $table->timestamps(); // Adds `created_at` and `updated_at` columns
         });
     }

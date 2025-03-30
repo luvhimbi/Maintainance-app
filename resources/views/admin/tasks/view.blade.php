@@ -2,7 +2,10 @@
 
 @section('content')
     <div class="container task-view-container">
-        <h1 class="mb-4 task-header">Task Management</h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0 task-header">Task Management</h1>
+          
+        </div>
         
         <!-- Information Alert -->
         <div class="alert alert-info mb-4">
@@ -21,6 +24,7 @@
                         <th>Expected Completion</th>
                         <th>Status</th>
                         <th>Priority</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,9 +61,25 @@
                                 <span class="badge 
                                     @if($tasks->priority == 'High') badge-danger
                                     @elseif($tasks->priority == 'Medium') badge-warning
-                                    @else badge-info @endif">
+                                    @else  @endif">
                                     {{ $tasks->priority }}
                                 </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a 
+                                       class="btn btn-info" 
+                                       title="View Progress">
+                                      View Progress
+                                    </a>
+                                    @if($tasks->issue_status != 'Completed')
+                                    <a 
+                                       class="btn btn-warning" 
+                                       title="Reassign Task">
+                                        Assign Task
+                                    </a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
@@ -68,75 +88,4 @@
         </div>
     </div>
 
-    <style>
-        .task-view-container {
-            background-color: #f8f9fa;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-        
-        .task-header {
-            color: #343a40;
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 10px;
-            font-weight: 600;
-        }
-        
-        .table {
-            margin-top: 20px;
-        }
-        
-        .table th {
-            background-color: #495057;
-            color: white;
-            font-weight: 500;
-        }
-        
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.1);
-        }
-        .badge {
-            font-size: 0.9em;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-       
-        .alert-info {
-            background-color: #e7f5ff;
-            border-color: #a5d8ff;
-            color: #1862ab;
-        }
-        
-        @media (max-width: 768px) {
-            .table-responsive {
-                border: 0;
-            }
-            
-            .table thead {
-                display: none;
-            }
-            
-            .table tr {
-                margin-bottom: 15px;
-                display: block;
-                border: 1px solid #dee2e6;
-                border-radius: 5px;
-            }
-            
-            .table td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 1px solid #dee2e6;
-            }
-            
-            .table td:before {
-                content: attr(data-label);
-                font-weight: bold;
-                margin-right: 15px;
-            }
-        }
-    </style>
 @endsection
