@@ -13,6 +13,8 @@ use App\Http\Controllers\notificationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\LocationQrController;
 use App\Http\Controllers\Admin\TechnicianControllers;
+use App\Http\Controllers\Admin\TaskAssignmentController; 
+use App\Http\Controllers\Admin\ReportController;
 // Show login form and handle submissions
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
@@ -38,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
 });
 //this is a profile for technician
+
 Route::get('/techProfile', [ProfileController::class, 'editProfile'])->name('tech_edit');
 Route::get('/techProfile', [ProfileController::class, 'techProfile'])->name('techProfile');
 Route::get('/adminProfile', [ProfileController::class, 'adminProfile'])->name('adminProfile');
@@ -67,8 +70,6 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
 Route::get('/assigned-tasks', [TaskController::class, 'assignedTasks'])->name('Assigned_tasks');
 Route::get('/technician/tasks/{task_id}', [TechnicianController::class, 'viewTaskDetails'])->name('technician.task_details');
 
-Route::post('/issue/{issueId}/comment', [StudentController::class, 'storeComment'])->name('issue.comment.store');
-// Allow the user to go back and edit the form
 
 Route::get('/edit-issue', [IssueController::class, 'edit'])->name('issue.edit');
 
@@ -78,16 +79,6 @@ Route::get('/tasks/update/{task_id}', [TaskController::class, 'showUpdateForm'])
 // Route to handle the update submission
 Route::post('/tasks/update/{task_id}', [TaskController::class, 'updateTask'])->name('tasks.update');
 
-// Route to delete a comment
-Route::delete('/comment/{comment}', [TaskController::class, 'destroy'])->name('comment.delete');
-
-// Route to update a comment
-Route::put('/comment/{comment}', [TaskController::class, 'update'])->name('comment.update');
-// Route to delete a comment
-Route::delete('/comment/{comment}', [HomeController::class, 'destroy'])->name('comment.delete');
-
-// Route to update a comment
-Route::put('/comment/{comment}', [HomeController::class, 'update'])->name('comment.update');
 Route::post('/logout', function () {
     Auth::logout();
     return redirect()->route('login');
@@ -98,29 +89,26 @@ Route::get('/completed-tasks', [TaskController::class, 'completedTasks'])->name(
 // Route to view tasks updates
 Route::get('/tasks/{task_id}/updates', [TaskController::class, 'taskUpdates'])->name('tasks.updates');
 
+Route::get('admin/tasks/assign', [TaskAssignmentController::class, 'create'])->name('tasks.assign');
+Route::post('admin/tasks/assign', [TaskAssignmentController::class, 'store'])->name('tasks.store');
 Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('admin.tasks.view');
 
-
-
-
-
     // Location Management Routes
-    Route::resource('locations', LocationQrController::class)->except(['show']);
+Route::resource('locations', LocationQrController::class)->except(['show']);
     
-    // If you need custom names:
-    Route::get('locations', [LocationQRController::class, 'index'])->name('admin.locations.index');
-    Route::get('locations/create', [LocationQrController::class, 'create'])->name('admin.locations.create');
-    Route::post('locations', [LocationQrController::class, 'store'])->name('admin.locations.store');
-    Route::get('locations/{location}/edit', [LocationQrController::class, 'edit'])->name('admin.locations.edit');
-    Route::delete('locations/{location}', [LocationQrController::class, 'destroy'])->name('admin.locations.destroy');
-    Route::put('locations', [LocationQrController::class, 'update'])->name('admin.locations.update');
+Route::get('locations', [LocationQRController::class, 'index'])->name('admin.locations.index');
+Route::get('locations/create', [LocationQrController::class, 'create'])->name('admin.locations.create');
+Route::post('locations', [LocationQrController::class, 'store'])->name('admin.locations.store');
+ Route::get('locations/{location}/edit', [LocationQrController::class, 'edit'])->name('admin.locations.edit');
+Route::delete('locations/{location}', [LocationQrController::class, 'destroy'])->name('admin.locations.destroy');
+Route::put('locations', [LocationQrController::class, 'update'])->name('admin.locations.update');
 
 
 
     // Route::get('/tasks/assign', [TaskController::class, 'showAssignForm'])->name('tasks.assign');
     // Route::get('/tasks/{task}/progress', [TaskController::class, 'showProgress'])->name('tasks.progress');
     // Route::get('/tasks/{task}/reassign', [TaskController::class, 'showReassignForm'])->name('tasks.reassign');
-    Route::prefix('admin')->group(function() {
+ Route::prefix('admin')->group(function() {
         Route::resource('students', \App\Http\Controllers\Admin\StudentController::class)
             ->names([
                 'index' => 'admin.students.index',
@@ -130,10 +118,9 @@ Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('adm
                 'update' => 'admin.students.update',
                 'destroy' => 'admin.students.destroy'
             ]);
-    });
+});
 
-
-        Route::resource('technicians', TechnicianControllers::class)
+ Route::resource('technicians', TechnicianControllers::class)
             ->names([
                 'index' => 'admin.technicians.index',
                 'create' => 'admin.technicians.create',
@@ -142,5 +129,6 @@ Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('adm
                 'edit' => 'admin.technicians.edit',
                 'update' => 'admin.technicians.update',
                 'destroy' => 'admin.technicians.destroy'
-            ]);
-  
+        ]);
+        Route::get('/reports', [ReportController::class, 'technicianPerformance'])
+        ->name('admin.reports.technician-performance');

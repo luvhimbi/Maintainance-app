@@ -137,7 +137,7 @@ public function taskUpdates($task_id)
 
     // Pass data to the view
     return view('technician.task_updates', [
-        'tasks' => $task,
+        'task' => $task,
     ]);
 }
 

@@ -6,8 +6,8 @@
 <div class="container mt-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <h1 class="h3 fw-bold mb-2 mb-md-0">Task Details</h1>
-        <a href="{{ route('Assigned_tasks') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Back to Tasks
+        <a href="{{ route('technician.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to dashboard?
         </a>
         <a href="{{ route('tasks.update.form', $task->task_id) }}" class="btn btn-primary">
             <i class="fas fa-edit me-1"></i> Update Task

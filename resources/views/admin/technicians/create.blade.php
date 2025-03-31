@@ -6,14 +6,14 @@
 <div class="container-fluid">
     <div class="d-sm-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Add New Technician</h1>
-        <a href="{{ route('technicians.index') }}" class="btn btn-secondary">
+        <a href="{{ route('admin.technicians.index') }}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to List
         </a>
     </div>
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form method="POST" action="{{ route('technicians.store') }}">
+            <form method="POST" action="{{ route('admin.technicians.store') }}">
                 @csrf
 
                 <div class="row mb-3">
@@ -64,21 +64,8 @@
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="hire_date" class="form-label">Hire Date *</label>
-                        <input type="date" class="form-control @error('hire_date') is-invalid @enderror" id="hire_date" name="hire_date" value="{{ old('hire_date') }}" required>
-                        @error('hire_date')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-md-6">
-                        <label for="qualifications" class="form-label">Qualifications</label>
-                        <textarea class="form-control @error('qualifications') is-invalid @enderror" id="qualifications" name="qualifications" rows="1">{{ old('qualifications') }}</textarea>
-                        @error('qualifications')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+             
+                   
                 </div>
 
                 <div class="text-center">

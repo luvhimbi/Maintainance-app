@@ -4,8 +4,8 @@
 <div class="container mt-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <h1 class="h3 fw-bold mb-2 mb-md-0">Issue Details</h1>
-        <a href="{{ route('Student.view_issues') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Back to All Issues
+        <a href="{{ route('home') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to  dashboard?
         </a>
     </div>
 
@@ -30,7 +30,7 @@
                         <h5 class="text-muted fs-6">Location</h5>
                         <p class="card-text fs-5">
                             <i class="fas fa-map-marker-alt me-2 text-secondary"></i>
-                            {{ $issue->location->building_name }}, Room {{ $issue->location->room_number }}
+                            {{ $issue->location->building_name ?? 'unknown building name'}}, Room {{ $issue->location->room_number ??'unknown room no' }}
                         </p>
                     </div>
 

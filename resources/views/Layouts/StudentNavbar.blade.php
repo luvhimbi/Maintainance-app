@@ -124,7 +124,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
                 <i class="fas fa-tools me-2"></i>
-                Maintenance
+               TutMaintenance
             </a>
             
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -149,7 +149,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ Request::routeIs('Student.view_issues') ? 'active' : '' }}" 
                            href="{{ route('Student.view_issues') }}">
-                            <i class="fas fa-tasks me-2"></i>Completed Progress
+                            <i class="fas fa-tasks me-2"></i>Issue History
                         </a>
                     </li>
                     

@@ -7,7 +7,7 @@
         <!-- Header Section -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5">
             <div class="mb-3 mb-md-0">
-                <h1 class="fw-bold mb-2">Welcome back, {{ Auth::user()->username }}</h1>
+                <h1 class="fw-bold mb-2 h3">Welcome back, {{ Auth::user()->username }}</h1>
                 <p class="lead text-muted mb-0">Track and manage your reported maintenance issues</p>
             </div>
             <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
@@ -19,7 +19,7 @@
         <!-- Issues Section -->
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-3">
-                <h3 class="mb-0 fw-bold">Your Reported Issues</h3>
+                <h3 class="mb-0 fw-bold">Your Active Reported Issues</h3>
             </div>
             <div class="card-body p-0">
                 @forelse ($issues as $issue)
@@ -52,7 +52,8 @@
                                         <h5 class="mb-1">{{ $issue->issue_type }} Issue</h5>
                                         <p class="text-muted mb-0">
                                             <i class="fas fa-map-marker-alt me-1"></i>
-                                            {{ $issue->location->building_name }}, Room {{ $issue->location->room_number }}
+                                            {{ $issue->location->building_name ?? 'unknown building name'}}, Room {{ $issue->location->room_number ?? 
+                                            'unknown room number'}}
                                         </p>
                                     </div>
                                 </div>

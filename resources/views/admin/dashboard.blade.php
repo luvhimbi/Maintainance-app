@@ -147,8 +147,8 @@
                                 @foreach($recentTasks as $task)
                                 <tr>
                                     <td>
-                                        <strong>{{ $task->title }}</strong><br>
-                                        <small class="text-muted">{{ Str::limit($task->description, 40) }}</small>
+                                        <strong>{{ $task->issue->issue_type }}</strong><br>
+                                        
                                     </td>
                                     <td>
                                         @if($task->status == 'completed')

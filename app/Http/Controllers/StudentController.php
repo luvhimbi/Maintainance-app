@@ -23,18 +23,5 @@ class StudentController extends Controller
     
         return view('Student.dashboard', compact('issues'));
     }
-    public function storeComment(Request $request, $issueId)
-{
-    $request->validate([
-        'comment' => 'required|string|max:1000',
-    ]);
-
-    Comment::create([
-        'issue_id' => $issueId,
-        'user_id' => auth()->id(),
-        'comment' => $request->input('comment'),
-    ]);
-
-    return redirect()->back()->with('success', 'Comment added successfully!');
-}
+  
 }

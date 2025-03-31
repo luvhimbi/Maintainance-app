@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Maintenance Dashboard')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('./css/global.css') }}">
 
-      <!-- Font Awesome -->
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-      <style>
+    <style>
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f8f9fa;
@@ -39,6 +39,9 @@
             padding: 0.5rem 1rem;
             transition: all 0.3s ease;
             border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .nav-link:hover {
@@ -85,6 +88,9 @@
             border-radius: 0.375rem;
             font-weight: 500;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .dropdown-item:hover {
@@ -116,19 +122,38 @@
 <body>
     
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Maintenance Dashboard</a>
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-tools me-2"></i>Maintenance
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ route('technician.dashboard') }}" >Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('Assigned_tasks')}}">Assigned Tasks</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('completed.tasks') }}">Task History</a></li>
-                    <li class="nav-item"><a class="nav-link" >Notifications</a></li>
-                    <li class="nav-item"><a class="nav-link" >Communicate</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('technician.dashboard') }}">
+                            <i class="fas fa-home"></i>Home
+                        </a>
+                    </li>
+                   
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('completed.tasks') }}">
+                            <i class="fas fa-history"></i>Task History
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link">
+                            <i class="fas fa-bell"></i>Notifications
+                            <span class="badge bg-danger notification-badge">3</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link">
+                            <i class="fas fa-comments"></i>Communicate
+                        </a>
+                    </li>
 
                     <!-- User Dropdown -->
                     @auth
@@ -142,7 +167,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
-                                <a class="dropdown-item" href="{{ route('profile') }}">
+                                <a class="dropdown-item" href="{{ route('techProfile') }}">
                                     <i class="fas fa-user me-2"></i>Profile
                                 </a>
                             </li>
@@ -158,7 +183,11 @@
                         </ul>
                     </li>
                     @else
-                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('login') }}">
+                            <i class="fas fa-sign-in-alt"></i>Login
+                        </a>
+                    </li>
                     @endauth
                 </ul>
             </div>
