@@ -85,23 +85,29 @@
 <body>
 
 <!-- Navbar -->
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-white">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-            <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+        <!-- Logo and Brand Name -->
+        <a class="navbar-brand d-flex align-items-center" href="{{ route('admin.dashboard') }}">
+            <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
+            <span class="fw-bold" style="color: #3a7bd5;">Admin Dashboard</span>
         </a>
+        
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
+        
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-lg-center">
+                <!-- Dashboard Link -->
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.dashboard') }}">
                         <i class="fas fa-home me-1"></i> Dashboard
                     </a>
                 </li>
                 
-                <!-- Maintenance Tasks -->
+                <!-- Maintenance Tasks Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="tasksDropdown" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-tools me-1"></i> Maintenance
@@ -116,14 +122,14 @@
                     </ul>
                 </li>
 
-                <!-- Reports -->
+                <!-- Reports Link -->
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('admin.reports.technician-performance') }}">
                         <i class="fas fa-chart-bar me-1"></i> Reports
                     </a>
                 </li>
 
-                <!-- User Management -->
+                <!-- User Management Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-users-cog me-1"></i> Users
@@ -190,6 +196,35 @@
 <div class="container mt-4">
     @yield('content')
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Add this before closing </body> -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle logout confirmation
+        const logoutForm = document.querySelector('form[action="{{ route('logout') }}"]');
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You will be logged out of the system!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, logout!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // If confirmed, submit the form
+                        logoutForm.submit();
+                    }
+                });
+            });
+        }
+    });
+</script>
 </body>
 </html>

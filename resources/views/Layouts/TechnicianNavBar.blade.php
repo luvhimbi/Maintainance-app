@@ -125,6 +125,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
+                <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
                 <i class="fas fa-tools me-2"></i>Maintenance
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -226,7 +227,36 @@
             });
         });
     </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Add this before closing </body> -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle logout confirmation
+        const logoutForm = document.querySelector('form[action="{{ route('logout') }}"]');
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You will be logged out of the system!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, logout!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // If confirmed, submit the form
+                        logoutForm.submit();
+                    }
+                });
+            });
+        }
+    });
+</script>
     <!-- Additional Scripts -->
     @stack('scripts')
 </body>
