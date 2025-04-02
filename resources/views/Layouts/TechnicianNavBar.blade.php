@@ -144,15 +144,17 @@
                             <i class="fas fa-history"></i>Task History
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link">
-                            <i class="fas fa-bell"></i>Notifications
-                            <span class="badge bg-danger notification-badge">3</span>
-                        </a>
-                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link">
                             <i class="fas fa-comments"></i>Communicate
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link">
+                            <i class="fas fa-bell"></i>Notifications
+                            
                         </a>
                     </li>
 

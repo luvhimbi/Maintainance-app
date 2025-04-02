@@ -88,7 +88,7 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-white">
     <div class="container-fluid">
-        <!-- Logo and Brand Name -->
+      
         <a class="navbar-brand d-flex align-items-center" href="{{ route('admin.dashboard') }}">
             <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
             <span class="fw-bold" style="color: #3a7bd5;">Admin Dashboard</span>
@@ -117,7 +117,7 @@
                             <i class="fas fa-tasks me-2"></i> Manage Tasks
                         </a></li>
                         <li><a class="dropdown-item" href="{{ route('admin.locations.index')}}">
-                            <i class="fas fa-qrcode me-2"></i> QR Generator
+                            <i class="fas fa-qrcode me-2"></i> Locations
                         </a></li>
                     </ul>
                 </li>

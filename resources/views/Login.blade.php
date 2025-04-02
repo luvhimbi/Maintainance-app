@@ -20,12 +20,13 @@
             background-color: #f8f9fa;
         }
         .login-container {
-            max-width: 700px;
+            max-width: 650px;
             margin: 60px auto;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             background-color: white;
+         
         }
         .form-title {
             font-weight: 600;

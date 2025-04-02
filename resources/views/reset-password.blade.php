@@ -18,7 +18,7 @@
             background-color: #f8f9fa;
         }
         .reset-container {
-            max-width: 500px;
+            max-width: 650px;
             margin: 80px auto;
             padding: 30px;
             border-radius: 10px;
