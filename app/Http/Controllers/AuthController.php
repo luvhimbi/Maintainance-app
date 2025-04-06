@@ -13,6 +13,9 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
+
+
+    // return the login view 
     public function showLoginForm()
     {
         return view('login');
@@ -68,6 +71,7 @@ class AuthController extends Controller
     {
         return view('reset-password');
     }
+    
     public function sendResetLink(Request $request)
     {
         // Validate the email

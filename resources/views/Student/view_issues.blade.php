@@ -127,7 +127,7 @@
                     </div>
                     <h4 class="fw-bold mb-2">No Issues Found</h4>
                     <p class="text-muted mb-4">You haven't reported any maintenance issues yet.</p>
-                    <a href="{{ route('Student.report_issue') }}" class="btn btn-primary">
+                    <a href="{{ route('Student.createissue') }}" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Report New Issue
                     </a>
                 </div>

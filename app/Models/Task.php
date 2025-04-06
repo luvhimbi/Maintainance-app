@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\TaskUpdate;
+use App\Models\Issue;
+use App\Models\User;
+use App\Models\Admin;
+use App\Models\Location;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Task extends Model
 {
     use HasFactory;
@@ -45,7 +50,7 @@ class Task extends Model
 
     public function admin()
     {
-        return $this->belongsTo(Admin::class, 'admin_id');
+        return $this->belongsTo(User::class, 'admin_id');
     }
     public function updates()
     {

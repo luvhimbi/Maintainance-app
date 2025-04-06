@@ -1,30 +1,32 @@
 @extends('Layouts.AdminNavBar')
 
 @section('content')
-<div class="container task-view-container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0 task-header text-primary">
-            <i class="fas fa-tasks me-2"></i>Task Management
-        </h1>
-       
-    </div>
-    
-    <!-- Information Alert -->
-    <div class="alert alert-info mb-4">
-        <i class="fas fa-info-circle me-2"></i> If the system shows "N/A" for Admin, it means the task was automatically assigned based on technician availability.
+<div class="container task-management-container py-4">
+    <!-- Header Section -->
+    <div class="header-section mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="page-title mb-1">Task Management</h2>
+                <p class="page-subtitle text-muted">Manage and monitor all technician tasks</p>
+            </div>
+            
+        </div>
     </div>
 
-    <div class="card shadow-sm">
+    
+
+    <!-- Task Table -->
+    <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">Task ID</th>
-                            <th>Issue</th>
+                <table class="table align-middle">
+                    <thead>
+                        <tr class="table-light">
+                            <th class="ps-4">ID</th>
+                            <th>Issue Details</th>
                             <th>Technician</th>
-                            <th>Admin</th>
-                            <th>Assigned</th>
+                            <th>Assigned By</th>
+                            <th>Assigned On</th>
                             <th>Due Date</th>
                             <th>Status</th>
                             <th>Priority</th>
@@ -33,96 +35,118 @@
                     </thead>
                     <tbody>
                         @foreach($task as $tasks)
-                            <tr class="@if($tasks->issue_status == 'Completed') bg-light @endif">
-                                <td class="ps-4 fw-bold">#{{ $tasks->task_id }}</td>
+                            <tr class="@if($tasks->issue_status == 'Completed') table-success-light @endif">
+                                <!-- Task ID -->
+                                <td class="ps-4 fw-semibold text-muted">#{{ $tasks->task_id }}</td>
+                                
+                                <!-- Issue Details -->
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="me-2">
-                                            <i class="fas fa-bug text-danger"></i>
+                                        <div class="icon-container text-danger me-2">
+                                            <i class="fas fa-exclamation-circle"></i>
                                         </div>
                                         <div>
-                                            <div class="fw-semibold">ISSUE-{{ $tasks->issue_id }}</div>
-                                            <small class="text-muted">@if($tasks->issue){{ Str::limit($tasks->issue->title, 30) }}@else N/A @endif</small>
+                                            <div class="fw-medium">ISSUE-{{ $tasks->issue_id }}</div>
+                                            <small class="text-muted">
+                                                @if($tasks->issue)
+                                                    {{ Str::limit($tasks->issue->title, 25) }}
+                                                @else 
+                                                    N/A
+                                                @endif
+                                            </small>
                                         </div>
                                     </div>
                                 </td>
+                                
+                                <!-- Technician -->
                                 <td>
                                     @if($tasks->assignee)
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-2">
-                                                <div class="avatar-title bg-light-primary rounded-circle">
-                                                    {{ strtoupper(substr($tasks->assignee->username, 0, 1)) }}
-                                                </div>
+                                            <div class="avatar-circle bg-light-primary me-2">
+                                                {{ strtoupper(substr($tasks->assignee->username, 0, 1)) }}
                                             </div>
-                                            <div>{{ $tasks->assignee->username }}</div>
+                                            <span>{{ $tasks->assignee->username }}</span>
                                         </div>
                                     @else
-                                        <span class="badge bg-light text-dark">
-                                            <i class="fas fa-user-slash me-1"></i> Unassigned
+                                        <span class="badge bg-light text-secondary">
+                                            <i class="fas fa-user-times me-1"></i> Unassigned
                                         </span>
                                     @endif
                                 </td>
+                                
+                                <!-- Admin -->
+                               
+                               
                                 <td>
-                                    @if($tasks->admin)
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-2">
-                                                <div class="avatar-title bg-light-info rounded-circle">
-                                                    {{ strtoupper(substr($tasks->admin->name, 0, 1)) }}
-                                                </div>
-                                            </div>
-                                            <div>{{ $tasks->admin->name }}</div>
-                                        </div>
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
+                                    
+                                        <span class="text-muted">System</span>
+                                   
                                 </td>
+                                
+                                <!-- Assignment Date -->
                                 <td>
                                     <div class="text-muted small">
-                                        {{ $tasks->assignment_date->format('M d, Y') }}
+                                        {{ $tasks->assignment_date->format('d M Y') }}
                                     </div>
                                 </td>
+                                
+                                <!-- Due Date -->
                                 <td>
-                                    <div class="@if($tasks->expected_completion->isPast() && $tasks->issue_status != 'Completed') text-danger @endif">
-                                        {{ $tasks->expected_completion->format('M d, Y') }}
+                                    <div class="@if($tasks->expected_completion->isPast() && $tasks->issue_status != 'Completed') text-danger @else text-muted @endif">
+                                        {{ $tasks->expected_completion->format('d M Y') }}
+                                        @if($tasks->expected_completion->isPast() && $tasks->issue_status != 'Completed')
+                                            <i class="fas fa-exclamation ms-1"></i>
+                                        @endif
                                     </div>
                                 </td>
+                                
+                                <!-- Status -->
                                 <td>
-                                    <span class="badge rounded-pill 
-                                        @if($tasks->issue_status == 'Completed') bg-success
-                                        @elseif($tasks->issue_status == 'In Progress') bg-primary
-                                        @elseif($tasks->issue_status == 'Pending') bg-warning
-                                        @else bg-secondary @endif">
+                                    @php
+                                        $statusClasses = [
+                                            'Completed' => 'success',
+                                            'In Progress' => 'primary',
+                                            'Pending' => 'warning'
+                                        ];
+                                    @endphp
+                                    <span class="badge bg-soft-{{ $statusClasses[$tasks->issue_status] ?? 'secondary' }} text-{{ $statusClasses[$tasks->issue_status] ?? 'secondary' }}">
                                         {{ $tasks->issue_status }}
                                     </span>
                                 </td>
+                                
+                                <!-- Priority -->
                                 <td>
-                                    <span class="badge rounded-pill 
-                                        @if($tasks->priority == 'High') bg-danger
-                                        @elseif($tasks->priority == 'Medium') bg-warning
-                                        @elseif($tasks->priority == 'Low') bg-success
-                                        @else bg-secondary @endif">
-                                        <i class="fas fa-flag me-1"></i>{{ $tasks->priority }}
+                                    @php
+                                        $priorityClasses = [
+                                            'High' => 'danger',
+                                            'Medium' => 'warning',
+                                            'Low' => 'success'
+                                        ];
+                                    @endphp
+                                    <span class="badge bg-soft-{{ $priorityClasses[$tasks->priority] ?? 'secondary' }} text-{{ $priorityClasses[$tasks->priority] ?? 'secondary' }}">
+                                        <i class="fas fa-flag me-1"></i>
+                                        {{ $tasks->priority }}
                                     </span>
                                 </td>
+                                
+                                <!-- Actions -->
                                 <td class="pe-4 text-end">
-                                    <div class="btn-group">
-                                        <a 
-                                           class="btn btn-sm btn-outline-primary"
-                                           data-bs-toggle="tooltip"
-                                           title="View Progress">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
+                                    <div class="action-buttons">
+                                        <a href="{{ route('tasks.progress.show', $tasks->task_id) }}" 
+                                            class="btn btn-sm btn-soft-primary"
+                                            data-bs-toggle="tooltip"
+                                            title="View Progress">
+                                             <i class="fas fa-eye"></i>
+                                         </a>
                                         
                                         @if(!$tasks->assignee)
-                                            <a href="{{ route('tasks.assign', $tasks->task_id) }}"
-                                               class="btn btn-sm btn-outline-warning"
+                                            <a href="{{ route('tasks.assign', ['task_id' => $tasks->task_id]) }}"
+                                               class="btn btn-sm btn-soft-warning"
                                                data-bs-toggle="tooltip"
                                                title="Assign Task">
                                                 <i class="fas fa-user-plus"></i>
                                             </a>
                                         @endif
-                                        
-                                       
                                     </div>
                                 </td>
                             </tr>
@@ -135,26 +159,131 @@
 </div>
 
 <style>
-    .avatar-sm {
-        width: 32px;
-        height: 32px;
+    /* Base Styles */
+    .task-management-container {
+        max-width: 1400px;
+    }
+    
+    /* Header Styles */
+    .header-section {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1rem;
+    }
+    
+    .page-title {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .page-subtitle {
+        font-size: 0.875rem;
+    }
+    
+    /* Table Styles */
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        font-weight: 500;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        border-top: none;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        padding: 1rem 0.75rem;
+        border-top: 1px solid #f8f9fa;
+    }
+    
+    /* Avatar Styles */
+    .avatar-circle {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    /* Badge Styles */
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+        font-size: 0.75rem;
+    }
+    
+    .bg-soft-primary {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .bg-soft-success {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+    
+    .bg-soft-warning {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+    
+    .bg-soft-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+    
+    .bg-soft-secondary {
+        background-color: rgba(108, 117, 125, 0.1);
+    }
+    
+    .bg-soft-info {
+        background-color: rgba(13, 202, 240, 0.1);
+    }
+    
+    /* Completed row styling */
+    .table-success-light {
+        background-color: rgba(25, 135, 84, 0.03);
+    }
+    
+    /* Action buttons */
+    .action-buttons .btn {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin-left: 5px;
+        border-radius: 6px;
+    }
+    
+    .btn-soft-primary {
+        color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+        border: none;
+    }
+    
+    .btn-soft-warning {
+        color: #ffc107;
+        background-color: rgba(255, 193, 7, 0.1);
+        border: none;
+    }
+    
+    /* Icon container */
+    .icon-container {
+        width: 24px;
+        height: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-    .avatar-title {
-        font-weight: 600;
-    }
-    .table-hover tbody tr:hover {
-        background-color: rgba(13, 110, 253, 0.05) !important;
-    }
-    .task-header {
-        font-weight: 600;
-        letter-spacing: -0.5px;
-    }
-    .badge {
-        font-weight: 500;
-        padding: 0.35em 0.65em;
+    
+    /* Info badge */
+    .info-badge .badge {
+        font-weight: 400;
+        font-size: 0.8rem;
     }
 </style>
 

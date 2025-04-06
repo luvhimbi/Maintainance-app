@@ -126,7 +126,7 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
                 <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
-                <i class="fas fa-tools me-2"></i>Maintenance
+                <i class="fas fa-tools me-2"></i>OCM
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

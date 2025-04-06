@@ -13,6 +13,7 @@ Artisan::command('inspire', function () {
     /** @var ClosureCommand $this */
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
 Schedule::call(function () {
     $queuedTasks = Task::whereNull('assignee_id')->get();
     Log::info('Processing queued tasks: ' . $queuedTasks->count() . ' tasks found.');

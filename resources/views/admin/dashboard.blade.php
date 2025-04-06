@@ -3,215 +3,224 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
-<div class="container-fluid px-4">
-    <h1 class="mt-4">Dashboard Overview</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item active">System Statistics and Analytics</li>
-    </ol>
-    
-    <!-- Stats Cards Row -->
-    <div class="row">
-        <!-- Users Card -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-primary text-white mb-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="font-weight-normal">Total Users</h6>
-                            <h3 class="font-weight-bold">{{ $userCounts['total'] }}</h3>
-                        </div>
-                        <i class="fas fa-users fa-3x"></i>
+<div class="container px-4">
+    <!-- Dashboard Header -->
+    <div class="d-flex justify-content-between align-items-center py-4">
+        <div>
+            <h1 class="fw-light mb-0">Dashboard Overview</h1>
+            <p class="text-muted small mb-0">System statistics and key metrics</p>
+        </div>
+        <div class="text-muted small">
+            Last Updated: {{ now()->format('M j, Y g:i A') }}
+        </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="row g-4 mb-4">
+        <!-- Metric Cards -->
+        <div class="col-xxl-3 col-md-6">
+            <div class="metric-card bg-white p-4 rounded-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase text-muted small mb-2">Total Users</h6>
+                        <h2 class="mb-0">{{ $userCounts['total'] }}</h2>
+                    </div>
+                    <div class="metric-icon bg-primary-light">
+                        <i class="fas fa-users fa-lg text-primary"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link">View Details</a>
-                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between small">
+                        <span>Students: {{ $userCounts['students'] }}</span>
+                        <span>Admins: {{ $userCounts['admins'] }}</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tasks Card -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-success text-white mb-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="font-weight-normal">Total Tasks</h6>
-                            <h3 class="font-weight-bold">{{ $taskCounts['total'] }}</h3>
-                        </div>
-                        <i class="fas fa-tasks fa-3x"></i>
+        <div class="col-xxl-3 col-md-6">
+            <div class="metric-card bg-white p-4 rounded-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase text-muted small mb-2">Total Tasks</h6>
+                        <h2 class="mb-0">{{ $taskCounts['total'] }}</h2>
+                    </div>
+                    <div class="metric-icon bg-success-light">
+                        <i class="fas fa-tasks fa-lg text-success"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="{{ route('admin.tasks.view') }}">View Details</a>
-                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                <div class="mt-3">
+                    <a href="{{ route('admin.tasks.view') }}" class="text-decoration-none small">
+                        View Details <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Completed Tasks Card -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-info text-white mb-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="font-weight-normal">Completed Tasks</h6>
-                            <h3 class="font-weight-bold">{{ $taskCounts['completed'] }}</h3>
-                        </div>
-                        <i class="fas fa-check-circle fa-3x"></i>
+        <div class="col-xxl-3 col-md-6">
+            <div class="metric-card bg-white p-4 rounded-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase text-muted small mb-2">Completed Tasks</h6>
+                        <h2 class="mb-0">{{ $taskCounts['completed'] }}</h2>
+                    </div>
+                    <div class="metric-icon bg-info-light">
+                        <i class="fas fa-check-circle fa-lg text-info"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" href="{{ route('admin.tasks.view', ['status' => 'completed']) }}">View Details</a>
-                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                <div class="mt-3">
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-info" 
+                             style="width: {{ ($taskCounts['completed']/$taskCounts['total'])*100 }}%">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Technicians Card -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card bg-warning text-white mb-4">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="font-weight-normal">Active Technicians</h6>
-                            <h3 class="font-weight-bold">{{ $userCounts['technicians'] }}</h3>
-                        </div>
-                        <i class="fas fa-tools fa-3x"></i>
+        <div class="col-xxl-3 col-md-6">
+            <div class="metric-card bg-white p-4 rounded-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase text-muted small mb-2">Active Technicians</h6>
+                        <h2 class="mb-0">{{ $userCounts['technicians'] }}</h2>
+                    </div>
+                    <div class="metric-icon bg-warning-light">
+                        <i class="fas fa-tools fa-lg text-warning"></i>
                     </div>
                 </div>
-                <div class="card-footer d-flex align-items-center justify-content-between">
-                    <a class="small text-white stretched-link" >View Details</a>
-                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                <div class="mt-3">
+                    <span class="badge bg-success">↑ 12% from last month</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts Row -->
-    <div class="row">
-        <!-- User Distribution Chart -->
-        <div class="col-xl-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-chart-pie me-1"></i>
-                    User Distribution
+    <!-- Data Visualization Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0">Task Status Overview</h6>
                 </div>
                 <div class="card-body">
-                    <canvas id="userDistributionChart" width="100%" height="300"></canvas>
-                </div>
-                <div class="card-footer small text-muted">
-                    Updated {{ now()->format('g:i A') }}
+                    <canvas id="taskStatusChart" style="height: 300px;"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Task Status Chart -->
-        <div class="col-xl-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-chart-bar me-1"></i>
-                    Task Status Overview
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0">User Distribution</h6>
                 </div>
                 <div class="card-body">
-                    <canvas id="taskStatusChart" width="100%" height="300"></canvas>
-                </div>
-                <div class="card-footer small text-muted">
-                    Updated {{ now()->format('g:i A') }}
+                    <canvas id="userDistributionChart" style="height: 300px;"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activities Row -->
-    <div class="row">
-        <!-- Recent Tasks -->
+    <!-- Activity Sections -->
+    <div class="row g-4">
         <div class="col-lg-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                    Recent Tasks
-                    <a href="{{ route('admin.tasks.view') }}" class="btn btn-sm btn-primary float-end">View All</a>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Recent Activities</h6>
+                        <a href="{{ route('admin.tasks.view') }}" class="btn btn-sm btn-outline-secondary">
+                            View All <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Task</th>
-                                    <th>Status</th>
-                                    <th>Assigned To</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($recentTasks as $task)
-                                <tr>
-                                    <td>
-                                        <strong>{{ $task->issue->issue_type }}</strong><br>
-                                        
-                                    </td>
-                                    <td>
-                                        @if($task->status == 'completed')
-                                            <span class="badge bg-success">Completed</span>
-                                        @elseif($task->status == 'in_progress')
-                                            <span class="badge bg-info">In Progress</span>
-                                        @else
-                                            <span class="badge bg-warning">Pending</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $task->assignee->username ?? 'Unassigned' }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div class="list-group list-group-flush">
+                        @foreach($recentTasks as $task)
+                        <div class="list-group-item border-0 px-0 py-3">
+                            <div class="d-flex align-items-start">
+                              
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <div>
+                                            
+                                            <span class="badge bg-primary ms-2">
+                                                {{ ucfirst($task->priority) }}
+                                            </span>
+                                        </div>
+                                        <small >{{ $task->created_at }}</small>
+                                    </div>
+                                    <div class="small text-muted mb-2">
+                                        {{ Str::limit($task->issue->issue_description, 80) }}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-{{ $task->status_class }} me-2">
+                                                {{ ucfirst($task->status) }}
+                                            </span>
+                                            <small class="text-muted">
+                                                <i class="fas fa-user-cog me-1"></i>
+                                                {{ $task->assignee->username ?? 'Unassigned' }}
+                                            </small>
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Due: {{ $task->expected_completion}}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Top Technicians -->
         <div class="col-lg-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-star me-1"></i>
-                    Top Performing Technicians
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0">Top Performers</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead class="table-dark">
+                        <table class="table align-middle">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th>Rank</th>
                                     <th>Technician</th>
-                                    <th>Completed Tasks</th>
-                                    <th>Performance</th>
+                                    <th class="text-end">Completed</th>
+                                    <th class="text-end">Total Tasks</th>
+                                    <th class="text-end">Efficiency</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($topTechnicians as $index => $tech)
+                                @foreach($topTechnicians as $tech)
+                                @php
+                                    $efficiency = $tech->total_tasks > 0 
+                                        ? ($tech->completed_tasks / $tech->total_tasks) * 100 
+                                        : 0;
+                                @endphp
                                 <tr>
-                                    <td>#{{ $index + 1 }}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-sm me-2">
-                                                <div class="avatar-title bg-light rounded">
-                                                    {{ substr($tech->username, 0, 1) }}
-                                                </div>
+                                            <div class="avatar avatar-sm bg-light-primary rounded-circle me-2">
+                                                {{ substr($tech->username, 0, 1) }}
                                             </div>
-                                            <div>{{ $tech->username }}</div>
+                                            <span>{{ $tech->username }}</span>
                                         </div>
                                     </td>
-                                    <td>{{ $tech->completed_tasks }}</td>
-                                    <td>
-                                        <div class="progress" style="height: 20px;">
-                                            <div class="progress-bar bg-success" 
-                                                 role="progressbar" 
-                                                 style="width: {{ ($tech->completed_tasks/max($taskCounts['completed'], 1))*100 }}%" 
-                                                 aria-valuenow="{{ $tech->completed_tasks }}" 
-                                                 aria-valuemin="0" 
-                                                 aria-valuemax="{{ max($taskCounts['completed'], 1) }}">
-
+                                    <td class="text-end">{{ $tech->completed_tasks }}</td>
+                                    <td class="text-end">{{ $tech->total_tasks }}</td>
+                                    <td class="text-end">
+                                        <div class="d-flex align-items-center justify-content-end">
+                                            <div class="progress flex-grow-1 me-2" style="height: 20px; width: 100px;">
+                                                <div class="progress-bar bg-success" 
+                                                     role="progressbar" 
+                                                     style="width: {{ $efficiency }}%"
+                                                     aria-valuenow="{{ $efficiency }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                </div>
                                             </div>
+                                            <span class="text-nowrap">{{ number_format($efficiency, 1) }}%</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -223,108 +232,102 @@
             </div>
         </div>
     </div>
+
 </div>
 
-<!-- Chart.js Scripts -->
+@section('styles')
+<style>
+    .metric-card {
+        transition: transform 0.2s;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-2px);
+    } .progress-bar {
+        min-width: 20px; /* Ensure progress is always visible */
+    }
+    .badge.bg-high { background-color: #dc3545; }
+    .badge.bg-medium { background-color: #ffc107; }
+    .badge.bg-low { background-color: #198754; }
+    
+    .metric-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .avatar {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+    }
+    
+    .bg-primary-light { background-color: rgba(13,110,253,0.1) }
+    .bg-success-light { background-color: rgba(25,135,84,0.1) }
+    .bg-info-light { background-color: rgba(13,202,240,0.1) }
+    .bg-warning-light { background-color: rgba(255,193,7,0.1) }
+</style>
+@endsection
+
 @section('scripts')
 @parent
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // User Distribution Pie Chart
-    const userCtx = document.getElementById('userDistributionChart');
-    new Chart(userCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Students', 'Technicians', 'Admins'],
-            datasets: [{
-                data: [
-                    {{ $userCounts['students'] }},
-                    {{ $userCounts['technicians'] }},
-                    {{ $userCounts['admins'] }}
-                ],
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.9)',
-                    'rgba(75, 192, 192, 0.9)',
-                    'rgba(153, 102, 255, 0.9)'
-                ],
-                borderColor: [
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)'
-                ],
-                borderWidth: 1,
-                hoverOffset: 15
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.label || '';
-                            let value = context.raw || 0;
-                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            let percentage = Math.round((value / total) * 100);
-                            return `${label}: ${value} (${percentage}%)`;
-                        }
-                    }
-                }
-            },
-            cutout: '70%'
-        }
-    });
 
-    // Task Status Bar Chart
-    const taskCtx = document.getElementById('taskStatusChart');
-    new Chart(taskCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Pending', 'In Progress', 'Completed'],
-            datasets: [{
-                label: 'Number of Tasks',
-                data: [
-                    {{ $taskCounts['pending'] }},
-                    {{ $taskCounts['in_progress'] }},
-                    {{ $taskCounts['completed'] }}
-                ],
-                backgroundColor: [
-                    'rgba(255, 206, 86, 0.7)',
-                    'rgba(54, 162, 235, 0.7)',
-                    'rgba(75, 192, 192, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(75, 192, 192, 1)'
-                ],
-                borderWidth: 1
-            }]
+document.addEventListener('DOMContentLoaded', function () {
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { mode: 'index', intersect: false }
         },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
+        scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
+    };
+
+    // User Distribution Chart
+    const userCtx = document.getElementById('userDistributionChart');
+    if (userCtx) {
+        new Chart(userCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Students', 'Technicians', 'Admins'],
+                datasets: [{
+                    data: [{{ $userCounts['students'] ?? 0 }}, {{ $userCounts['technicians'] ?? 0 }}, {{ $userCounts['admins'] ?? 0 }}],
+                    backgroundColor: ['#0d6efd', '#0dcaf0', '#6f42c1'],
+                    borderWidth: 0
+                }]
             },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.dataset.label}: ${context.raw}`;
-                        }
-                    }
-                }
-            }
-        }
-    });
+            options: chartOptions
+        });
+    }
+
+    // Task Status Chart
+    const taskCtx = document.getElementById('taskStatusChart');
+    if (taskCtx) {
+        new Chart(taskCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Pending', 'In Progress', 'Completed'],
+                datasets: [{
+                    label: 'Tasks',
+                    data: [{{ $taskCounts['pending'] ?? 0 }}, {{ $taskCounts['in_progress'] ?? 0 }}, {{ $taskCounts['completed'] ?? 0 }}],
+                    backgroundColor: ['#ffc107', '#0d6efd', '#198754']
+                }]
+            },
+            options: chartOptions
+        });
+    }
+});
+
+
 </script>
 @endsection
 @endsection

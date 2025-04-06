@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\Issue;
 use App\Models\TaskUpdate;
-use App\Models\Comment;
+
 use Illuminate\Support\Facades\Auth;
 class TaskController extends Controller
 {
@@ -27,7 +27,7 @@ class TaskController extends Controller
     {
         // Fetch all tasks with their assignee information
         $task = Task::with(['assignee', 'issue'])->get();
-
+        $tasks = Task::with('admin')->get(); 
         // Pass the tasks to the view
         return view('admin.tasks.view', compact('task'));
     }

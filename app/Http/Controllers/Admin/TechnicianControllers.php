@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Task;
 use App\Models\Issue;
+use App\Models\MaintenanceStaff;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 class TechnicianControllers extends Controller 
 {
 
@@ -31,35 +34,33 @@ class TechnicianControllers extends Controller
         $specializations = ['Electrical', 'Structural', 'Plumbing'];  // Added predefined specializations
         return view('admin.technicians.create', compact('specializations'));  // Updated view path
     }
+public function store(Request $request)
+{
+    $request->validate([
+        'username' => 'required|string|max:50|unique:users',
+        'email' => 'required|string|email|max:200|unique:users',
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        'phone_number' => 'nullable|string|max:20|unique:users',
+        'specialization' => 'required|string|max:100',
+    ]);
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'username' => 'required|string|max:50|unique:users',
-            'email' => 'required|string|email|max:200|unique:users',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'phone_number' => 'nullable|string|max:20|unique:users',
-            'specialization' => 'required|string|max:100',
-           
-        ]);
+    $user = User::create([
+        'username' => $request->username,
+        'email' => $request->email,
+        'password_hash' => Hash::make($request->password), // Using password_hash field
+        'phone_number' => $request->phone_number,
+        'user_role' => 'Technician',
+        'status' => 'Active',
+    ]);
 
-        $user = User::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),  // Changed from password_hash to password
-            'phone_number' => $request->phone_number,
-            'user_role' => 'Technician',
-            'status' => 'Active',
-        ]);
+    MaintenanceStaff::create([ // Changed from Technician to MaintenanceStaff
+        'user_id' => $user->user_id, // Using user_id as primary key
+        'specialization' => $request->specialization,
+    ]);
 
-        Technician::create([
-            'user_id' => $user->id,  // Changed from user_id to id
-            'specialization' => $request->specialization,
-        ]);
-
-        return redirect()->route('admin.technicians.index')  // Updated route name
-            ->with('success', 'Technician created successfully.');
-    }
+    return redirect()->route('admin.technicians.index')
+        ->with('success', 'Technician created successfully.');
+}
 
     public function show($id)
     {
@@ -79,16 +80,31 @@ class TechnicianControllers extends Controller
     public function update(Request $request, $id)
     {
         $technician = User::with('maintenanceStaff')->findOrFail($id);
-
-        $request->validate([
-            'username' => 'required|string|max:50|unique:users,username,' . $technician->id,
-            'email' => 'required|string|email|max:200|unique:users,email,' . $technician->id,
-            'phone_number' => 'nullable|string|max:20|unique:users,phone_number,' . $technician->id,
-            'status' => 'required|in:Active,Inactive,Suspended',
-            'specialization' => 'required|string|max:100',
     
+        $request->validate([
+            'username' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('users', 'username')->ignore($technician->user_id, 'user_id')
+            ],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:200',
+                Rule::unique('users', 'email')->ignore($technician->user_id, 'user_id')
+            ],
+            'phone_number' => [
+                'nullable',
+                'string',
+                'max:20',
+                Rule::unique('users', 'phone_number')->ignore($technician->user_id, 'user_id')
+            ],
+            'status' => 'required|in:Active,Inactive,Suspended',
+            'Specialization' => 'required|string|max:100',
         ]);
-
+    
         // Update user data
         $technician->update([
             'username' => $request->username,
@@ -96,31 +112,31 @@ class TechnicianControllers extends Controller
             'phone_number' => $request->phone_number,
             'status' => $request->status,
         ]);
-
-        // Update technician data
-        $technician->technician->update([
-            'specialization' => $request->specialization,
     
-        ]);
-
-        return redirect()->route('admin.technicians.index')  // Updated route name
+        // Update maintenance staff data
+        if ($technician->maintenanceStaff) {
+            $technician->maintenanceStaff->update([
+                'Specialization' => $request->Specialization,
+            ]);
+        }
+    
+        return redirect()->route('admin.technicians.index')
             ->with('success', 'Technician updated successfully.');
     }
 
     public function destroy($id)
-    {
-        $technician = User::findOrFail($id);
-        
-        // Soft delete if implemented, otherwise regular delete
-        if (method_exists($technician, 'trashed')) {
-            $technician->delete();
-        } else {
-            // Delete related technician record first
-            $technician->technician()->delete();
-            $technician->delete();
-        }
-
-        return redirect()->route('admin.technicians.index')  // Updated route name
-            ->with('success', 'Technician deleted successfully.');
+{
+    $technician = User::findOrFail($id);
+    
+    // First delete the maintenance staff record if it exists
+    if ($technician->maintenanceStaff) {
+        $technician->maintenanceStaff()->delete();
     }
+    
+    // Then delete the user
+    $technician->delete();
+
+    return redirect()->route('admin.technicians.index')
+        ->with('success', 'Technician deleted successfully.');
+}
 }

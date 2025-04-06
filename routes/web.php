@@ -90,9 +90,13 @@ Route::get('/completed-tasks', [TaskController::class, 'completedTasks'])->name(
 Route::get('/tasks/{task_id}/updates', [TaskController::class, 'taskUpdates'])->name('tasks.updates');
 
 Route::get('admin/tasks/assign', [TaskAssignmentController::class, 'create'])->name('tasks.assign');
-Route::post('admin/tasks/assign', [TaskAssignmentController::class, 'store'])->name('tasks.store');
+Route::get('/tasks/assign/{task_id?}', [TaskAssignmentController::class, 'create'])
+    ->name('tasks.assign');
 Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('admin.tasks.view');
-
+Route::post('/tasks/assign', [TaskAssignmentController::class, 'assign'])
+    ->name('tasks.store');
+    Route::get('/tasks/{task}/progress', [TaskAssignmentController::class, 'show'])
+     ->name('tasks.progress.show');
     // Location Management Routes
 Route::resource('locations', LocationQrController::class)->except(['show']);
     
@@ -101,8 +105,8 @@ Route::get('locations/create', [LocationQrController::class, 'create'])->name('a
 Route::post('locations', [LocationQrController::class, 'store'])->name('admin.locations.store');
  Route::get('locations/{location}/edit', [LocationQrController::class, 'edit'])->name('admin.locations.edit');
 Route::delete('locations/{location}', [LocationQrController::class, 'destroy'])->name('admin.locations.destroy');
-Route::put('locations', [LocationQrController::class, 'update'])->name('admin.locations.update');
-
+// Route::put('locations', [LocationQrController::class, 'update'])->name('admin.locations.update');
+Route::put('locations/{location}', [LocationController::class, 'update'])->name('admin.locations.update');
 
 
     // Route::get('/tasks/assign', [TaskController::class, 'showAssignForm'])->name('tasks.assign');
@@ -132,3 +136,6 @@ Route::put('locations', [LocationQrController::class, 'update'])->name('admin.lo
         ]);
         Route::get('/reports', [ReportController::class, 'technicianPerformance'])
         ->name('admin.reports.technician-performance');
+
+        Route::get('/admin/reports/technician-performance/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.report.export.pdf');
+Route::get('/admin/reports/technician-performance/export/excel', [ReportController::class, 'exportExcel'])->name('admin.report.export.excel');

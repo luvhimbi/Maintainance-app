@@ -42,8 +42,13 @@ class Issue extends Model
     public function task()
 {
     return $this->hasOne(Task::class, 'issue_id');
+} public function reporter()
+{
+    return $this->belongsTo(User::class, 'reporter_id', 'user_id'); // assuming 'reported_by' is the foreign key
+    
 }
-    public function tasks()
+
+public function tasks()
     {
         return $this->hasMany(Task::class, 'issue_id');
     }

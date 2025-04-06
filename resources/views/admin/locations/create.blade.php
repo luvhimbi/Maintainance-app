@@ -1,38 +1,146 @@
 @extends('Layouts.AdminNavBar')
 
 @section('content')
-<div class="container py-4">
-    <div class="card shadow">
-        <div class="card-header bg-white py-3">
-            <h4 class="mb-0">Add New Location</h4>
+<div class="container-fluid location-create py-4">
+    <div class="card border-0 shadow-sm">
+        <!-- Card Header -->
+        <div class="card-header bg-white border-bottom-0 py-3 px-4">
+            <div>
+                <h2 class="h5 mb-1">Add New Location</h2>
+                <p class="text-muted small mb-0">Fill in the details to create a new location</p>
+            </div>
         </div>
-        <div class="card-body">
-            <form action="{{ route('admin.locations.store') }}" method="POST">
+
+        <!-- Card Body -->
+        <div class="card-body px-4">
+            <form action="{{ route('admin.locations.store') }}" method="POST" id="locationForm">
                 @csrf
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Building Name*</label>
-                        <input type="text" name="building_name" class="form-control" required>
+                <div class="row mb-4">
+                    <!-- Building Name -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Building Name <span class="text-danger">*</span></label>
+                        <input type="text" name="building_name" class="form-control @error('building_name') is-invalid @enderror" 
+                               value="{{ old('building_name') }}" required>
+                        @error('building_name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Floor Number*</label>
-                        <input type="text" name="floor_number" class="form-control" required>
+                    
+                    <!-- Floor Number -->
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Floor Number <span class="text-danger">*</span></label>
+                        <input type="text" name="floor_number" class="form-control @error('floor_number') is-invalid @enderror" 
+                               value="{{ old('floor_number') }}" required>
+                        @error('floor_number')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Room Number*</label>
-                        <input type="text" name="room_number" class="form-control" required>
+                    
+                    <!-- Room Number -->
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Room Number <span class="text-danger">*</span></label>
+                        <input type="text" name="room_number" class="form-control @error('room_number') is-invalid @enderror" 
+                               value="{{ old('room_number') }}" required>
+                        @error('room_number')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
-                <div class="mb-3">
+                
+                <!-- Description -->
+                <div class="mb-4">
                     <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" rows="3"></textarea>
+                    <textarea name="description" class="form-control @error('description') is-invalid @enderror" 
+                              rows="3">{{ old('description') }}</textarea>
+                    @error('description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-                <div class="d-flex justify-content-end">
-                    <a href="{{ route('admin.locations.index') }}" class="btn btn-secondary me-2">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Save Location</button>
+                
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-end pt-2">
+                    <a href="{{ route('admin.locations.index') }}" class="btn btn-outline-secondary me-3">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Save Location
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- Include SweetAlert JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check for success message
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#3085d6',
+                timer: 3000
+            });
+        @endif
+
+        // Check for validation errors
+        @if($errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                html: `
+                    <ul class="text-left">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                `,
+                confirmButtonColor: '#3085d6'
+            });
+        @endif
+
+        // Form submission handling
+        const form = document.getElementById('locationForm');
+        form.addEventListener('submit', function(e) {
+            // You can add additional client-side validation here if needed
+            // If everything is valid, the form will submit normally
+            // and the server-side validation/SweetAlert will handle the response
+        });
+    });
+</script>
+
+<style>
+    .location-create {
+        max-width: 800px;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .btn-outline-secondary {
+        border-color: #dee2e6;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fa;
+    }
+</style>
 @endsection

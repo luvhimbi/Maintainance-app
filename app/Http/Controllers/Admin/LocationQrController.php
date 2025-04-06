@@ -40,7 +40,7 @@ class LocationQrController extends Controller
 
         Location::create($validated);
 
-        return redirect()->route('admin.locations.index')
+        return redirect()->route('admin.locations.create')
             ->with('success', 'Location created successfully');
     }
 
@@ -57,6 +57,7 @@ class LocationQrController extends Controller
      */
     public function update(Request $request, Location $location)
     {
+       
         $validated = $request->validate([
             'building_name' => 'required|string|max:100',
             'floor_number' => 'required|string|max:20',
@@ -66,7 +67,7 @@ class LocationQrController extends Controller
 
         $location->update($validated);
 
-        return redirect()->route('admin.locations.index')
+        return redirect()->route('admin.locations.edit', $location->location_id)
             ->with('success', 'Location updated successfully');
     }
 

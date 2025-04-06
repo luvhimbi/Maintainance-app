@@ -91,7 +91,7 @@
       
         <a class="navbar-brand d-flex align-items-center" href="{{ route('admin.dashboard') }}">
             <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
-            <span class="fw-bold" style="color: #3a7bd5;">Admin Dashboard</span>
+            <span class="fw-bold" style="color: #3a7bd5;">OCM</span>
         </a>
         
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -122,13 +122,7 @@
                     </ul>
                 </li>
 
-                <!-- Reports Link -->
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('admin.reports.technician-performance') }}">
-                        <i class="fas fa-chart-bar me-1"></i> Reports
-                    </a>
-                </li>
-
+               
                 <!-- User Management Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-bs-toggle="dropdown">
@@ -143,6 +137,12 @@
                         </a></li>
                     </ul>
                 </li>
+ <!-- Reports Link -->
+ <li class="nav-item">
+    <a class="nav-link" href="{{ route('admin.reports.technician-performance') }}">
+        <i class="fas fa-chart-bar me-1"></i> Reports
+    </a>
+</li>
 
                 <!-- Notifications -->
                 <li class="nav-item position-relative">
@@ -169,7 +169,7 @@
                             <i class="fas fa-user-circle" style="font-size: 1.25rem;"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="">
+                            <li><a class="dropdown-item" href="{{ route('adminProfile') }}">
                                 <i class="fas fa-user me-2"></i> Profile
                             </a></li>
                             <li>

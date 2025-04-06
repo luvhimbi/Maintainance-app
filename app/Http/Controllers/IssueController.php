@@ -177,7 +177,7 @@ private function assignOrQueueTask(Task $task)
     // Find available technician with matching specialization and workload < 3
     $technician = User::whereHas('maintenanceStaff', function ($query) use ($task) {
         $query->where('availability_status', 'Available')
-              ->where('current_workload', '<', 3)
+            //   ->where('current_workload', '<', 3)
               ->where('specialization', $task->issue->issue_type); // Match specialization to issue type
     })
     ->join('maintenance_staff', 'users.user_id', '=', 'maintenance_staff.user_id') // Join the tables
@@ -189,8 +189,10 @@ private function assignOrQueueTask(Task $task)
         // Assign tasks
         $task->update([
             'assignee_id' => $technician->user_id,
+            
             'assignment_date' => now(),
         ]);
+        
 
         // Update technician workload
         DB::table('maintenance_staff')

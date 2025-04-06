@@ -23,6 +23,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'username',
         'password_hash',
         'email',
@@ -58,7 +59,10 @@ class User extends Authenticatable
             'password_hash' => 'hashed', // Cast password_hash as hashed
         ];
     }
-
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
     /**
      * Get the admin record associated with the user.
      */
