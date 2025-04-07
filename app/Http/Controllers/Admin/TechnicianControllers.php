@@ -22,17 +22,17 @@ class TechnicianControllers extends Controller
     public function index()
     {
         $technicians = User::where('user_role', 'Technician')
-            ->with(['maintenanceStaff'])  // Added eager loading for related models
+            ->with(['maintenanceStaff'])  
             ->orderBy('username')
             ->paginate(10);
             
-        return view('admin.technicians.index', compact('technicians'));  // Updated view path to admin namespace
+        return view('admin.technicians.index', compact('technicians')); 
     }
 
     public function create()
     {
-        $specializations = ['Electrical', 'Structural', 'Plumbing'];  // Added predefined specializations
-        return view('admin.technicians.create', compact('specializations'));  // Updated view path
+        $specializations = ['Electrical', 'Structural', 'Plumbing'];  
+        return view('admin.technicians.create', compact('specializations'));  
     }
 public function store(Request $request)
 {
@@ -47,14 +47,14 @@ public function store(Request $request)
     $user = User::create([
         'username' => $request->username,
         'email' => $request->email,
-        'password_hash' => Hash::make($request->password), // Using password_hash field
+        'password_hash' => Hash::make($request->password),
         'phone_number' => $request->phone_number,
         'user_role' => 'Technician',
         'status' => 'Active',
     ]);
 
-    MaintenanceStaff::create([ // Changed from Technician to MaintenanceStaff
-        'user_id' => $user->user_id, // Using user_id as primary key
+    MaintenanceStaff::create([ 
+        'user_id' => $user->user_id, 
         'specialization' => $request->specialization,
     ]);
 
@@ -65,7 +65,7 @@ public function store(Request $request)
     public function show($id)
     {
         $technician = User::with(['maintenanceStaff', 'tasks', 'issues.comments'])->findOrFail($id);
-        return view('admin.technicians.show', compact('technician'));  // Updated view path
+        return view('admin.technicians.show', compact('technician'));  
     }
 
     public function edit($id)

@@ -9,7 +9,7 @@ use App\Models\Task;
 
 class AdminController extends Controller
 {
-  // In your Admin Controller
+
 public function dashboard()
 {
     // User statistics

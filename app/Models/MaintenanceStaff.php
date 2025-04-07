@@ -10,6 +10,10 @@ class MaintenanceStaff extends Model
     protected $table = 'maintenance_staff';
     protected $primaryKey = 'user_id';
     public $timestamps = false;
+    protected $fillable = [
+        'user_id'
+       
+    ];
 
     /**
      * Get the user associated with the maintenance staff.

@@ -91,7 +91,7 @@
       
         <a class="navbar-brand d-flex align-items-center" href="{{ route('admin.dashboard') }}">
             <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
-            <span class="fw-bold" style="color: #3a7bd5;">OCM</span>
+            <i class="fas fa-tools me-2"></i> <span class="fw-bold" style="color: #3a7bd5;">OCM</span>
         </a>
         
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -137,12 +137,12 @@
                         </a></li>
                     </ul>
                 </li>
- <!-- Reports Link -->
+ {{-- <!-- Reports Link -->
  <li class="nav-item">
     <a class="nav-link" href="{{ route('admin.reports.technician-performance') }}">
         <i class="fas fa-chart-bar me-1"></i> Reports
     </a>
-</li>
+</li> --}}
 
                 <!-- Notifications -->
                 <li class="nav-item position-relative">

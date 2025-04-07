@@ -13,7 +13,7 @@
             <p><strong>Availability Status:</strong> {{ $maintenanceStaff->availability_status }}</p>
             <p><strong>Current Workload:</strong> {{ $maintenanceStaff->current_workload }}</p>
 
-        <a class="btn btn-primary mb-3">Edit Profile</a>
+        <a class="btn btn-primary mb-3" href="{{route('tech_edit')}}">Edit Profile</a>
         @if (session('success'))
             <div class="alert alert-success">
             {{ session('success') }}
@@ -30,7 +30,7 @@
             </div>
         @endif
 <!--todo make this work-->
-        <form  method="POST">
+        <form  action="{{ route('profile.updatePassword') }}" method="POST" >
             @csrf
             @method('PUT')
 

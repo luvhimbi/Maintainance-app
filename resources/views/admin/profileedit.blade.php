@@ -1,4 +1,4 @@
-@extends('Layouts.TechnicianNavBar')
+@extends('Layouts.AdminNavbar')
 
 @section('title', 'Edit Profile')
 
@@ -7,12 +7,14 @@
     <h1>Edit Profile</h1>
 
     @if (session('success'))
-        <div class="alert alert-success">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+
     @endif
 
-    <form action="{{ route('tech_profile.update') }}" method="POST">
+    <form action="{{ route('admin_profile.update') }}" method="POST">
         @csrf
         
         <div class="mb-3">
@@ -40,6 +42,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary">Update Profile</button>
+       <a class="btn btn btn-secondary" href="{{ route('profile') }}">Cancel</a>
     </form>
 </div>
 @endsection

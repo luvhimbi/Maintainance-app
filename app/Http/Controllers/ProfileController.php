@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Notifications\ProfileUpdatedNotification;
-
+use Illuminate\Support\Facades\Hash;
+use App\Models\MaintenanceStaff;
 
 class ProfileController extends Controller
 {
@@ -16,6 +17,8 @@ class ProfileController extends Controller
     {
         return view('Student.profile', ['user' => Auth::user()]);
     }
+
+
 
     public function techProfile()
 {
@@ -45,7 +48,62 @@ class ProfileController extends Controller
     public function editProfile(){
         return view('Technician.profileedit', ['user' => Auth::user()]);
     }
-   
+
+
+    public function adminEditProfile(){
+        return view('admin.profileedit', ['user' => Auth::user()]);
+    }
+
+
+    public function adminUpdate(Request $request)
+    {
+        $user = Auth::user();
+    
+        // Validate request
+        $request->validate([
+            'username' => 'required|string|max:255',
+            'email' => ['required', 'email', 'max:255'],
+            'phone_number' => 'nullable|string|max:15',
+        ]);
+    
+        // Update user details
+        $user->update([
+            'username' => $request->username,
+            'email' => $request->email,
+            'phone_number' => $request->phone_number,
+        ]);
+    
+       
+        $user->notify(new ProfileUpdatedNotification());
+        return redirect()->route('adminEdit')
+            ->with('success', 'Profile updated successfully.');
+    }
+
+
+
+    public function techUpdate(Request $request)
+    {
+        $user = Auth::user();
+    
+        // Validate request
+        $request->validate([
+            'username' => 'required|string|max:255',
+            'email' => ['required', 'email', 'max:255'],
+            'phone_number' => 'nullable|string|max:15',
+        ]);
+    
+        // Update user details
+        $user->update([
+            'username' => $request->username,
+            'email' => $request->email,
+            'phone_number' => $request->phone_number,
+        ]);
+    
+       
+        $user->notify(new ProfileUpdatedNotification());
+        return redirect()->route('tech_edit')
+            ->with('success', 'Profile updated successfully.');
+    }
 
     public function update(Request $request)
     {
@@ -61,6 +119,7 @@ class ProfileController extends Controller
         // Update user details
         $user->update([
             'username' => $request->username,
+            'email' => $request->email,
             'phone_number' => $request->phone_number,
         ]);
     
@@ -71,28 +130,30 @@ class ProfileController extends Controller
     }
 
 
-public function updatePassword(Request $request)
-{
-    $user = Auth::user();
-
-    // Validate request
-    $request->validate([
-        'current_password' => 'required|string',
-        'new_password' => 'required|string|min:8|confirmed',
-    ]);
-
-    // Verify current password
-    if (!password_verify($request->current_password, $user->password)) {
-        return back()->withErrors(['current_password' => 'The current password is incorrect.']);
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+    
+        // Validate request
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+    
+        // Verify current password
+        if (!Hash::check($request->current_password, $user->password_hash)) {
+            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
+        }
+    
+        // Update password
+        $user->update([
+            'password_hash' => Hash::make($request->new_password),
+        ]);
+    
+        // Logout the user
+        Auth::logout();
+    
+        // Redirect to login with a success message
+        return redirect()->route('login')->with('success', 'Your password has been updated successfully. Please login again.');
     }
-
-    // Update password
-    $user->update([
-        'password' => password_hash($request->new_password, PASSWORD_DEFAULT),
-    ]);
-
-    // Redirect back with a success message
-    return back()->with('success', 'Your password has been updated successfully.');
-}
-
 }

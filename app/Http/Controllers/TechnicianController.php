@@ -10,7 +10,9 @@ use App\Models\TaskUpdate;
 use App\Models\Comment;
 
 class TechnicianController extends Controller
-{public function dashboard()
+{
+    
+    public function dashboard()
     {
         // Get the authenticated user's ID
         $userId = Auth::id();

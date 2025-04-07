@@ -2,3 +2,5 @@
 -correct save student and maintainace stuff 
 -add alert for deleting students ,maintanance and location 
 -add proper logic on the person who assigns a task 
+-change the student role to user to fit for staff and students to report
+- update the profiles to work

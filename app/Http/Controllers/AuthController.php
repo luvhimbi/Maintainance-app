@@ -46,7 +46,7 @@ class AuthController extends Controller
     }
 
     // Check if the user's role matches the selected role
-    if ($user->user_role !== $request->role) {
+    if ($request->role !== $user->user_role ) {
         return back()->withErrors(['role' => 'Invalid role for this user.']);
     }
 
@@ -108,7 +108,14 @@ public function resetPassword(Request $request)
         'email' => 'required|email',
         'password' => 'required|confirmed|min:8',
     ]);
+/*
+view is blade.php files
+routes -web.php
+controller -http/App/Controllers/AuthController.php
+Models - Http/App/Models
 
+
+*/
     $status = Password::reset(
         $request->only('email', 'password', 'password_confirmation', 'token'),
         function ($user, $password) {

@@ -40,9 +40,15 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
 });
 //this is a profile for technician
+Route::get('/adminEditProfile', [ProfileController::class, 'adminEditProfile'])->name('adminEdit');
+Route::post('/adminEditProfile', [ProfileController::class, 'adminUpdate'])->name('admin_profile.update');
 
-Route::get('/techProfile', [ProfileController::class, 'editProfile'])->name('tech_edit');
+
+Route::get('/techEditProfile', [ProfileController::class, 'editProfile'])->name('tech_edit');
+Route::post('/techEditProfile', [ProfileController::class, 'techUpdate'])->name('tech_profile.update');
 Route::get('/techProfile', [ProfileController::class, 'techProfile'])->name('techProfile');
+
+
 Route::get('/adminProfile', [ProfileController::class, 'adminProfile'])->name('adminProfile');
 Route::get('/home', function () {
     return redirect()->route('Student.dashboard');
@@ -77,7 +83,7 @@ Route::get('/edit-issue', [IssueController::class, 'edit'])->name('issue.edit');
 Route::get('/tasks/update/{task_id}', [TaskController::class, 'showUpdateForm'])->name('tasks.update.form');
 
 // Route to handle the update submission
-Route::post('/tasks/update/{task_id}', [TaskController::class, 'updateTask'])->name('tasks.update');
+Route::put('/tasks/update/{task_id}', [TaskController::class, 'updateTask'])->name('tasks.update');
 
 Route::post('/logout', function () {
     Auth::logout();
@@ -106,7 +112,7 @@ Route::post('locations', [LocationQrController::class, 'store'])->name('admin.lo
  Route::get('locations/{location}/edit', [LocationQrController::class, 'edit'])->name('admin.locations.edit');
 Route::delete('locations/{location}', [LocationQrController::class, 'destroy'])->name('admin.locations.destroy');
 // Route::put('locations', [LocationQrController::class, 'update'])->name('admin.locations.update');
-Route::put('locations/{location}', [LocationController::class, 'update'])->name('admin.locations.update');
+Route::put('locations/{location}', [LocationQrController::class, 'update'])->name('admin.locations.update');
 
 
     // Route::get('/tasks/assign', [TaskController::class, 'showAssignForm'])->name('tasks.assign');

@@ -10,7 +10,7 @@
         <p><strong>Phone number:</strong> {{ $user->phone_number}}</p>
         <p><strong>Role:</strong> {{ $user->user_role }}</p>
 
-        <a  class="btn btn-primary mb-3">Edit Profile</a>
+        <a  class="btn btn-primary mb-3" href="{{ route('adminEdit')}}">Edit Profile</a>
         @if (session('success'))
             <div class="alert alert-success">
             {{ session('success') }}
@@ -27,7 +27,7 @@
             </div>
         @endif
 <!--todo make this work-->
-        <form method="POST">
+        <form  action="{{ route('profile.updatePassword') }}" method="POST" >
             @csrf
             @method('PUT')
 
