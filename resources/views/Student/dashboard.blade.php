@@ -73,12 +73,18 @@
                                     </span>
                                 </div>
                             </div>
+                            
                             <div class="col-md-3 text-md-end mt-3 mt-md-0">
-                                
-                                <a href="{{ route('Student.issue_details', $issue->issue_id) }}" 
-                                   class="btn btn-outline-primary px-4 py-2">
-                                    View Details <i class="fas fa-arrow-right ms-2"></i>
-                                </a>
+                                <div class="d-flex flex-column flex-md-row justify-content-md-end gap-2">
+                                    <a href="{{ route('Student.editissue', $issue->issue_id) }}" 
+                                        class="btn btn-outline-secondary px-3 py-2">
+                                         <i class="fas fa-edit me-1"></i> Edit
+                                     </a>
+                                    <a href="{{ route('Student.issue_details', $issue->issue_id) }}" 
+                                       class="btn btn-outline-primary px-4 py-2">
+                                        Details <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

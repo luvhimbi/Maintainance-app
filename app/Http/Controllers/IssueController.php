@@ -12,14 +12,20 @@ use App\Models\User;
 use App\Models\MaintenanceStaff;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\DatabaseNotification;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
 class IssueController extends Controller
 {
 
+
+    //this is for populating the dropdown
     public function create()
     {
         // Fetch locations to populate a dropdown in the form
         $locations = Location::all();
-
         // Retrieve session data if it exists (for going back to the form)
         $formData = session()->get('formData', []);
         $attachments = session()->get('attachments', []);
@@ -28,7 +34,7 @@ class IssueController extends Controller
     }
 
 
-
+// this is for storing the issue
     public function store(Request $request)
     {
         // Validate the form data
@@ -146,11 +152,12 @@ class IssueController extends Controller
                 'storage_disk' => 'public',
             ]);
         }
-
-        // Clear session data
-        // session()->forget(['formData', 'attachments']);
-
-        // Redirect to a success page
+        $user = User::find($formData['reporter_id']);
+        $user->notify(new DatabaseNotification(
+            'Your issue #' . $issue->issue_id . ' has been submitted successfully!',
+            route('Student.issue_details', $issue->issue_id) // URL to view the issue
+        ));
+    
         return redirect()->route('issue.success')->with('success', 'Issue reported successfully!');
     }
     private function mapUrgencyToPriority($urgency)
@@ -163,15 +170,101 @@ class IssueController extends Controller
     };
 }
 
-// public function success()
-// {
-//     // Ensure the issue ID is in the session
-//     if (!session()->has('issue_id')) {
-//         return redirect()->route('home')->with('error', 'No issue found to track.');
-//     }
 
-//     return view('Student.success');
-// }
+public function editReportedIssue(Issue $issue)
+{
+    // Check if the authenticated user is the reporter of this issue
+    if (Auth::id() !== $issue->reporter_id) {
+        abort(403, 'Unauthorized action.');
+    }
+
+    // Only allow editing if issue is still open
+    if ($issue->issue_status !== 'Open') {
+        return redirect()->route('Student.issue_details', $issue->issue_id)
+            ->with('error', 'Only Open issues can be edited.');
+    }
+
+    $locations = Location::all();
+    return view('Student.editissue', compact('issue', 'locations'));
+}
+
+public function update(Request $request, Issue $issue)
+{
+    // Validate the request
+    $validated = $request->validate([
+        'location_id' => 'required|exists:location,location_id',
+        'issue_type' => 'required|string|max:255',
+        'issue_description' => 'required|string',
+        'urgency_level' => 'required|in:High,Medium,Low',
+        'attachments.*' => 'nullable|file|max:2048|mimes:jpg,jpeg,png,pdf,doc,docx',
+        'keep_attachments' => 'nullable|array', // For attachments to keep
+        'keep_attachments.*' => 'nullable|integer|exists:issue_attachments,id', // Validate attachment IDs
+    ]);
+
+    // Authorization checks
+    if (Auth::id() !== $issue->reporter_id) {
+        abort(403, 'Unauthorized action.');
+    }
+
+    if ($issue->issue_status !== 'Open') {
+        return redirect()->route('Student.issue_details', $issue->issue_id)
+            ->with('error', 'Only Open issues can be updated.');
+    }
+
+    // Update the issue
+    $issue->update([
+        'location_id' => $validated['location_id'],
+        'issue_type' => $validated['issue_type'],
+        'issue_description' => $validated['issue_description'],
+        'urgency_level' => $validated['urgency_level'],
+    ]);
+
+    // Update task priority
+    if ($issue->task) {
+        $issue->task->update([
+            'priority' => $this->mapUrgencyToPriority($validated['urgency_level'])
+        ]);
+    }
+
+    // Handle attachments
+    if ($request->hasFile('attachments')) {
+        // First delete all existing attachments if we're replacing them
+        // Or implement selective deletion based on checkboxes
+        
+        // Option 1: Delete all old attachments
+        foreach ($issue->attachments as $attachment) {
+            Storage::disk($attachment->storage_disk)->delete($attachment->file_path);
+            $attachment->delete();
+        }
+
+        // Add new attachments
+        foreach ($request->file('attachments') as $file) {
+            $path = $file->store('attachments', 'public');
+            
+            IssueAttachment::create([
+                'issue_id' => $issue->issue_id,
+                'file_path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'storage_disk' => 'public',
+            ]);
+        }
+    }
+   HistoryLog::create([
+        'issue_id' => $issue->id,
+        'user_id' => auth()->id(),
+        'action' => 'status_changed',
+        'old_values' => ['status' => $oldStatus],
+        'new_values' => ['status' => $request->status],
+        'description' => "Status changed from {$oldStatus} to {$request->status}"
+    ]);
+    
+
+    return redirect()->route('Student.issue_details', $issue->issue_id)
+        ->with('success', 'Issue updated successfully!');
+}
+
 private function assignOrQueueTask(Task $task)
 {
     // Find available technician with matching specialization and workload < 3
@@ -210,6 +303,8 @@ private function assignOrQueueTask(Task $task)
         Log::info("Task {$task->task_id} queued - no available technicians");
     }
 }
+
+
 
 public function completeTask($taskId)
 {

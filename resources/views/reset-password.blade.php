@@ -57,12 +57,14 @@
             </div>
             <h1 class="form-title text-center">Reset Password</h1>
             
+            <!-- Status Message (Success) -->
             @if (session('status'))
                 <div class="alert alert-success">
                     {{ session('status') }}
                 </div>
             @endif
-            
+
+            <!-- General Errors -->
             @if ($errors->any())
                 <div class="alert alert-danger">
                     <ul class="mb-0">
@@ -77,8 +79,13 @@
                 @csrf
                 <div class="mb-4">
                     <label for="email" class="form-label">Email address</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                           id="email" name="email" value="{{ old('email') }}" required>
                     <div id="emailHelp" class="form-text">Enter your email to receive a password reset link.</div>
+                    <!-- Field-specific error -->
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
                 
                 <div class="mb-3">

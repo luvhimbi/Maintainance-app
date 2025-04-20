@@ -237,7 +237,7 @@
                         <span class="badge bg-danger">High</span>
                     @elseif($formData['urgency_level'] == 'medium')
                         <span class="badge bg-warning text-dark">Medium</span>
-                    @else
+                    @elseif ($formData['urgency_level']='low')
                         <span class="badge bg-success">Low</span>
                     @endif
                 </div>

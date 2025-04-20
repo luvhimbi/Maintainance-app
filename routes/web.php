@@ -15,6 +15,8 @@ use App\Http\Controllers\Admin\LocationQrController;
 use App\Http\Controllers\Admin\TechnicianControllers;
 use App\Http\Controllers\Admin\TaskAssignmentController; 
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\ChatController;
+
 // Show login form and handle submissions
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
@@ -58,24 +60,51 @@ Route::post('/report-issue', [IssueController::class, 'store'])->name('issue.sto
 Route::post('/save-issue', [IssueController::class, 'save'])->name('issue.save');
 Route::get('/view-issues', [IssueController::class, 'viewAllIssues'])->name('Student.view_issues');
 Route::get('/view-issues/{id}', [IssueController::class, 'viewIssueDetails'])->name('Student.issue_details');
-Route::get('/report-issue', [IssueController::class, 'create'])->name('Student.createissue');
+Route::get('/report-issue', [IssueController::class, 'create'])->name('Student.createissue')
+;
+Route::get('/issues/{issue}/edit', [IssueController::class, 'editReportedIssue'])->name('Student.editissue');
+Route::put('/issues/{issue}', [IssueController::class, 'update'])->name('Student.updateissue');
 Route::get('/report-issue/confirm', [IssueController::class, 'confirm'])->name('Student.confirmissue');
-
+Route::get('/student/issues/{issue}/edit', [IssueController::class, 'edit'])->name('Student.edit_issue');
+Route::put('/student/issues/{issue}', [IssueController::class, 'update'])->name('Student.update_issue');
 
 
 Route::get('/issue/success', [IssueController::class, 'success'])->name('issue.success');
+
+//notifcation routes 
 Route::get('/notifications', [NotificationController::class, 'index'])
     ->name('notifications.index')
     ->middleware('auth');
-
+    Route::get('/notifications/technician', [NotificationController::class, 'indexTechnician'])
+    ->name('notification.index')
+    ->middleware('auth');
+    
 // Mark all as read (optional)
 Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
     ->name('notifications.markAllRead')
     ->middleware('auth');
 
-Route::get('/assigned-tasks', [TaskController::class, 'assignedTasks'])->name('Assigned_tasks');
-Route::get('/technician/tasks/{task_id}', [TechnicianController::class, 'viewTaskDetails'])->name('technician.task_details');
+    Route::get('/notification/{notification}', [NotificationController::class, 'show'])
+    ->name('notifications.show')
+    ->middleware('auth');
 
+    Route::get('/notifications/{notification}', [NotificationController::class, 'showTechnician'])
+    ->name('notifications.show')
+    ->middleware('auth');
+
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])
+    ->name('notifications.destroy')
+    ->middleware('auth');
+
+    Route::delete('/notifications/bulk-delete', [NotificationController::class, 'bulkDestroy'])
+    ->name('notifications.bulkDestroy')
+    ->middleware('auth');
+
+
+Route::get('/assigned-tasks', [TaskController::class, 'assignedTasks'])->name('Assigned_tasks');
+Route::get('/technician/tasks/{task_id}', [TechnicianController::class, 'viewTaskDetails'])->name('technician.task_details')
+;
+Route::get('/technician/directions', [TechnicianController::class, 'directions'])->name('technician.directions');
 
 Route::get('/edit-issue', [IssueController::class, 'edit'])->name('issue.edit');
 
@@ -145,3 +174,10 @@ Route::put('locations/{location}', [LocationQrController::class, 'update'])->nam
 
         Route::get('/admin/reports/technician-performance/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.report.export.pdf');
 Route::get('/admin/reports/technician-performance/export/excel', [ReportController::class, 'exportExcel'])->name('admin.report.export.excel');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat/messages/{userId}', [ChatController::class, 'getMessages']);
+    Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+    Route::post('/chat/read/{messageId}', [ChatController::class, 'markAsRead']);
+});

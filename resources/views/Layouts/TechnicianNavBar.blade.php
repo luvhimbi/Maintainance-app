@@ -13,6 +13,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="{{ asset('./css/global.css') }}">
 
     <style>
@@ -146,15 +147,26 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link">
-                            <i class="fas fa-comments"></i>Communicate
+                        <a class="nav-link" href="{{ route('technician.directions') }}">
+                            <i class="fas fa-map" ></i>SmartNav
                         </a>
                     </li>
+                    <li class="nav-item">
+    <a class="nav-link" href="{{ route('chat.index') }}">
+        <i class="fas fa-comments"></i> Chat
+    </a>
+</li>
 
                     <li class="nav-item">
-                        <a class="nav-link">
+                        <a class="nav-link" href="{{ route('notification.index') }}">
                             <i class="fas fa-bell"></i>Notifications
-                            
+                            @auth
+                                @if(auth()->user()->unreadNotifications->count() > 0)
+                                    <span class="badge bg-danger notification-badge">
+                                        {{ auth()->user()->unreadNotifications->count() }}
+                                    </span>
+                                @endif
+                            @endauth
                         </a>
                     </li>
 

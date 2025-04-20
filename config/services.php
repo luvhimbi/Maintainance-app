@@ -13,6 +13,13 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'google' => [
+    'maps_api_key' => env('GOOGLE_MAPS_API_KEY'),
+    'default_location' => [
+        'lat' => env('DEFAULT_MAP_LAT', 40.7128), // Fallback to NYC if not set
+        'lng' => env('DEFAULT_MAP_LNG', -74.0060),
+    ],
+],
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),

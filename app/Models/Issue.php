@@ -3,11 +3,13 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\LogsHistory;
 
 class Issue extends Model
 {
     public $timestamps = false;
     use HasFactory;
+      use LogsHistory;
     // Define the table associated with the model
     protected $table = 'issue';
 
@@ -46,6 +48,10 @@ class Issue extends Model
 {
     return $this->belongsTo(User::class, 'reporter_id', 'user_id'); // assuming 'reported_by' is the foreign key
     
+}
+public function history()
+{
+    return $this->hasMany(HistoryLog::class)->latest();
 }
 
 public function tasks()

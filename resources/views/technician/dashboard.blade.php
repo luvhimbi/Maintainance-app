@@ -4,6 +4,7 @@
 
 @section('content')
 <div class="container-fluid px-4">
+      
     <!-- Welcome & Stats Section -->
     <div class="row mb-4">
         <div class="col-12">
@@ -20,11 +21,23 @@
                         </span>
                     </div>
                 </div>
-                
-               
+
+                <!-- Overdue Tasks Alert -->
+                @if($overdueCount > 0)
+                <div class="alert alert-danger mt-3 d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">You have {{ $overdueCount }} overdue task(s)!</h5>
+                        <p class="mb-0">Please prioritize these tasks immediately.</p>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                @endif
             </div>
         </div>
     </div>
+
+
 
     <!-- Task Overview Section -->
     <div class="row">
@@ -35,17 +48,7 @@
                         <h5 class="card-title mb-0 fw-bold">
                             <i class="fas fa-clipboard-list me-2 text-primary"></i>Your Active Tasks
                         </h5>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
-                                    id="taskFilterDropdown" data-bs-toggle="dropdown">
-                                <i class="fas fa-filter me-1"></i>Filter
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item active" href="#">All Active</a></li>
-                                <li><a class="dropdown-item" href="#">Pending</a></li>
-                                <li><a class="dropdown-item" href="#">In Progress</a></li>
-                            </ul>
-                        </div>
+
                     </div>
                 </div>
                 <div class="card-body">
@@ -71,7 +74,7 @@
                                 <tbody>
                                     @foreach ($tasks as $task)
                                         @if($task->issue_status != 'Completed')
-                                        <tr>
+                                        <tr class="@if($task->expected_completion->isPast()) table-danger @endif">
                                             <td class="fw-bold">#{{ $task->task_id }}</td>
                                             <td>
                                                 <div class="d-flex align-items-center">
@@ -87,7 +90,7 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="badge 
+                                                <span class="badge
                                                     @if ($task->priority == 'Low') bg-success
                                                     @elseif ($task->priority == 'Medium') bg-warning
                                                     @elseif ($task->priority == 'High') bg-danger
@@ -96,7 +99,7 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="badge 
+                                                <span class="badge
                                                     @if ($task->issue_status == 'Pending') bg-secondary
                                                     @elseif ($task->issue_status == 'In Progress') bg-primary
                                                     @endif">
@@ -108,14 +111,17 @@
                                                     <small class="text-muted">Due</small>
                                                     <span class="fw-bold @if($task->expected_completion->isPast()) text-danger @endif">
                                                         {{ $task->expected_completion->format('M d, Y') }}
+                                                        @if($task->expected_completion->isPast())
+                                                        <span class="badge bg-danger ms-2">Overdue</span>
+                                                        @endif
                                                     </span>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div class="d-flex gap-2">
-                                                    <a href="{{ route('technician.task_details', $task->task_id) }}" 
-                                                       class="btn btn-sm btn-outline-primary" 
-                                                       data-bs-toggle="tooltip" 
+                                                    <a href="{{ route('technician.task_details', $task->task_id) }}"
+                                                       class="btn btn-sm btn-outline-primary"
+                                                       data-bs-toggle="tooltip"
                                                        title="View Details">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
@@ -140,24 +146,28 @@
         background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
         border: 1px solid rgba(0,0,0,0.05);
     }
-    
+
     .stat-card {
         color: white;
         transition: transform 0.3s ease;
     }
-    
+
     .stat-card:hover {
         transform: translateY(-3px);
     }
-    
+
     .stat-card.pending {
         background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
     }
-    
+
     .stat-card.progress {
         background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
     }
-    
+
+    .stat-card.completed {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+    }
+
     .icon-circle {
         width: 40px;
         height: 40px;
@@ -166,7 +176,7 @@
         align-items: center;
         justify-content: center;
     }
-    
+
     .task-icon {
         width: 40px;
         height: 40px;
@@ -174,7 +184,7 @@
         align-items: center;
         justify-content: center;
     }
-    
+
     .table th {
         font-weight: 600;
         text-transform: uppercase;
@@ -182,9 +192,17 @@
         letter-spacing: 0.5px;
         color: #6c757d;
     }
-    
+
     .table td {
         vertical-align: middle;
+    }
+
+    .bg-white-20 {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .table-danger {
+        background-color: rgba(220, 53, 69, 0.05);
     }
 </style>
 

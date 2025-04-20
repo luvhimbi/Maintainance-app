@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\Issue;
 use App\Models\TaskUpdate;
-
+use App\Models\User;
+use App\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 class TaskController extends Controller
 {
     public function assignedTasks()
@@ -41,43 +43,117 @@ class TaskController extends Controller
     
     // Handle the update submission
     public function updateTask(Request $request, $task_id)
-{
-    // Validate the request
-    $request->validate([
-        'status' => 'required|in:Pending,In Progress,Completed',
-        'update_description' => 'required|string',
-    ]);
+    {
+        // Validate the request
+        $request->validate([
+            'status' => 'required|in:Pending,In Progress,Completed',
+            'update_description' => 'required|string',
+        ]);
+    
+        // Find the task
+        $task = Task::findOrFail($task_id);
+        $oldStatus = $task->issue_status;
+        $newStatus = $request->status;
+    
+        // Update the task status
+        $task->issue_status = $newStatus;
+        $task->save();
+    
+        // Update the related issue status
+        $issue = Issue::findOrFail($task->issue_id);
+    
+        if ($newStatus === 'Completed') {
+            $issue->issue_status = 'Resolved';
+        } else {
+            $issue->issue_status = $newStatus;
+        }
+        $issue->save();
+    
+        // Log the update
+        $update = $task->updates()->create([
+            'staff_id' => auth()->id(),
+            'update_description' => $request->update_description,
+            'status_change' => $newStatus,
+        ]);
+    
+        // Get the involved parties
+        $reporter = User::find($issue->reporter_id);
+        $technician = User::find($issue->assignee_id);
+        $updater = auth()->user();
+    
+        // Notification for the reporter (user who reported the issue)
+        if ($reporter) {
+            $reporter->notify(new DatabaseNotification(
+                $this->createReporterMessage($issue, $task, $oldStatus, $newStatus, $updater, $request->update_description),
+                
+                route('Student.issue_details', [$task->issue_id])
+            ));
+        }
+    
+       // Notification for the technician (assignee)
+// In your controller method (top)
 
-    // Find the tasks
-    $task = Task::findOrFail($task_id);
 
-    // Update the tasks status
-    $task->issue_status = $request->status;
-    $task->save();
-
-    // Update the related issue status
-    $issue = Issue::findOrFail($task->issue_id);
-
-    // If the tasks is marked as "Completed", set the issue status to "Resolved"
-    if ($request->status === 'Completed') {
-        $issue->issue_status = 'Resolved'; // Ensure this value is allowed by the check constraint
-    } else {
-        $issue->issue_status = $request->status; // Sync issue status with tasks status
+// Later in notification code
+if ($issue->assignee && Auth::id() !== $task->assignee->id) {
+    $task->assignee->notify(new DatabaseNotification(
+        $this->createTechnicianMessage(
+            $issue,
+            $task,
+            $oldStatus,
+            $newStatus,
+            Auth::user(),
+            $request->update_description
+        ),
+        route('technician.task_details', $task->id)
+    ));
+}     return redirect()->route('tasks.update.form', $task->task_id)
+            ->with('success', 'Task updated successfully!');
     }
-
-    $issue->save();
-
-    // Log the update
-    $task->updates()->create([
-        'staff_id' => auth()->id(),
-        'update_description' => $request->update_description,
-        'status_change' => $request->status,
-    ]);
-
-    // Redirect back with a success message
-    return redirect()->route('tasks.update.form', $task->task_id)->with('success', 'Task updated successfully!');
-}
-
+    
+    /**
+     * Create notification message for the reporter
+     */
+    private function createReporterMessage($issue, $task, $oldStatus, $newStatus, $updater, $description)
+    {
+        return sprintf(
+            "Update on your issue #%s (%s):\n\n" .
+            "Status changed from %s to %s\n" .
+            "Updated by: %s\n" .
+            "Update details: %s\n\n" .
+            "Task: %s",
+            $issue->id,
+            $issue->issue_type,
+            $oldStatus,
+            $newStatus,
+            $updater->name,
+            $description,
+            $task->description ?? 'No additional details'
+        );
+    }
+    
+    /**
+     * Create notification message for the technician
+     */
+    private function createTechnicianMessage($issue, $task, $oldStatus, $newStatus, $updater, $description)
+    {
+        return sprintf(
+            "Task #%s update (%s):\n\n" .
+            "Status changed from %s to %s\n" .
+            "Updated by: %s\n" .
+            "Update details: %s\n\n" .
+            "Issue: %s\n" .
+            "Reporter: %s",
+            $task->id,
+            $issue->issue_type,
+            $oldStatus,
+            $newStatus,
+            $updater->name,
+            $description,
+            $issue->issue_description,
+            $issue->reporter->name
+        );
+    }
 
     // Delete a comment
     public function destroy(Comment $comment)
