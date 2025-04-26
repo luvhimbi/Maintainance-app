@@ -93,7 +93,8 @@ class NotificationController extends Controller
 /*
     * Show a specific notification and mark it as read when viewed.
 */
-    public function show($id)
+
+public function show($id)
 {
     $notification = auth()->user()->notifications()->findOrFail($id);
     
@@ -122,10 +123,22 @@ public function showTechnician($id)
 
 public function destroy($id)
 {
+    // Find the notification that belongs to the currently authenticated user
     $notification = auth()->user()->notifications()->findOrFail($id);
     $notification->delete();
-    
-    return redirect()->route('notifications.index')
-        ->with('success', 'Notification deleted successfully');
+
+    // Determine redirect route based on the user's role
+    $user = auth()->user();
+    if ($user->hasRole('student')) {
+        return redirect()->route('student.notifications.index')
+            ->with('success', 'Notification deleted successfully');
+    } elseif ($user->hasRole('technician')) {
+        return redirect()->route('technician.notifications.index')
+            ->with('success', 'Notification deleted successfully');
+    }
+
+    // Fallback in case the user has no role
+    return redirect()->back()->with('success', 'Notification deleted successfully');
 }
+
 }

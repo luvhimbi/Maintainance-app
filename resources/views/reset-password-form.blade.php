@@ -12,9 +12,65 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 700px;
+            margin: 60px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+         
+        }
+        .form-title {
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+        .input-group-icon {
+            padding: 10px 15px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-right: none;
+        }
+        .form-control-with-icon {
+            border-left: none;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 10px;
+            font-weight: 500;
+        }
+        .brand-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .brand-logo img {
+            height: 60px;
+            width: auto;
+        }
+        .btn-secondary {
+            width: 100%;
+            padding: 10px;
+            font-weight: 500;
+        }
+        .action-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
+          <div class="brand-logo">
+                <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="img-fluid">
+            </div>
+             <h1 class="form-title text-center">Change Password</h1>
         @if(session('success'))
     <div class="alert alert-success mb-4">
         {{ session('success') }}

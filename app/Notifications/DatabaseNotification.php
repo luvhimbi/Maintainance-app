@@ -6,8 +6,9 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class DatabaseNotification extends Notification
+class DatabaseNotification extends Notification implements ShouldBroadcast
 {
     use Queueable;
 
@@ -22,9 +23,9 @@ class DatabaseNotification extends Notification
         $this->actionUrl = $actionUrl;
     }
 
-    public function via($notifiable)
+   public function via($notifiable)
     {
-        return ['database']; // Store notification in the database
+        return ['database', 'broadcast'];
     }
 
     public function toArray($notifiable)

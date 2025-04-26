@@ -42,68 +42,38 @@ class TechnicianController extends Controller
 }
 
 
-// TechnicianController.php
 public function directions()
-{
-    // TUT South Campus Coordinates (Block K)
-    $defaultLocation = [
-        'lat' =>  -25.53978422415537, 
-        'lng' => 28.098271679102634
-    ];
-   // Campus buildings data with enhanced details
-   $buildings = [
-    [
-        'name' => 'Block K (Main Building)',
-        'position' => ['lat' => -25.5486, 'lng' => 28.1087],
-        'icon' => 'https://maps.google.com/mapfiles/kml/pal3/icon21.png',
-        'description' => 'Main administrative building housing key offices and lecture halls',
-        'departments' => ['Administration', 'Finance', 'HR', 'Main Lecture Halls'],
-        'facilities' => ['Reception', 'Cafeteria', 'Auditorium']
-    ],
-    [
-        'name' => 'Swimming Pool',
-        'position' => ['lat' => -25.541422705089307, 'lng' => 28.093935561610277],
-        'icon' => 'https://maps.google.com/mapfiles/kml/pal3/icon49.png',
-        'description' => 'Olympic-sized swimming pool with spectator seating',
-        'facilities' => ['Changing rooms', 'First aid station', 'Pro shop']
-    ],
-    [
-        'name' => 'Engineering Block',
-        'position' => ['lat' => -25.5490, 'lng' => 28.1079],
-        'icon' => 'https://maps.google.com/mapfiles/kml/pal3/icon7.png',
-        'description' => 'Engineering faculty with labs and workshops',
-        'departments' => ['Mechanical Engineering', 'Electrical Engineering', 'Civil Engineering'],
-        'facilities' => ['Computer labs', 'Workshops', 'Research centers']
-    ],
-    [
-        'name' => 'Student Center',
-        'position' => ['lat' => -25.5478, 'lng' => 28.1082],
-        'icon' => 'https://maps.google.com/mapfiles/kml/pal3/icon48.png',
-        'description' => 'Hub for student activities and services',
-        'facilities' => ['Student lounge', 'Cafeteria', 'Bookstore', 'ATM']
-    ],
-    [
-        'name' => 'Sports Complex',
-        'position' => ['lat' => -25.5472, 'lng' => 28.1075],
-        'icon' => 'https://maps.google.com/mapfiles/kml/pal3/icon41.png',
-        'description' => 'Indoor and outdoor sports facilities',
-        'facilities' => ['Gym', 'Basketball courts', 'Soccer field', 'Changing rooms']
-    ],
-    [
-        'name' => 'Library',
-        'position' => ['lat' => -25.5483, 'lng' => 28.1078],
-        'icon' => 'https://maps.google.com/mapfiles/kml/pal3/icon10.png',
-        'description' => 'Main campus library with study spaces',
-        'facilities' => ['Reading rooms', 'Computer lab', 'Group study areas']
-    ]
-];
+    {
+        $defaultLocation = [
+            'lat' => -25.53978422415537, 
+            'lng' => 28.098271679102634
+        ];
 
-return view('technician.directions', [
-    'googleMapsApiKey' => config('services.google.maps_api_key'),
-    'defaultLocation' => $defaultLocation,
-    'buildings' => $buildings
-]);
-}
+        return view('technician.directions', [
+            'mapboxAccessToken' => config('services.mapbox.access_token'),
+            'mapboxStyle' => config('services.mapbox.style', 'mapbox://styles/mapbox/streets-v11'),
+            'defaultLocation' => $defaultLocation
+        ]);
+    }
+
+    public function getRoute(Request $request)
+    {
+        $request->validate([
+            'origin' => 'required|string',
+            'destination' => 'required|string',
+            'profile' => 'required|in:walking,driving,cycling'
+        ]);
+
+        $response = Http::get("https://api.mapbox.com/directions/v5/mapbox/{$request->profile}/{$request->origin};{$request->destination}", [
+            'geometries' => 'geojson',
+            'steps' => 'true',
+            'overview' => 'full',
+            'access_token' => config('services.mapbox.access_token')
+        ]);
+
+        return $response->json();
+    }
+ 
 
     public function viewTaskDetails($task_id)
     {

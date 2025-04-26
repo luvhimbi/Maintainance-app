@@ -15,13 +15,14 @@ use App\Http\Controllers\Admin\LocationQrController;
 use App\Http\Controllers\Admin\TechnicianControllers;
 use App\Http\Controllers\Admin\TaskAssignmentController; 
 use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\ChatController;
+
+
 
 // Show login form and handle submissions
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 
-// Password reset route (optional)
+// Password reset route 
 Route::get('/reset-password', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'sendResetLink'])->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset.form');
@@ -42,71 +43,86 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
 });
 //this is a profile for technician
-Route::get('/adminEditProfile', [ProfileController::class, 'adminEditProfile'])->name('adminEdit');
-Route::post('/adminEditProfile', [ProfileController::class, 'adminUpdate'])->name('admin_profile.update');
+Route::middleware('auth')->group(function () {
+    Route::get('/adminEditProfile', [ProfileController::class, 'adminEditProfile'])->name('adminEdit');
+    Route::post('/adminEditProfile', [ProfileController::class, 'adminUpdate'])->name('admin_profile.update');
+});
 
-
-Route::get('/techEditProfile', [ProfileController::class, 'editProfile'])->name('tech_edit');
-Route::post('/techEditProfile', [ProfileController::class, 'techUpdate'])->name('tech_profile.update');
-Route::get('/techProfile', [ProfileController::class, 'techProfile'])->name('techProfile');
+// this for edit a profile for a technician
+Route::middleware('auth')->group(function () {
+    Route::get('/techEditProfile', [ProfileController::class, 'editProfile'])->name('tech_edit');
+    Route::post('/techEditProfile', [ProfileController::class, 'techUpdate'])->name('tech_profile.update');
+    Route::get('/techProfile', [ProfileController::class, 'techProfile'])->name('techProfile');
+});
 
 
 Route::get('/adminProfile', [ProfileController::class, 'adminProfile'])->name('adminProfile');
 Route::get('/home', function () {
     return redirect()->route('Student.dashboard');
 })->name('home');
+
+
 //all issues related urls for the student
-Route::post('/report-issue', [IssueController::class, 'store'])->name('issue.store');
-Route::post('/save-issue', [IssueController::class, 'save'])->name('issue.save');
-Route::get('/view-issues', [IssueController::class, 'viewAllIssues'])->name('Student.view_issues');
-Route::get('/view-issues/{id}', [IssueController::class, 'viewIssueDetails'])->name('Student.issue_details');
-Route::get('/report-issue', [IssueController::class, 'create'])->name('Student.createissue')
-;
-Route::get('/issues/{issue}/edit', [IssueController::class, 'editReportedIssue'])->name('Student.editissue');
-Route::put('/issues/{issue}', [IssueController::class, 'update'])->name('Student.updateissue');
-Route::get('/report-issue/confirm', [IssueController::class, 'confirm'])->name('Student.confirmissue');
-Route::get('/student/issues/{issue}/edit', [IssueController::class, 'edit'])->name('Student.edit_issue');
-Route::put('/student/issues/{issue}', [IssueController::class, 'update'])->name('Student.update_issue');
+Route::middleware('auth')->group(function () {
+    Route::post('/report-issue', [IssueController::class, 'store'])->name('issue.store');
+    Route::post('/save-issue', [IssueController::class, 'save'])->name('issue.save');
+    Route::get('/view-issues', [IssueController::class, 'viewAllIssues'])->name('Student.view_issues');
+    Route::get('/view-issues/{id}', [IssueController::class, 'viewIssueDetails'])->name('Student.issue_details');
+    Route::get('/report-issue', [IssueController::class, 'create'])->name('Student.createissue');
+    Route::get('/issues/{issue}/edit', [IssueController::class, 'editReportedIssue'])->name('Student.editissue');
+    Route::put('/issues/{issue}', [IssueController::class, 'update'])->name('Student.updateissue');
+    Route::get('/report-issue/confirm', [IssueController::class, 'confirm'])->name('Student.confirmissue');
+    Route::get('/student/issues/{issue}/edit', [IssueController::class, 'edit'])->name('Student.edit_issue');
+    Route::put('/student/issues/{issue}', [IssueController::class, 'update'])->name('Student.update_issue');
+    Route::get('/issue/success', [IssueController::class, 'success'])->name('issue.success');
+    Route::get('/edit-issue', [IssueController::class, 'edit'])->name('issue.edit');
 
+});
 
-Route::get('/issue/success', [IssueController::class, 'success'])->name('issue.success');
-
-//notifcation routes 
-Route::get('/notifications', [NotificationController::class, 'index'])
-    ->name('notifications.index')
-    ->middleware('auth');
+// Notification routes grouped under 'auth' middleware
+Route::middleware('auth')->group(function () {
+    // Notification index routes
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
     Route::get('/notifications/technician', [NotificationController::class, 'indexTechnician'])
-    ->name('notification.index')
-    ->middleware('auth');
-    
-// Mark all as read (optional)
-Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
-    ->name('notifications.markAllRead')
-    ->middleware('auth');
+        ->name('notification.index');
 
+    // Mark all as read (optional)
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.markAllRead');
+
+    // Show specific notifications
     Route::get('/notification/{notification}', [NotificationController::class, 'show'])
-    ->name('notifications.show')
-    ->middleware('auth');
+        ->name('notifications.show');
+    Route::get('/Technician/notifications/{notification}', [NotificationController::class, 'showTechnician'])
+        ->name('notifications.Techshow');
 
-    Route::get('/notifications/{notification}', [NotificationController::class, 'showTechnician'])
-    ->name('notifications.show')
-    ->middleware('auth');
-
+    // Delete notifications
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])
-    ->name('notifications.destroy')
-    ->middleware('auth');
-
+        ->name('notifications.destroy');
     Route::delete('/notifications/bulk-delete', [NotificationController::class, 'bulkDestroy'])
-    ->name('notifications.bulkDestroy')
-    ->middleware('auth');
+        ->name('notifications.bulkDestroy');
+});
 
 
+
+// Grouped routes under 'auth' middleware
+Route::middleware('auth')->group(function () {
+    // Route to view completed tasks
+    Route::get('/completed-tasks', [TaskController::class, 'completedTasks'])->name('completed.tasks');
+    
+    // Route to view tasks updates
+    Route::get('/tasks/{task_id}/updates', [TaskController::class, 'taskUpdates'])->name('tasks.updates');
+    
+    // Admin route to view tasks
+    Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('admin.tasks.view');
+    
+    // Route to view task progress
+    Route::get('/tasks/{task}/progress', [TaskAssignmentController::class, 'show'])->name('tasks.progress.show');
 Route::get('/assigned-tasks', [TaskController::class, 'assignedTasks'])->name('Assigned_tasks');
-Route::get('/technician/tasks/{task_id}', [TechnicianController::class, 'viewTaskDetails'])->name('technician.task_details')
-;
+Route::get('/technician/tasks/{task_id}', [TechnicianController::class, 'viewTaskDetails'])->name('technician.task_details');
 Route::get('/technician/directions', [TechnicianController::class, 'directions'])->name('technician.directions');
 
-Route::get('/edit-issue', [IssueController::class, 'edit'])->name('issue.edit');
 
 // Route to display the update form
 Route::get('/tasks/update/{task_id}', [TaskController::class, 'showUpdateForm'])->name('tasks.update.form');
@@ -114,39 +130,20 @@ Route::get('/tasks/update/{task_id}', [TaskController::class, 'showUpdateForm'])
 // Route to handle the update submission
 Route::put('/tasks/update/{task_id}', [TaskController::class, 'updateTask'])->name('tasks.update');
 
-Route::post('/logout', function () {
-    Auth::logout();
-    return redirect()->route('login');
-})->name('logout');
 
-// Route to view completed tasks
-Route::get('/completed-tasks', [TaskController::class, 'completedTasks'])->name('completed.tasks');
-// Route to view tasks updates
-Route::get('/tasks/{task_id}/updates', [TaskController::class, 'taskUpdates'])->name('tasks.updates');
 
-Route::get('admin/tasks/assign', [TaskAssignmentController::class, 'create'])->name('tasks.assign');
-Route::get('/tasks/assign/{task_id?}', [TaskAssignmentController::class, 'create'])
-    ->name('tasks.assign');
-Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('admin.tasks.view');
-Route::post('/tasks/assign', [TaskAssignmentController::class, 'assign'])
-    ->name('tasks.store');
-    Route::get('/tasks/{task}/progress', [TaskAssignmentController::class, 'show'])
-     ->name('tasks.progress.show');
+});
+
+
     // Location Management Routes
-Route::resource('locations', LocationQrController::class)->except(['show']);
-    
+Route::resource('locations', LocationQrController::class)->except(['show']);   
 Route::get('locations', [LocationQRController::class, 'index'])->name('admin.locations.index');
-Route::get('locations/create', [LocationQrController::class, 'create'])->name('admin.locations.create');
 Route::post('locations', [LocationQrController::class, 'store'])->name('admin.locations.store');
- Route::get('locations/{location}/edit', [LocationQrController::class, 'edit'])->name('admin.locations.edit');
+Route::get('locations/{location}/edit', [LocationQrController::class, 'edit'])->name('admin.locations.edit');
 Route::delete('locations/{location}', [LocationQrController::class, 'destroy'])->name('admin.locations.destroy');
-// Route::put('locations', [LocationQrController::class, 'update'])->name('admin.locations.update');
 Route::put('locations/{location}', [LocationQrController::class, 'update'])->name('admin.locations.update');
 
 
-    // Route::get('/tasks/assign', [TaskController::class, 'showAssignForm'])->name('tasks.assign');
-    // Route::get('/tasks/{task}/progress', [TaskController::class, 'showProgress'])->name('tasks.progress');
-    // Route::get('/tasks/{task}/reassign', [TaskController::class, 'showReassignForm'])->name('tasks.reassign');
  Route::prefix('admin')->group(function() {
         Route::resource('students', \App\Http\Controllers\Admin\StudentController::class)
             ->names([
@@ -169,15 +166,20 @@ Route::put('locations/{location}', [LocationQrController::class, 'update'])->nam
                 'update' => 'admin.technicians.update',
                 'destroy' => 'admin.technicians.destroy'
         ]);
-        Route::get('/reports', [ReportController::class, 'technicianPerformance'])
+
+ Route::get('/reports', [ReportController::class, 'technicianPerformance'])
         ->name('admin.reports.technician-performance');
 
         Route::get('/admin/reports/technician-performance/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.report.export.pdf');
 Route::get('/admin/reports/technician-performance/export/excel', [ReportController::class, 'exportExcel'])->name('admin.report.export.excel');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-    Route::get('/chat/messages/{userId}', [ChatController::class, 'getMessages']);
-    Route::post('/chat/send', [ChatController::class, 'sendMessage']);
-    Route::post('/chat/read/{messageId}', [ChatController::class, 'markAsRead']);
-});
+
+Route::post('/issues/{issue}/feedback', [FeedbackController::class, 'store'])
+    ->name('feedback.submit')
+    ->middleware('auth');
+
+
+    Route::post('/logout', function () {
+    Auth::logout();
+    return redirect()->route('login');
+})->name('logout');

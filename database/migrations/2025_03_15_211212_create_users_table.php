@@ -12,14 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id('user_id'); // Primary key, auto-incrementing
-            $table->string('username', 50)->unique(); // Unique username
-            $table->string('password_hash'); // Password hash
-            $table->string('email', 200)->unique(); // Unique email
-            $table->string('phone_number', 20)->nullable()->unique(); // Optional, unique phone number
+            $table->id('user_id'); 
+            $table->string('username', 50)->unique();
+            $table->string('password_hash');
+            $table->string('email', 200)->unique(); 
+            $table->string('phone_number', 20)->nullable()->unique(); 
             $table->enum('user_role', ['Student', 'Technician', 'Admin'])->default('Student'); // User role
             $table->enum('status', ['Active', 'Inactive', 'Suspended'])->default('Active');
-            $table->timestamps(); // Adds `created_at` and `updated_at` columns
+            $table->softDeletes();
+            $table->timestamps(); 
         });
     }
 

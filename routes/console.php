@@ -20,4 +20,4 @@ Schedule::call(function () {
     foreach ($queuedTasks as $task) {
         app()->make(IssueController::class)->assignOrQueueTask($task);
     }
-})->everyFifteenMinutes();
+})->everyMinute();

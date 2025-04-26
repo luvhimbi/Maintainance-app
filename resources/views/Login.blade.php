@@ -6,9 +6,7 @@
     <title>Login Page</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Poppins -->
+     <!-- Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500;600;700&display=swap" rel="stylesheet">
@@ -20,13 +18,12 @@
             background-color: #f8f9fa;
         }
         .login-container {
-            max-width: 650px;
+            max-width: 700px;
             margin: 60px auto;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             background-color: white;
-         
         }
         .form-title {
             font-weight: 600;
@@ -65,12 +62,21 @@
             justify-content: space-between;
             margin-top: 15px;
         }
+        .role-selection {
+            margin-top: 10px;
+        }
+        .form-check {
+            display: inline-block;
+            margin-right: 15px;
+        }
+        .form-check-input {
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="login-container">
-            
             
             <div class="brand-logo">
                 <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="img-fluid">
@@ -92,7 +98,7 @@
                 <div class="mb-4">
                     <label for="email" class="form-label">Email address</label>
                     <div class="input-group">
-                        <span class="input-group-icon"><i class="bi bi-envelope"></i></span>
+                       
                         <input type="email" class="form-control form-control-with-icon" id="email" name="email" required>
                     </div>
                     <div id="emailHelp" class="form-text">Enter your registered email address</div>
@@ -101,20 +107,32 @@
                 <div class="mb-4">
                     <label for="password" class="form-label">Password</label>
                     <div class="input-group">
-                        <span class="input-group-icon"><i class="bi bi-lock"></i></span>
+                       
                         <input type="password" class="form-control form-control-with-icon" id="password" name="password" required>
                     </div>
                 </div>
                 
                 <div class="mb-4">
-                    <label for="role" class="form-label">Select Role</label>
-                    <div class="input-group">
-                        <span class="input-group-icon"><i class="bi bi-person-badge"></i></span>
-                        <select class="form-select form-control-with-icon" id="role" name="role" required>
-                            <option value="Student">Student</option>
-                            <option value="Technician">Technician</option>
-                            <option value="Admin">Admin</option>
-                        </select>
+                    <label class="form-label">Select Role</label>
+                    <div class="role-selection">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="role" id="role-student" value="Student" checked required>
+                            <label class="form-check-label" for="role-student">
+                                Student
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="role" id="role-technician" value="Technician">
+                            <label class="form-check-label" for="role-technician">
+                                Technician
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="role" id="role-admin" value="Admin">
+                            <label class="form-check-label" for="role-admin">
+                                Admin
+                            </label>
+                        </div>
                     </div>
                 </div>
                 
@@ -122,8 +140,6 @@
                     <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-right me-2"></i>Login</button>
                     <a href="{{ route('password.reset') }}" class="btn btn-secondary"><i class="bi bi-key me-2"></i>Reset Password</a>
                 </div>
-                
-                
             </form>
         </div>
     </div>

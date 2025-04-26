@@ -20,6 +20,10 @@ return [
         'lng' => env('DEFAULT_MAP_LNG', -74.0060),
     ],
 ],
+'mapbox' => [
+    'access_token' => env('MAPBOX_ACCESS_TOKEN'),
+    'style' => env('MAPBOX_STYLE', 'mapbox://styles/mapbox/streets-v11'),
+],
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),

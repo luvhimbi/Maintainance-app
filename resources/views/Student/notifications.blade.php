@@ -39,7 +39,6 @@
     </div>
 @endforelse
 
-    <!-- Pagination -->
-    {{ $notifications->links() }}
+
 </div>
 @endsection

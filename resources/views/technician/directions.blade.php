@@ -1,9 +1,9 @@
 @extends('layouts.TechnicianNavBar')
 
-@section('title', 'TUT South Campus Navigation')
+@section('title', 'Smart Navigation')
 
 @section('content')
-<div class="container-fluid px-4 py-4 tut-campus-map">
+<div class="container-fluid px-4 py-4">
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
@@ -11,16 +11,11 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">
                             <i class="fas fa-map-marked-alt me-2"></i>
-                            TUT South Campus Interactive Map
+                            Campus Navigation
                         </h4>
-                        <div>
-                            <button id="track-location" class="btn btn-light btn-sm me-2">
-                                <i class="fas fa-location-arrow me-1"></i> Track My Location
-                            </button>
-                            <a href="{{ route('technician.dashboard') }}" class="btn btn-light btn-sm">
-                                <i class="fas fa-arrow-left me-1"></i> Dashboard
-                            </a>
-                        </div>
+                        <a href="{{ route('technician.dashboard') }}" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i> Dashboard
+                        </a>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -40,88 +35,70 @@
                             </div>
                         </div>
                         
-                        <!-- Navigation Panel -->
+                        <!-- Controls Panel -->
                         <div class="col-lg-4">
                             <div class="p-3" style="height: 75vh; overflow-y: auto;">
-                                <div class="tut-brand mb-4 text-center">
-                                    <img src="https://www.tut.ac.za/images/template/tut-logo.png" alt="TUT Logo" style="height: 50px;" class="mb-2">
-                                    <h5 class="text-primary mb-2">Tshwane University of Technology</h5>
-                                    <p class="small mb-0">2 Aubrey Matlakala St, Block K</p>
-                                    <p class="small">Soshanguve South, 0152</p>
-                                </div>
-
-                                <div class="building-list mb-4">
-                                    <h5 class="mb-3 text-primary">
-                                        <i class="fas fa-building me-2"></i>Campus Buildings & Facilities
-                                    </h5>
-                                    <div class="input-group mb-3">
-                                        <span class="input-group-text bg-primary text-white">
-                                            <i class="fas fa-search"></i>
-                                        </span>
-                                        <input type="text" id="building-search" class="form-control" placeholder="Search buildings...">
-                                    </div>
-                                    <div class="list-group building-list-container">
-                                        @foreach($buildings as $building)
-                                        <button type="button" 
-                                                class="list-group-item list-group-item-action building-item"
-                                                data-lat="{{ $building['position']['lat'] }}"
-                                                data-lng="{{ $building['position']['lng'] }}"
-                                                data-description="{{ $building['description'] ?? '' }}"
-                                                data-departments="{{ isset($building['departments']) ? implode(', ', $building['departments']) : '' }}"
-                                                data-facilities="{{ isset($building['facilities']) ? implode(', ', $building['facilities']) : '' }}">
-                                            <div class="d-flex align-items-center">
-                                                <img src="{{ $building['icon'] }}" width="24" height="24" class="me-2">
-                                                {{ $building['name'] }}
-                                            </div>
-                                        </button>
-                                        @endforeach
-                                    </div>
-                                </div>
-
-                                <div class="directions-box">
-                                    <h5 class="mb-3 text-primary">
-                                        <i class="fas fa-route me-2"></i>Get Directions
-                                    </h5>
-                                    <div class="mb-3">
-                                        <div class="input-group mb-2">
-                                            <span class="input-group-text bg-primary text-white">
-                                                <i class="fas fa-map-marker-alt"></i>
-                                            </span>
-                                            <input type="text" 
-                                                   class="form-control" 
-                                                   id="origin-input" 
-                                                   placeholder="Your location"
-                                                   value="Current Location">
-                                        </div>
+                                <div class="navigation-controls">
+                                    <div class="mb-4">
+                                        <h5 class="text-primary mb-3">
+                                            <i class="fas fa-directions me-2"></i>
+                                            Navigation Controls
+                                        </h5>
                                         
-                                        <div class="input-group mb-2">
+                                        <div class="input-group mb-3">
                                             <span class="input-group-text bg-primary text-white">
                                                 <i class="fas fa-flag-checkered"></i>
                                             </span>
                                             <input type="text" 
                                                    class="form-control" 
                                                    id="destination-input" 
-                                                   placeholder="Select building"
-                                                   readonly>
+                                                   placeholder="Enter destination address">
                                         </div>
-                                        
-                                        <select id="travel-mode" class="form-select">
-                                            <option value="WALKING">Walking</option>
-                                            <option value="DRIVING">Driving</option>
-                                            <option value="BICYCLING">Bicycling</option>
+
+                                        <select id="travel-mode" class="form-select mb-3">
+                                            <option value="walking">Walking</option>
+                                            <option value="driving">Driving</option>
+                                            <option value="cycling">Cycling</option>
                                         </select>
+
+                                        <div class="d-grid gap-2">
+                                            <button id="start-navigation" class="btn btn-primary">
+                                                <i class="fas fa-play me-2"></i> Start Navigation
+                                            </button>
+                                            <button id="clear-route" class="btn btn-outline-danger">
+                                                <i class="fas fa-times me-2"></i> Clear Route
+                                            </button>
+                                        </div>
                                     </div>
-                                    
-                                    <div class="d-flex gap-2 mb-3">
-                                        <button id="get-directions" class="btn btn-primary flex-grow-1">
-                                            <i class="fas fa-directions me-2"></i>Show Route
-                                        </button>
-                                        <button id="clear-route" class="btn btn-outline-secondary">
-                                            <i class="fas fa-times"></i>
-                                        </button>
+
+                                    <div id="navigation-instructions" class="mt-4 p-3 bg-light rounded d-none">
+                                        <h6><i class="fas fa-list-ol me-2"></i> Turn-by-Turn Directions</h6>
+                                        <div id="steps-container" class="mt-2"></div>
                                     </div>
-                                    
-                                    <div id="directions-panel" class="bg-light p-3 rounded"></div>
+<div id="route-info" class="mt-4 p-3 bg-light rounded d-none">
+    <!-- Route summary will be displayed here -->
+</div>
+
+<div id="clicked-points" class="mt-4 p-3 bg-light rounded d-none">
+    <h6><i class="fas fa-map-marker-alt me-2"></i> Clicked Points</h6>
+    <div id="clicked-points-container" class="mt-2"></div>
+    <button id="clear-points" class="btn btn-sm btn-outline-danger mt-2">
+        <i class="fas fa-trash me-1"></i> Clear Points
+    </button>
+</div>
+
+<div id="distances" class="mt-4 p-3 bg-light rounded d-none">
+    <h6><i class="fas fa-ruler me-2"></i> Distances</h6>
+    <div id="distances-container" class="mt-2"></div>
+</div>
+                                    <div id="loading-indicator" class="text-center mt-4 d-none">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2 small text-muted">Calculating route...</p>
+                                    </div>
+
+                                    <div id="navigation-error" class="alert alert-danger mt-4 d-none"></div>
                                 </div>
                             </div>
                         </div>
@@ -131,523 +108,726 @@
         </div>
     </div>
 </div>
+@endsection
 
-<!-- Load Google Maps API -->
+@push('scripts')
+
 <script>
-    let map, directionsService, directionsRenderer;
-    let markers = [];
-    let infoWindows = [];
-    let selectedBuilding = null;
-    let userMarker = null;
-    let watchId = null;
-    let geocoder;
-    let isTracking = false;
+mapboxgl.accessToken = '{{ $mapboxAccessToken }}';
+let map, userLocation;
+let markers = [];
+let clickedPoints = [];
+let watchId = null;
+// Initialize Mapbox map
+function initMap() {
+    try {
+        map = new mapboxgl.Map({
+            container: 'map',
+            style: '{{ $mapboxStyle }}',
+            center: [{{ $defaultLocation['lng'] }}, {{ $defaultLocation['lat'] }}],
+            zoom: 13
+        });
 
-    function loadGoogleMapsAPI() {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&libraries=places&callback=initMap`;
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-    }
+        // Add navigation controls
+        map.addControl(new mapboxgl.NavigationControl());
+        
+        // Setup geolocation control
+        const geolocate = new mapboxgl.GeolocateControl({
+            positionOptions: { 
+                enableHighAccuracy: true 
+            },
+            trackUserLocation: true,
+            showUserHeading: true
+        });
+        map.addControl(geolocate);
 
-    window.initMap = function() {
-        try {
-            // Initialize map with custom style
-            map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 16,
-                center: { 
-                    lat: {{ $defaultLocation['lat'] }}, 
-                    lng: {{ $defaultLocation['lng'] }}
-                },
-                mapTypeControl: true,
-                mapTypeControlOptions: {
-                    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
-                    mapTypeIds: ['roadmap', 'satellite', 'hybrid']
-                },
-                styles: [
-                    {
-                        "featureType": "poi",
-                        "stylers": [
-                            { "visibility": "off" }
-                        ]
-                    }
-                ]
-            });
+        // Wait for map to load before adding event listeners
+        map.on('load', () => {
+            console.log('Map loaded successfully');
+            // Handle geolocation events
+            geolocate.on('geolocate', handleGeolocation);
+            geolocate.on('error', handleGeolocationError);
 
-            // Initialize geocoder
-            geocoder = new google.maps.Geocoder();
-
-            // Add campus buildings markers with enhanced info windows
-            @foreach($buildings as $building)
-            (function() {
-                const marker = new google.maps.Marker({
-                    position: { 
-                        lat: {{ $building['position']['lat'] }}, 
-                        lng: {{ $building['position']['lng'] }}
-                    },
-                    map: map,
-                    title: "{{ $building['name'] }}",
-                    icon: {
-                        url: "{{ $building['icon'] }}",
-                        scaledSize: new google.maps.Size(32, 32)
-                    }
-                });
-
-                // Build info window content
-                let content = `
-                    <div class="map-info-window">
-                        <h6 class="mb-1">{{ $building['name'] }}</h6>
-                        <p class="small mb-2">{{ $building['description'] ?? '' }}</p>`;
-                
-                @if(isset($building['departments']))
-                content += `
-                    <div class="departments mb-2">
-                        <strong><i class="fas fa-door-open me-1"></i>Departments:</strong>
-                        <ul class="small mb-0 ps-3">`;
-                @foreach($building['departments'] as $dept)
-                content += `<li>{{ $dept }}</li>`;
-                @endforeach
-                content += `</ul></div>`;
-                @endif
-                
-                @if(isset($building['facilities']))
-                content += `
-                    <div class="facilities">
-                        <strong><i class="fas fa-restroom me-1"></i>Facilities:</strong>
-                        <ul class="small mb-0 ps-3">`;
-                @foreach($building['facilities'] as $facility)
-                content += `<li>{{ $facility }}</li>`;
-                @endforeach
-                content += `</ul></div>`;
-                @endif
-                
-                content += `</div>`;
-
-                // Add info window
-                const infoWindow = new google.maps.InfoWindow({
-                    content: content
-                });
-
-                marker.addListener('click', () => {
-                    // Close all other info windows
-                    infoWindows.forEach(iw => iw.close());
-                    infoWindow.open(map, marker);
-                    
-                    // Update selected building
-                    document.querySelectorAll('.building-item').forEach(el => el.classList.remove('active'));
-                    document.querySelector(`.building-item[data-lat="{{ $building['position']['lat'] }}"][data-lng="{{ $building['position']['lng'] }}"]`).classList.add('active');
-                    document.getElementById('destination-input').value = "{{ $building['name'] }}";
-                    selectedBuilding = "{{ $building['name'] }}";
-                });
-
-                markers.push(marker);
-                infoWindows.push(infoWindow);
-            })();
-            @endforeach
-
-            // Initialize directions services
-            directionsService = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer({
-                suppressMarkers: true,
-                polylineOptions: {
-                    strokeColor: '#3a86ff',
-                    strokeWeight: 5,
-                    strokeOpacity: 0.8
-                },
-                panel: document.getElementById('directions-panel')
-            });
-            directionsRenderer.setMap(map);
-
-            // Setup building selection
-            document.querySelectorAll('.building-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    // Close all info windows
-                    infoWindows.forEach(iw => iw.close());
-                    
-                    // Remove active class from all items
-                    document.querySelectorAll('.building-item').forEach(el => el.classList.remove('active'));
-                    
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    const lat = parseFloat(this.dataset.lat);
-                    const lng = parseFloat(this.dataset.lng);
-                    selectedBuilding = this.textContent.trim();
-                    document.getElementById('destination-input').value = selectedBuilding;
-                    
-                    // Center map on selected building
-                    map.panTo({ lat, lng });
-                    
-                    // Open marker's info window
-                    markers.forEach(marker => {
-                        if (marker.getPosition().lat() === lat && marker.getPosition().lng() === lng) {
-                            infoWindows[markers.indexOf(marker)].open(map, marker);
-                        }
-                    });
-                });
-            });
-
-            // Setup directions functionality
-            document.getElementById('get-directions').addEventListener('click', calculateRoute);
-            document.getElementById('clear-route').addEventListener('click', clearRoute);
+            // Add click handler for map
+            map.on('click', handleMapClick);
             
-            // Building search functionality
-            document.getElementById('building-search').addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                document.querySelectorAll('.building-item').forEach(item => {
-                    const buildingName = item.textContent.toLowerCase();
-                    if (buildingName.includes(searchTerm)) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            });
+            // Setup event listeners
+            setupEventListeners();
+        });
 
-            // Initialize autocomplete for origin input
-            const originInput = document.getElementById('origin-input');
-            const autocomplete = new google.maps.places.Autocomplete(originInput, {
-                types: ['geocode'],
-                componentRestrictions: { country: 'za' }
-            });
-            autocomplete.bindTo('bounds', map);
-
-            // Setup geolocation tracking
-            document.getElementById('track-location').addEventListener('click', toggleTracking);
-
-        } catch (error) {
-            console.error('Map Error:', error);
-            alert('Failed to load campus map. Please try again.');
-        }
-    };
-
-    function toggleTracking() {
-        if (isTracking) {
-            stopTracking();
-        } else {
-            startTracking();
-        }
+    } catch (error) {
+        console.error('Map initialization failed:', error);
+        alert('Failed to initialize map. Please check your connection.');
     }
+}
 
-    function startTracking() {
-        if (navigator.geolocation) {
-            isTracking = true;
-            document.getElementById('track-location').innerHTML = '<i class="fas fa-stop me-1"></i> Stop Tracking';
-            document.getElementById('track-location').classList.remove('btn-light');
-            document.getElementById('track-location').classList.add('btn-danger');
-            document.getElementById('location-info').classList.remove('d-none');
-
-            // Create user marker if it doesn't exist
-            if (!userMarker) {
-                userMarker = new google.maps.Marker({
-                    position: map.getCenter(),
-                    map: map,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 8,
-                        fillColor: '#4285F4',
-                        fillOpacity: 1,
-                        strokeColor: '#FFFFFF',
-                        strokeWeight: 2
-                    },
-                    title: 'Your Location'
-                });
-            }
-
+// Event handlers
+function setupEventListeners() {
+    const startBtn = document.getElementById('start-navigation');
+    const clearBtn = document.getElementById('clear-route');
+    const clearPointsBtn = document.getElementById('clear-points');
+    
+    if (startBtn && clearBtn) {
+        startBtn.addEventListener('click', startNavigation);
+        clearBtn.addEventListener('click', clearRoute);
+        console.log('Navigation buttons set up');
+    } else {
+        console.error('Navigation buttons not found');
+    }
+    
+    if (clearPointsBtn) {
+        clearPointsBtn.addEventListener('click', clearClickedPoints);
+        console.log('Clear points button set up');
+    } else {
+        console.warn('Clear points button not found');
+    }
+}
+function toggleLocationTracking() {
+    const locationInfo = document.getElementById('location-info');
+    
+    if (watchId) {
+        // Stop tracking
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        
+        if (locationInfo) locationInfo.classList.add('d-none');
+        if (userLocationMarker) userLocationMarker.remove();
+        
+        console.log('Location tracking stopped');
+    } else {
+        // Start tracking
+        if (locationInfo) locationInfo.classList.remove('d-none');
+        
+        if ('geolocation' in navigator) {
             watchId = navigator.geolocation.watchPosition(
-                position => {
-                    const pos = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-
-                    // Update marker position
-                    userMarker.setPosition(pos);
-                    
-                    // Update location info display
-                    document.getElementById('coordinates').textContent = 
-                        `${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`;
-                    document.getElementById('accuracy').textContent = 
-                        `Accuracy: ${Math.round(position.coords.accuracy)}m`;
-                    
-                    // Center map on user if zoomed out
-                    if (map.getZoom() < 18) {
-                        map.panTo(pos);
-                    }
-                    
-                    // Update origin input if it's set to current location
-                    if (document.getElementById('origin-input').value === 'Current Location') {
-                        geocoder.geocode({ location: pos }, (results, status) => {
-                            if (status === 'OK' && results[0]) {
-                                document.getElementById('origin-input').value = results[0].formatted_address;
-                            }
-                        });
-                    }
-                },
-                error => {
-                    console.error('Geolocation error:', error);
-                    document.getElementById('location-status').textContent = 'Tracking error';
-                    document.getElementById('location-status').previousElementSibling.className = 'fas fa-circle text-danger me-2';
-                },
-                {
+                updateUserLocation, 
+                handleGeolocationError,
+                { 
                     enableHighAccuracy: true,
-                    maximumAge: 30000,
-                    timeout: 5000
+                    timeout: 10000,
+                    maximumAge: 0
                 }
             );
+            console.log('Location tracking started');
         } else {
-            alert('Geolocation is not supported by your browser.');
+            alert('Geolocation is not supported by your browser');
+            if (locationInfo) locationInfo.classList.add('d-none');
         }
     }
-
-    function stopTracking() {
-        if (watchId) {
-            navigator.geolocation.clearWatch(watchId);
-            watchId = null;
-        }
-        isTracking = false;
-        document.getElementById('track-location').innerHTML = '<i class="fas fa-location-arrow me-1"></i> Track My Location';
-        document.getElementById('track-location').classList.remove('btn-danger');
-        document.getElementById('track-location').classList.add('btn-light');
-        document.getElementById('location-info').classList.add('d-none');
-    }
-
-    async function calculateRoute() {
-        const origin = document.getElementById('origin-input').value;
-        const destination = document.getElementById('destination-input').value;
-        const travelMode = document.getElementById('travel-mode').value;
-
-        if (!destination) {
-            alert('Please select a building from the list');
-            return;
-        }
-
-        try {
-            const originLocation = await getLocation(origin);
-            const destinationLocation = await getLocation(destination);
-
-            // Add campus entrance as a waypoint for better navigation
-            const waypoints = [];
-            if (selectedBuilding && selectedBuilding !== 'Main Entrance') {
-                waypoints.push({
-                    location: new google.maps.LatLng({{ $defaultLocation['lat'] }}, {{ $defaultLocation['lng'] }}),
-                    stopover: true
-                });
+}
+// Update user location
+function updateUserLocation(position) {
+    const { latitude, longitude, accuracy } = position.coords;
+    userLocation = [longitude, latitude];
+    
+    console.log('User location updated:', userLocation);
+    
+    // Update location display
+    updateLocationDisplay(position.coords);
+    
+    // Add or update marker
+    if (!userLocationMarker) {
+        // Create a pulsing dot for user location
+        const el = document.createElement('div');
+        el.className = 'user-location-marker';
+        el.style.width = '20px';
+        el.style.height = '20px';
+        el.style.borderRadius = '50%';
+        el.style.backgroundColor = '#4285F4';
+        el.style.border = '2px solid white';
+        el.style.boxShadow = '0 0 0 2px rgba(66, 133, 244, 0.5)';
+        el.style.animation = 'pulse 1.5s infinite';
+        
+        // Add style for the animation
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.5); }
+                70% { box-shadow: 0 0 0 15px rgba(66, 133, 244, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
             }
+        `;
+        document.head.appendChild(style);
+        
+        userLocationMarker = new mapboxgl.Marker(el)
+            .setLngLat(userLocation)
+            .addTo(map);
+            
+        // Center map on first location acquisition
+        map.flyTo({ center: userLocation, zoom: 15 });
+    } else {
+        userLocationMarker.setLngLat(userLocation);
+    }
+    
+    // Add accuracy circle
+    updateAccuracyCircle(userLocation, accuracy);
+}
 
-            directionsService.route({
-                origin: originLocation,
-                destination: destinationLocation,
-                waypoints: waypoints,
-                travelMode: travelMode,
-                provideRouteAlternatives: false,
-                optimizeWaypoints: true
-            }, (response, status) => {
-                if (status === 'OK') {
-                    directionsRenderer.setDirections(response);
-                } else {
-                    alert('Directions request failed: ' + status);
-                }
-            });
-        } catch (error) {
-            alert('Error calculating route: ' + error.message);
+// Show accuracy radius
+function updateAccuracyCircle(center, accuracyMeters) {
+    // Remove previous accuracy circle
+    if (map.getSource('accuracy-circle')) {
+        map.removeLayer('accuracy-circle-fill');
+        map.removeLayer('accuracy-circle-border');
+        map.removeSource('accuracy-circle');
+    }
+    
+    // Create a circle representing accuracy
+    const accuracyCircle = turf.circle(center, accuracyMeters / 1000, { units: 'kilometers' });
+    
+    map.addSource('accuracy-circle', {
+        'type': 'geojson',
+        'data': accuracyCircle
+    });
+    
+    map.addLayer({
+        'id': 'accuracy-circle-fill',
+        'type': 'fill',
+        'source': 'accuracy-circle',
+        'paint': {
+            'fill-color': '#4285F4',
+            'fill-opacity': 0.1
         }
-    }
+    });
+    
+    map.addLayer({
+        'id': 'accuracy-circle-border',
+        'type': 'line',
+        'source': 'accuracy-circle',
+        'paint': {
+            'line-color': '#4285F4',
+            'line-width': 1,
+            'line-opacity': 0.5
+        }
+    });
+}
 
-    function clearRoute() {
-        directionsRenderer.setDirections({ routes: [] });
-        document.getElementById('directions-panel').innerHTML = '';
-        document.getElementById('origin-input').value = 'Current Location';
-        document.getElementById('destination-input').value = '';
-        document.querySelectorAll('.building-item').forEach(el => el.classList.remove('active'));
+// Handle geolocation errors
+function handleGeolocationError(error) {
+    console.error('Geolocation error:', error);
+    let errorMessage;
+    
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            errorMessage = "Location access denied. Please check your browser permissions.";
+            break;
+        case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information is unavailable.";
+            break;
+        case error.TIMEOUT:
+            errorMessage = "Location request timed out.";
+            break;
+        default:
+            errorMessage = "An unknown error occurred getting your location.";
     }
+    
+    alert(errorMessage);
+    
+    const locationStatus = document.getElementById('location-status');
+    if (locationStatus) {
+        locationStatus.textContent = 'Location tracking failed';
+        locationStatus.parentElement.classList.remove('text-success');
+        locationStatus.parentElement.classList.add('text-danger');
+    }
+    
+    watchId = null;
+}
+function handleMapClick(e) {
+    const coords = e.lngLat;
+    console.log('Map clicked at:', coords);
+    
+    // Add marker to map
+    const marker = new mapboxgl.Marker({
+        color: "#FF0000"
+    })
+        .setLngLat(coords)
+        .addTo(map);
+    
+    // Store marker and coordinates
+    markers.push(marker);
+    clickedPoints.push([coords.lng, coords.lat]);
+    
+    // Update UI with clicked points
+    updateClickedPointsDisplay();
+    
+    // If we have 2 or more points, calculate and display distances
+    if (clickedPoints.length >= 2) {
+        calculateDistancesBetweenPoints();
+    }
+}
 
-    function getLocation(input) {
-        return new Promise((resolve, reject) => {
-            if (input === 'Current Location') {
-                if (userMarker && isTracking) {
-                    resolve(userMarker.getPosition());
-                } else if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        position => resolve({
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        }),
-                        () => {
-                            alert('Could not get your current location. Defaulting to campus entrance.');
-                            resolve({ lat: {{ $defaultLocation['lat'] }}, lng: {{ $defaultLocation['lng'] }} });
-                        },
-                        { timeout: 5000 }
-                    );
-                } else {
-                    alert('Geolocation is not supported by your browser. Defaulting to campus entrance.');
-                    resolve({ lat: {{ $defaultLocation['lat'] }}, lng: {{ $defaultLocation['lng'] }} });
-                }
-            } else {
-                new google.maps.Geocoder().geocode(
-                    { address: input },
-                    (results, status) => {
-                        if (status === 'OK') {
-                            resolve(results[0].geometry.location);
-                        } else {
-                            reject(new Error('Location not found'));
-                        }
-                    }
-                );
-            }
+function updateClickedPointsDisplay() {
+    const container = document.getElementById('clicked-points-container');
+    if (!container) {
+        console.warn('Clicked points container not found');
+        return;
+    }
+    
+    container.innerHTML = clickedPoints.map((point, index) => `
+        <div class="d-flex mb-2">
+            <div class="me-3 text-danger fw-bold">${index + 1}</div>
+            <div>
+                <div>Point at: ${point[1].toFixed(6)}, ${point[0].toFixed(6)}</div>
+            </div>
+        </div>
+    `).join('');
+    
+    const clickedPointsElement = document.getElementById('clicked-points');
+    if (clickedPointsElement) {
+        clickedPointsElement.classList.remove('d-none');
+    }
+}
+
+function calculateDistancesBetweenPoints() {
+    if (typeof turf === 'undefined') {
+        console.error('Turf.js is not loaded. Cannot calculate distances.');
+        return;
+    }
+    
+    const distancesContainer = document.getElementById('distances-container');
+    if (!distancesContainer) {
+        console.warn('Distances container not found');
+        return;
+    }
+    
+    let distancesHTML = '';
+    
+    // Calculate distance between consecutive points
+    for (let i = 1; i < clickedPoints.length; i++) {
+        const from = turf.point(clickedPoints[i-1]);
+        const to = turf.point(clickedPoints[i]);
+        const distance = turf.distance(from, to, {units: 'kilometers'});
+        
+        distancesHTML += `
+            <div class="d-flex mb-2">
+                <div class="me-3 text-primary fw-bold">${i}</div>
+                <div>
+                    <div>From Point ${i} to Point ${i+1}: ${distance.toFixed(2)} km</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Calculate total distance
+    if (clickedPoints.length > 1) {
+        let totalDistance = 0;
+        for (let i = 1; i < clickedPoints.length; i++) {
+            const from = turf.point(clickedPoints[i-1]);
+            const to = turf.point(clickedPoints[i]);
+            totalDistance += turf.distance(from, to, {units: 'kilometers'});
+        }
+        
+        distancesHTML += `
+            <div class="d-flex mt-3 fw-bold">
+                <div class="me-3 text-success">Total</div>
+                <div>${totalDistance.toFixed(2)} km</div>
+            </div>
+        `;
+    }
+    
+    distancesContainer.innerHTML = distancesHTML;
+    
+    const distancesElement = document.getElementById('distances');
+    if (distancesElement) {
+        distancesElement.classList.remove('d-none');
+    }
+}
+
+function clearClickedPoints() {
+    console.log('Clearing clicked points');
+    // Remove all markers
+    markers.forEach(marker => marker.remove());
+    markers = [];
+    clickedPoints = [];
+    
+    // Update UI
+    const clickedPointsElement = document.getElementById('clicked-points');
+    const distancesElement = document.getElementById('distances');
+    
+    if (clickedPointsElement) {
+        clickedPointsElement.classList.add('d-none');
+    }
+    
+    if (distancesElement) {
+        distancesElement.classList.add('d-none');
+    }
+}
+async function startNavigation() {
+    console.log('Starting navigation');
+    const destinationInput = document.getElementById('destination-input');
+    const profileSelect = document.getElementById('travel-mode');
+    const errorDisplay = document.getElementById('navigation-error');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    
+    try {
+        // Reset state
+        if (errorDisplay) errorDisplay.classList.add('d-none');
+        if (loadingIndicator) loadingIndicator.classList.remove('d-none');
+        
+        // First check if we have user location
+        if (!userLocation) {
+            throw new Error("Your location is not available. Please enable location tracking first.");
+        }
+        
+        let destinationCoords;
+        
+        // Check if a destination was entered or if we should use last clicked point
+        if (destinationInput && destinationInput.value.trim()) {
+            // Geocode destination address
+            console.log('Using address:', destinationInput.value);
+            destinationCoords = await geocodeAddress(destinationInput.value);
+        } else if (clickedPoints.length > 0) {
+            // Use the last clicked point as destination
+            console.log('Using last clicked point as destination');
+            destinationCoords = clickedPoints[clickedPoints.length - 1];
+        } else {
+            throw new Error('Please enter a destination address or click a location on the map');
+        }
+        
+        console.log('Origin:', userLocation, 'Destination:', destinationCoords);
+        
+        // Clear previous route before calculating new one
+        clearRoute();
+        
+        // Calculate route
+        const routeData = await calculateRoute({
+            origin: userLocation,
+            destination: destinationCoords,
+            profile: profileSelect ? profileSelect.value : 'walking'
         });
+
+        console.log('Route data received:', routeData);
+
+        // Display results
+        displayRoute(routeData);
+        showInstructions(routeData.routes[0].legs[0].steps);
+
+    } catch (error) {
+        console.error('Navigation error:', error);
+        handleNavigationError(error, errorDisplay);
+    } finally {
+        if (loadingIndicator) loadingIndicator.classList.add('d-none');
+    }
+}
+function updateLocationDisplay(coords) {
+    console.log('Updating location display');
+    const locationInfo = document.getElementById('location-info');
+    const coordinates = document.getElementById('coordinates');
+    const accuracy = document.getElementById('accuracy');
+    const locationStatus = document.getElementById('location-status');
+    
+    if (locationInfo && coordinates && accuracy) {
+        coordinates.textContent = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
+        accuracy.textContent = `Accuracy: ${Math.round(coords.accuracy)}m`;
+        locationInfo.classList.remove('d-none');
+    }
+    
+    if (locationStatus) {
+        locationStatus.textContent = 'Location tracking enabled';
+        locationStatus.parentElement.classList.add('text-success');
+        locationStatus.parentElement.classList.remove('text-danger');
+    }
+}
+
+// Geolocation handlers
+function handleGeolocation(e) {
+    console.log('Location acquired:', e.coords);
+    userLocation = [e.coords.longitude, e.coords.latitude];
+    updateLocationDisplay(e.coords);
+}
+
+function handleGeolocationError(error) {
+    console.error('Geolocation error:', error);
+    const locationStatus = document.getElementById('location-status');
+    if (locationStatus) {
+        locationStatus.textContent = 'Location tracking disabled';
+        locationStatus.classList.remove('text-success');
+        locationStatus.classList.add('text-danger');
+    }
+}
+
+// Helper functions
+async function geocodeAddress(address) {
+    console.log('Geocoding address:', address);
+    try {
+        const response = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?` +
+            `access_token=${mapboxgl.accessToken}&country=ZA`
+        );
+        
+        if (!response.ok) throw new Error('Geocoding failed');
+        
+        const data = await response.json();
+        console.log('Geocoding response:', data);
+        
+        if (!data.features?.length) throw new Error('Location not found');
+        
+        return data.features[0].geometry.coordinates;
+    } catch (error) {
+        console.error('Geocoding error:', error);
+        throw new Error('Failed to find the specified location. Please try a different address.');
+    }
+}
+
+async function calculateRoute({ origin, destination, profile }) {
+    console.log('Calculating route:', { origin, destination, profile });
+    try {
+        // Make sure origin and destination are arrays
+        const originCoords = Array.isArray(origin) ? origin : origin.split(',').map(Number);
+        const destCoords = Array.isArray(destination) ? destination : destination.split(',').map(Number);
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            throw new Error('Security token missing. Please refresh the page and try again.');
+        }
+        
+        console.log('Sending route request with params:', {
+            origin: `${originCoords[0]},${originCoords[1]}`,
+            destination: `${destCoords[0]},${destCoords[1]}`,
+            profile: profile
+        });
+        
+        const response = await fetch('/technician/route', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken.content
+            },
+            body: JSON.stringify({
+                origin: `${originCoords[0]},${originCoords[1]}`,
+                destination: `${destCoords[0]},${destCoords[1]}`,
+                profile: profile
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Route API error:', response.status, errorText);
+            throw new Error(`Route calculation failed: ${response.status} ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Route API response:', data);
+        
+        if (!data.routes || data.routes.length === 0) {
+            throw new Error('No route found between these points');
+        }
+        
+        return data;
+        
+    } catch (error) {
+        console.error('Route calculation error:', error);
+        throw new Error('Failed to calculate route. Please check your connection and try again.');
+    }
+}
+
+function displayRoute(routeData) {
+    console.log('Displaying route');
+    if (!routeData.routes?.length) throw new Error('No route found');
+    
+    // Clear existing route
+    if (map.getSource('route')) {
+        map.removeLayer('route');
+        map.removeSource('route');
     }
 
-    // Clean up geolocation tracking when page unloads
-    window.addEventListener('beforeunload', function() {
-        if (watchId) {
-            navigator.geolocation.clearWatch(watchId);
+    // Add new route layer
+    map.addSource('route', {
+        type: 'geojson',
+        data: {
+            type: 'Feature',
+            properties: {},
+            geometry: routeData.routes[0].geometry
         }
     });
 
-    document.addEventListener('DOMContentLoaded', loadGoogleMapsAPI);
+    map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#3a86ff',
+            'line-width': 4,
+            'line-opacity': 0.7
+        }
+    });
+
+    // Add markers for start and end points
+    const coordinates = routeData.routes[0].geometry.coordinates;
+    
+    // Start marker (blue)
+    const startMarker = new mapboxgl.Marker({ color: "#3a86ff" })
+        .setLngLat(coordinates[0])
+        .addTo(map);
+    
+    // End marker (green)
+    const endMarker = new mapboxgl.Marker({ color: "#10b981" })
+        .setLngLat(coordinates[coordinates.length - 1])
+        .addTo(map);
+    
+    // Store markers to clear them later
+    markers.push(startMarker, endMarker);
+    
+    // Update route info display
+    updateRouteInfo(routeData.routes[0]);
+
+    // Fit map to route
+    const bounds = new mapboxgl.LngLatBounds();
+    routeData.routes[0].geometry.coordinates.forEach(coord => bounds.extend(coord));
+    map.fitBounds(bounds, { padding: 50 });
+    
+    console.log('Route displayed successfully');
+}
+
+function updateRouteInfo(route) {
+    const routeInfoContainer = document.getElementById('route-info');
+    if (!routeInfoContainer) {
+        console.warn('Route info container not found');
+        return;
+    }
+    
+    // Calculate total distance and duration
+    const distanceKm = route.distance / 1000;
+    const durationMin = route.duration / 60;
+    
+    routeInfoContainer.innerHTML = `
+        <div class="alert alert-info">
+            <div class="fw-bold mb-2">Route Summary:</div>
+            <div>Distance: ${distanceKm.toFixed(2)} km</div>
+            <div>Duration: ${Math.floor(durationMin)} min</div>
+        </div>
+    `;
+    
+    routeInfoContainer.classList.remove('d-none');
+}
+
+function showInstructions(steps) {
+    console.log('Displaying instructions');
+    const container = document.getElementById('steps-container');
+    if (!container) {
+        console.warn('Steps container not found');
+        return;
+    }
+    
+    container.innerHTML = steps.map((step, index) => `
+        <div class="d-flex mb-2">
+            <div class="me-3 text-primary fw-bold">${index + 1}</div>
+            <div>
+                <div>${step.maneuver.instruction}</div>
+                <small class="text-muted">${(step.distance / 1000).toFixed(1)} km · ${Math.ceil(step.duration / 60)} min</small>
+            </div>
+        </div>
+    `).join('');
+    
+    const instructionsElement = document.getElementById('navigation-instructions');
+    if (instructionsElement) {
+        instructionsElement.classList.remove('d-none');
+    }
+}
+
+function clearRoute() {
+    console.log('Clearing route');
+    // Remove route layer
+    if (map.getSource('route')) {
+        map.removeLayer('route');
+        map.removeSource('route');
+    }
+    
+    // Remove route markers (but keep clicked point markers)
+    const clickedPointsCount = clickedPoints.length;
+    if (markers.length > clickedPointsCount) {
+        markers.slice(clickedPointsCount).forEach(marker => marker.remove());
+        markers = markers.slice(0, clickedPointsCount);
+    }
+    
+    // Hide UI elements
+    const instructionsElement = document.getElementById('navigation-instructions');
+    const routeInfoElement = document.getElementById('route-info');
+    
+    if (instructionsElement) {
+        instructionsElement.classList.add('d-none');
+    }
+    
+    if (routeInfoElement) {
+        routeInfoElement.classList.add('d-none');
+    }
+}
+
+function updateLocationDisplay(coords) {
+    console.log('Updating location display');
+    const locationInfo = document.getElementById('location-info');
+    const coordinates = document.getElementById('coordinates');
+    const accuracy = document.getElementById('accuracy');
+    const locationStatus = document.getElementById('location-status');
+    
+    if (locationInfo && coordinates && accuracy) {
+        coordinates.textContent = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
+        accuracy.textContent = `Accuracy: ${Math.round(coords.accuracy)}m`;
+        locationInfo.classList.remove('d-none');
+    }
+    
+    if (locationStatus) {
+        locationStatus.textContent = 'Location tracking enabled';
+        locationStatus.classList.add('text-success');
+        locationStatus.classList.remove('text-danger');
+    }
+}
+
+function handleNavigationError(error, displayElement) {
+    console.error('Navigation error:', error);
+    if (displayElement) {
+        displayElement.textContent = error.message || 'An unknown error occurred';
+        displayElement.classList.remove('d-none');
+    } else {
+        alert(error.message || 'Navigation error occurred');
+    }
+}
+
+// Initialize map when DOM is ready
+document.addEventListener('DOMContentLoaded', initMap);
 </script>
+@endpush
 
+@push('styles')
 <style>
-.tut-campus-map {
-    background: #f8f9fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+#map { height: 75vh; width: 100%; }
+.navigation-controls { height: 75vh; overflow-y: auto; }
+#navigation-instructions { max-height: 300px; overflow-y: auto; }
+#loading-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
+.mapboxgl-ctrl-geolocate { margin: 10px; }
+.user-location-marker {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #4285F4;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.5);
 }
 
-.card {
-    border: none;
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-
-.card-header {
-    border-radius: 0;
-    padding: 1rem 1.5rem;
-}
-
-.building-item {
-    border: none;
-    border-bottom: 1px solid #dee2e6;
-    text-align: left;
-    transition: all 0.2s;
-    padding: 0.75rem 1rem;
-    border-radius: 0.25rem !important;
-    margin-bottom: 0.25rem;
-}
-
-.building-item:hover {
-    background: #e9ecef;
-    transform: translateX(3px);
-}
-
-.building-item.active {
-    background-color: #003366;
-    color: white;
-}
-
-#directions-panel {
-    max-height: 300px;
-    overflow-y: auto;
-    font-size: 0.9rem;
-}
-
-.adp-step {
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #eee;
-}
-
-.adp-step-title {
-    font-weight: bold;
-    color: #003366;
-}
-
-.adp-directions {
-    color: #555;
-}
-
-.input-group-text {
-    background: #003366;
-    color: white;
-    border-color: #002244;
-}
-
-.btn-primary {
-    background: #003366;
-    border-color: #002244;
-    transition: all 0.3s;
-}
-
-.btn-primary:hover {
-    background: #002244;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.btn-danger {
-    transition: all 0.3s;
-}
-
-/* Info window styles */
-.map-info-window {
-    max-width: 250px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.map-info-window h6 {
-    color: #003366;
-    font-weight: bold;
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-}
-
-.map-info-window .small {
-    font-size: 0.8rem;
-    color: #555;
-    line-height: 1.4;
-}
-
-.map-info-window ul {
-    margin-bottom: 0.5rem;
-    padding-left: 1rem;
-}
-
-.map-info-window li {
-    margin-bottom: 0.2rem;
-    font-size: 0.8rem;
-}
-
-/* Location info box */
 #location-info {
-    z-index: 1000;
-    max-width: 200px;
+    max-width: 250px;
     font-size: 0.85rem;
+    z-index: 100;
 }
 
-/* Building search */
-#building-search {
-    border-radius: 0.25rem !important;
+.location-tracking-button {
+    z-index: 100;
+    background-color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    font-size: 14px;
+    cursor: pointer;
 }
 
-/* Responsive adjustments */
-@media (max-width: 992px) {
-    .col-lg-8, .col-lg-4 {
-        width: 100%;
-    }
-    
-    #map {
-        height: 50vh !important;
-    }
-    
-    .card-body > .row > div {
-        height: auto !important;
-    }
-    
-    #location-info {
-        top: 60px !important;
-        right: 10px !important;
-    }
+.location-tracking-button:hover {
+    background-color: #f0f0f0;
 }
 </style>
-@endsection
+@endpush

@@ -16,6 +16,8 @@ use App\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Arr;
+use App\Models\HistoryLog;
 
 class IssueController extends Controller
 {
@@ -114,53 +116,81 @@ class IssueController extends Controller
         return view('Student.confirmissue', compact('formData', 'attachments', 'location'));
     }
 
-    public function save()
-    {
-        // Retrieve session data
-        $formData = session()->get('formData', []);
-        $attachments = session()->get('attachments', []);
+   public function save()
+{
+    // Retrieve session data
+    $formData = session()->get('formData', []);
+    $attachments = session()->get('attachments', []);
 
-        // If no form data exists, redirect back to the form
-        if (empty($formData)) {
-            return redirect()->route('Student.createissue')->with('error', 'Please fill out the form first.');
-        }
-
-        // Save the issue to the database with a default status of 'Open'
-        $issue = Issue::create([
-            'reporter_id' => $formData['reporter_id'],
-            'location_id' => $formData['location_id'],
-            'issue_type' => $formData['issue_type'],
-            'issue_description' => $formData['issue_description'],
-            'urgency_level' => $formData['urgency_level'],
-            'issue_status' => 'Open', // Set default status
-        ]);
-        $task = Task::create([
-            'issue_id' => $issue->issue_id,
-            'priority' => $this->mapUrgencyToPriority($formData['urgency_level']),
-            'issue_status' => 'Pending', // Explicitly set status
-            'expected_completion' => Carbon::now()->addWeek() // 7 days from now
-        ]);
-        $this->assignOrQueueTask($task);
-        // Save attachments to the database
-        foreach ($attachments as $attachment) {
-            IssueAttachment::create([
-                'issue_id' => $issue->issue_id,
-                'file_path' => $attachment['path'],
-                'original_name' => $attachment['original_name'],
-                'mime_type' => $attachment['mime_type'],
-                'file_size' => $attachment['file_size'],
-                'storage_disk' => 'public',
-            ]);
-        }
-        $user = User::find($formData['reporter_id']);
-        $user->notify(new DatabaseNotification(
-            'Your issue #' . $issue->issue_id . ' has been submitted successfully!',
-            route('Student.issue_details', $issue->issue_id) // URL to view the issue
-        ));
-    
-        return redirect()->route('issue.success')->with('success', 'Issue reported successfully!');
+    // If no form data exists, redirect back to the form
+    if (empty($formData)) {
+        return redirect()->route('Student.createissue')->with('error', 'Please fill out the form first.');
     }
-    private function mapUrgencyToPriority($urgency)
+
+    // Save the issue to the database with a default status of 'Open'
+    $issue = Issue::create([
+        'reporter_id' => $formData['reporter_id'],
+        'location_id' => $formData['location_id'],
+        'issue_type' => $formData['issue_type'],
+        'issue_description' => $formData['issue_description'],
+        'urgency_level' => $formData['urgency_level'],
+        'issue_status' => 'Open', // Set default status
+    ]);
+ session()->put('reported_issue_id', $issue->issue_id);
+
+    $task = Task::create([
+        'issue_id' => $issue->issue_id,
+        'priority' => $this->mapUrgencyToPriority($formData['urgency_level']),
+        'issue_status' => 'Pending', // Explicitly set status
+        'expected_completion' => Carbon::now()->addWeek() // 7 days from now
+    ]);
+
+    // Assign task and get the assigned technician (if any)
+    $assignedTechnician = $this->assignOrQueueTask($task);
+    
+    // Save attachments to the database
+    foreach ($attachments as $attachment) {
+        IssueAttachment::create([
+            'issue_id' => $issue->issue_id,
+            'file_path' => $attachment['path'],
+            'original_name' => $attachment['original_name'],
+            'mime_type' => $attachment['mime_type'],
+            'file_size' => $attachment['file_size'],
+            'storage_disk' => 'public',
+        ]);
+    }
+
+    // Notify the reporter
+    $reporter = User::find($formData['reporter_id']);
+    
+    // Create notification message based on assignment status
+    $notificationMessage = $assignedTechnician 
+        ? 'Your issue #' . $issue->issue_id . ' has been assigned to ' . $assignedTechnician->name . '.'
+        : 'Your issue #' . $issue->issue_id . ' has been submitted and is awaiting assignment.';
+
+    $reporter->notify(new DatabaseNotification(
+        $notificationMessage,
+        route('Student.issue_details', $issue->issue_id)
+    ));
+
+    // If assigned, notify the technician as well
+    if ($assignedTechnician) {
+        $technicianNotification = 'You have been assigned a new issue #' . $issue->issue_id . 
+                                ' with priority: ' . $task->priority;
+        
+        $assignedTechnician->notify(new DatabaseNotification(
+            $technicianNotification,
+            route('Technician.issue_details', $issue->issue_id)
+        ));
+    }
+
+    return redirect()->route('issue.success')->with([
+        'success' => 'Issue reported successfully!',
+        'assigned_technician' => $assignedTechnician ? $assignedTechnician->name : null
+    ]);
+}
+
+private function mapUrgencyToPriority($urgency)
 {
     return match($urgency) {
         'Critical' => 'High',
@@ -180,9 +210,10 @@ public function editReportedIssue(Issue $issue)
 
     // Only allow editing if issue is still open
     if ($issue->issue_status !== 'Open') {
-        return redirect()->route('Student.issue_details', $issue->issue_id)
-            ->with('error', 'Only Open issues can be edited.');
-    }
+    return redirect()
+        ->route('Student.issue_details', $issue->issue_id)
+        ->with('swal_error', 'Only Open issues can be edited.');
+}
 
     $locations = Location::all();
     return view('Student.editissue', compact('issue', 'locations'));
@@ -228,9 +259,6 @@ public function update(Request $request, Issue $issue)
 
     // Handle attachments
     if ($request->hasFile('attachments')) {
-        // First delete all existing attachments if we're replacing them
-        // Or implement selective deletion based on checkboxes
-        
         // Option 1: Delete all old attachments
         foreach ($issue->attachments as $attachment) {
             Storage::disk($attachment->storage_disk)->delete($attachment->file_path);
@@ -251,26 +279,18 @@ public function update(Request $request, Issue $issue)
             ]);
         }
     }
-   HistoryLog::create([
-        'issue_id' => $issue->id,
-        'user_id' => auth()->id(),
-        'action' => 'status_changed',
-        'old_values' => ['status' => $oldStatus],
-        'new_values' => ['status' => $request->status],
-        'description' => "Status changed from {$oldStatus} to {$request->status}"
-    ]);
     
+       
 
     return redirect()->route('Student.issue_details', $issue->issue_id)
         ->with('success', 'Issue updated successfully!');
 }
 
-private function assignOrQueueTask(Task $task)
+public function assignOrQueueTask(Task $task)
 {
     // Find available technician with matching specialization and workload < 3
     $technician = User::whereHas('maintenanceStaff', function ($query) use ($task) {
         $query->where('availability_status', 'Available')
-            //   ->where('current_workload', '<', 3)
               ->where('specialization', $task->issue->issue_type); // Match specialization to issue type
     })
     ->join('maintenance_staff', 'users.user_id', '=', 'maintenance_staff.user_id') // Join the tables
@@ -336,7 +356,7 @@ public function completeTask($taskId)
 }
 
 
-private function assignQueuedTasks($technicianId)
+public function assignQueuedTasks($technicianId)
 {
     $technician = User::find($technicianId);
     $availableSlots = 3 - $technician->maintenanceStaff->current_workload;

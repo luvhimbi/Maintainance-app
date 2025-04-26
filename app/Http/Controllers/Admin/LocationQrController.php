@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Admin;
+use Illuminate\Validation\Rule;
 
 class LocationQrController extends Controller
 {
@@ -29,20 +30,32 @@ class LocationQrController extends Controller
     /**
      * Store a newly created location
      */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'building_name' => 'required|string|max:100',
-            'floor_number' => 'required|string|max:20',
-            'room_number' => 'required|string|max:20',
-            'description' => 'nullable|string'
-        ]);
+  
 
-        Location::create($validated);
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'building_name' => [
+            'required',
+            'string',
+            'max:100',
+            Rule::unique('location')->where(function ($query) use ($request) {
+                return $query->where('floor_number', $request->floor_number)
+                            ->where('room_number', $request->room_number);
+            })
+        ],
+        'floor_number' => 'required|string|max:20',
+        'room_number' => 'required|string|max:20',
+        'description' => 'nullable|string'
+    ], [
+        'building_name.unique' => 'This location combination (building, floor, room) already exists.'
+    ]);
 
-        return redirect()->route('admin.locations.create')
-            ->with('success', 'Location created successfully');
-    }
+    Location::create($validated);
+
+    return redirect()->route('admin.locations.create')
+        ->with('success', 'Location created successfully');
+}
 
     /**
      * Show the form for editing a location

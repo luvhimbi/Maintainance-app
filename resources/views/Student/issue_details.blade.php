@@ -143,71 +143,185 @@
     </div>
 
     <!-- Task Updates Section -->
-    <div class="mt-4">
-        <h5 class="mb-3">
-            <i class="fas fa-tasks me-2"></i>Task Updates
-        </h5>
+   <div class="mt-5">
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+            <i class="fas fa-tasks fs-4 text-primary"></i>
+        </div>
+        <h4 class="mb-0 text-dark">Task Updates</h4>
+    </div>
 
-        @if ($issue->task && $issue->task->updates->count() > 0)
-            <div class="timeline">
-                @foreach ($issue->task->updates->sortByDesc('update_timestamp') as $update)
-                    <div class="timeline-item mb-4">
-                        <div class="timeline-badge 
-                            @if($update->status_change == 'In Progress') bg-warning
-                            @elseif($update->status_change == 'Resolved') bg-success
-                            @else bg-primary @endif">
-                            <i class="fas 
-                                @if($update->status_change == 'In Progress') fa-wrench
-                                @elseif($update->status_change == 'Resolved') fa-check
-                                @else fa-info @endif"></i>
-                        </div>
-                        <div class="timeline-content card shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
+    @if ($issue->task && $issue->task->updates->count() > 0)
+        <div class="timeline ps-3">
+            @foreach ($issue->task->updates->sortByDesc('update_timestamp') as $update)
+                <div class="timeline-item position-relative pb-4">
+                    <div class="timeline-badge position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center bg-white border border-3 
+                        @if($update->status_change == 'In Progress') border-warning
+                        @elseif($update->status_change == 'Resolved') border-success
+                        @else border-primary @endif"
+                        style="width: 24px; height: 24px;">
+                        <i class="fas fa-circle fs-6 
+                            @if($update->status_change == 'In Progress') text-warning
+                            @elseif($update->status_change == 'Resolved') text-success
+                            @else text-primary @endif"></i>
+                    </div>
+                    
+                    <div class="timeline-content ms-5 ps-3">
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div class="d-flex align-items-center">
                                         @if($update->staff)
-                                            <div class="symbol symbol-35px symbol-circle me-2">
-                                                <span class="symbol-label bg-light-primary text-primary fw-bold">
-                                                    {{ substr($update->staff->username, 0, 1) }}
-                                                </span>
+                                            <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                 style="width: 40px; height: 40px; font-size: 1.1rem;">
+                                                {{ substr($update->staff->username, 0, 1) }}
                                             </div>
                                             <div>
-                                                <strong>{{ $update->staff->username }}</strong>
-                                                <span class="badge bg-secondary ms-2">{{ $update->staff->user_role }}</span>
+                                                <h6 class="mb-0 text-dark">{{ $update->staff->username }}</h6>
+                                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ $update->staff->user_role }}</span>
                                             </div>
                                         @else
-                                            <span class="text-muted">[Staff removed]</span>
+                                            <span class="text-muted small">[Staff removed]</span>
                                         @endif
                                     </div>
-                                    <small class="text-muted">
-                                        {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y g:i A') }}
-                                    </small>
+                                    <span class="text-muted small">
+                                        {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y · g:i A') }}
+                                    </span>
                                 </div>
-                                <div class="mb-2">
-                                    <span class="badge 
-                                        @if($update->status_change == 'In Progress') bg-warning text-dark
-                                        @elseif($update->status_change == 'Resolved') bg-success
-                                        @else bg-primary @endif">
+                                
+                                <div class="mb-3">
+                                    <span class="badge rounded-pill 
+                                        @if($update->status_change == 'In Progress') bg-warning bg-opacity-10 text-warning
+                                        @elseif($update->status_change == 'Resolved') bg-success bg-opacity-10 text-success
+                                        @else bg-primary bg-opacity-10 text-primary @endif">
+                                        <i class="fas 
+                                            @if($update->status_change == 'In Progress') fa-wrench me-1
+                                            @elseif($update->status_change == 'Resolved') fa-check me-1
+                                            @else fa-info-circle me-1 @endif"></i>
                                         {{ $update->status_change }}
                                     </span>
                                 </div>
-                                <p class="mb-0">{{ $update->update_description }}</p>
+                                
+                                <p class="mb-0 text-dark">{{ $update->update_description }}</p>
                             </div>
                         </div>
                     </div>
-                @endforeach
+                </div>
+            @endforeach
+        </div>
+    @else
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center py-4">
+                <i class="fas fa-info-circle text-primary fs-4 mb-3"></i>
+                <h5 class="text-dark">No updates yet</h5>
+                <p class="text-muted mb-0">Task updates will appear here once available</p>
             </div>
-        @else
-            <div class="alert alert-secondary">
-                <i class="fas fa-info-circle me-2"></i>No task updates available yet
+        </div>
+    @endif
+</div>
+
+</div>
+@if($issue->issue_status == 'Resolved' && !$issue->hasFeedbackFrom(auth()->user()))
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="feedbackModalLabel">Provide Feedback</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        @endif
+            <form id="feedbackForm" action="{{ route('feedback.submit', $issue->issue_id) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-4 text-center">
+                        <h6>How would you rate the resolution of this issue?</h6>
+                        <div class="rating-stars mt-3">
+                            @for($i = 5; $i >= 1; $i--)
+                                <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" {{ $i == 5 ? 'checked' : '' }}>
+                                <label for="star{{ $i }}" title="{{ $i }} star"><i class="fas fa-star"></i></label>
+                            @endfor
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="comments" class="form-label">Additional comments (optional)</label>
+                        <textarea class="form-control" id="comments" name="comments" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+@endif
+
+@push('scripts')
+<script>
+    // Auto-show modal if conditions are met
+    document.addEventListener('DOMContentLoaded', function() {
+        @if($issue->issue_status == 'Resolved' && !$issue->hasFeedbackFrom(auth()->user()))
+            var feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+            feedbackModal.show();
+        @endif
+    });
+    @if(session('swal_error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: '{{ session('swal_error') }}',
+        confirmButtonColor: '#4361ee',
+    });
+
+  @endif
+</script>
+@endpush
+
+
 @endsection
 
 @push('styles')
 <style>
+     .timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 12px;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    .timeline-item:last-child {
+        padding-bottom: 0 !important;
+    }
+    /* Rating stars styling */
+    .rating-stars {
+        display: inline-block;
+        direction: rtl; /* Right to left */
+        unicode-bidi: bidi-override;
+    }
+    .rating-stars input {
+        display: none;
+    }
+    .rating-stars label {
+        color: #ddd;
+        font-size: 2rem;
+        padding: 0 5px;
+        cursor: pointer;
+    }
+    .rating-stars input:checked ~ label,
+    .rating-stars label:hover,
+    .rating-stars label:hover ~ label {
+        color: #ffc107; /* Gold/yellow color */
+    }
+    .rating-stars input:checked + label:hover,
+    .rating-stars input:checked ~ label:hover,
+    .rating-stars label:hover ~ input:checked ~ label,
+    .rating-stars input:checked ~ label:hover ~ label {
+        color: #ffc107;
+    }
     .timeline {
         position: relative;
         padding-left: 40px;

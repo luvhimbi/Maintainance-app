@@ -1,5 +1,5 @@
 @extends('Layouts.AdminNavBar')
-
+@section('title','View All Tasks')
 @section('content')
 <div class="container task-management-container py-4">
     <!-- Header Section -->
@@ -9,11 +9,12 @@
                 <h2 class="page-title mb-1">Task Management</h2>
                 <p class="page-subtitle text-muted">Manage and monitor all technician tasks</p>
             </div>
-            
+            <div class="overdue-alert badge bg-danger bg-soft-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Overdue Tasks: {{ $overdueCount }}
+            </div>
         </div>
     </div>
-
-    
 
     <!-- Task Table -->
     <div class="card border-0 shadow-sm">
@@ -25,7 +26,6 @@
                             <th class="ps-4">ID</th>
                             <th>Issue Details</th>
                             <th>Technician</th>
-                            <th>Assigned By</th>
                             <th>Assigned On</th>
                             <th>Due Date</th>
                             <th>Status</th>
@@ -34,10 +34,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($task as $tasks)
-                            <tr class="@if($tasks->issue_status == 'Completed') table-success-light @endif">
+                        @foreach($tasks as $task)
+                            <tr class="@if($task->issue_status == 'Completed') table-success-light 
+                                      @elseif($task->expected_completion->isPast() && $task->issue_status != 'Completed') table-danger-light @endif">
                                 <!-- Task ID -->
-                                <td class="ps-4 fw-semibold text-muted">#{{ $tasks->task_id }}</td>
+                                <td class="ps-4 fw-semibold text-muted">#{{ $task->task_id }}</td>
                                 
                                 <!-- Issue Details -->
                                 <td>
@@ -46,10 +47,10 @@
                                             <i class="fas fa-exclamation-circle"></i>
                                         </div>
                                         <div>
-                                            <div class="fw-medium">ISSUE-{{ $tasks->issue_id }}</div>
+                                            <div class="fw-medium">ISSUE-{{ $task->issue_id }}</div>
                                             <small class="text-muted">
-                                                @if($tasks->issue)
-                                                    {{ Str::limit($tasks->issue->title, 25) }}
+                                                @if($task->issue)
+                                                    {{ Str::limit($task->issue->title, 25) }}
                                                 @else 
                                                     N/A
                                                 @endif
@@ -60,12 +61,12 @@
                                 
                                 <!-- Technician -->
                                 <td>
-                                    @if($tasks->assignee)
+                                    @if($task->assignee)
                                         <div class="d-flex align-items-center">
                                             <div class="avatar-circle bg-light-primary me-2">
-                                                {{ strtoupper(substr($tasks->assignee->username, 0, 1)) }}
+                                                {{ strtoupper(substr($task->assignee->username, 0, 1)) }}
                                             </div>
-                                            <span>{{ $tasks->assignee->username }}</span>
+                                            <span>{{ $task->assignee->username }}</span>
                                         </div>
                                     @else
                                         <span class="badge bg-light text-secondary">
@@ -74,28 +75,23 @@
                                     @endif
                                 </td>
                                 
-                                <!-- Admin -->
-                               
-                               
-                                <td>
-                                    
-                                        <span class="text-muted">System</span>
-                                   
-                                </td>
-                                
                                 <!-- Assignment Date -->
                                 <td>
                                     <div class="text-muted small">
-                                        {{ $tasks->assignment_date->format('d M Y') }}
+                                        {{ $task->assignment_date->format('d M Y') }}
                                     </div>
                                 </td>
                                 
-                                <!-- Due Date -->
+                                <!-- Due Date with Overdue Warning -->
                                 <td>
-                                    <div class="@if($tasks->expected_completion->isPast() && $tasks->issue_status != 'Completed') text-danger @else text-muted @endif">
-                                        {{ $tasks->expected_completion->format('d M Y') }}
-                                        @if($tasks->expected_completion->isPast() && $tasks->issue_status != 'Completed')
-                                            <i class="fas fa-exclamation ms-1"></i>
+                                    <div class="d-flex align-items-center">
+                                        <div class="@if($task->expected_completion->isPast() && $task->issue_status != 'Completed') text-danger @else text-muted @endif">
+                                            {{ $task->expected_completion->format('d M Y') }}
+                                        </div>
+                                        @if($task->expected_completion->isPast() && $task->issue_status != 'Completed')
+                                            <span class="badge bg-danger ms-2">
+                                                <i class="fas fa-clock me-1"></i>Overdue
+                                            </span>
                                         @endif
                                     </div>
                                 </td>
@@ -109,8 +105,11 @@
                                             'Pending' => 'warning'
                                         ];
                                     @endphp
-                                    <span class="badge bg-soft-{{ $statusClasses[$tasks->issue_status] ?? 'secondary' }} text-{{ $statusClasses[$tasks->issue_status] ?? 'secondary' }}">
-                                        {{ $tasks->issue_status }}
+                                    <span class="badge bg-soft-{{ $statusClasses[$task->issue_status] ?? 'secondary' }} text-{{ $statusClasses[$task->issue_status] ?? 'secondary' }}">
+                                        {{ $task->issue_status }}
+                                        @if($task->expected_completion->isPast() && $task->issue_status != 'Completed')
+                                            <i class="fas fa-exclamation-triangle ms-1"></i>
+                                        @endif
                                     </span>
                                 </td>
                                 
@@ -123,30 +122,21 @@
                                             'Low' => 'success'
                                         ];
                                     @endphp
-                                    <span class="badge bg-soft-{{ $priorityClasses[$tasks->priority] ?? 'secondary' }} text-{{ $priorityClasses[$tasks->priority] ?? 'secondary' }}">
+                                    <span class="badge bg-soft-{{ $priorityClasses[$task->priority] ?? 'secondary' }} text-{{ $priorityClasses[$task->priority] ?? 'secondary' }}">
                                         <i class="fas fa-flag me-1"></i>
-                                        {{ $tasks->priority }}
+                                        {{ $task->priority }}
                                     </span>
                                 </td>
                                 
                                 <!-- Actions -->
                                 <td class="pe-4 text-end">
                                     <div class="action-buttons">
-                                        <a href="{{ route('tasks.progress.show', $tasks->task_id) }}" 
+                                        <a href="{{ route('tasks.progress.show', $task->task_id) }}" 
                                             class="btn btn-sm btn-soft-primary"
                                             data-bs-toggle="tooltip"
                                             title="View Progress">
-                                             <i class="fas fa-eye"></i>
-                                         </a>
-                                        
-                                        @if(!$tasks->assignee)
-                                            <a href="{{ route('tasks.assign', ['task_id' => $tasks->task_id]) }}"
-                                               class="btn btn-sm btn-soft-warning"
-                                               data-bs-toggle="tooltip"
-                                               title="Assign Task">
-                                                <i class="fas fa-user-plus"></i>
-                                            </a>
-                                        @endif
+                                            <i class="fas fa-eye"></i>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -159,131 +149,34 @@
 </div>
 
 <style>
-    /* Base Styles */
-    .task-management-container {
-        max-width: 1400px;
+    /* Add these new styles */
+    .table-danger-light {
+        background-color: rgba(220, 53, 69, 0.03) !important;
+        border-left: 3px solid #dc3545;
     }
-    
-    /* Header Styles */
-    .header-section {
-        border-bottom: 1px solid #eee;
-        padding-bottom: 1rem;
+
+    .overdue-alert {
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
     }
-    
-    .page-title {
-        font-weight: 600;
-        color: #2c3e50;
+
+    .table-danger-light td {
+        position: relative;
     }
-    
-    .page-subtitle {
-        font-size: 0.875rem;
+
+    .table-danger-light td:first-child::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background-color: #dc3545;
     }
-    
-    /* Table Styles */
-    .table {
-        margin-bottom: 0;
-    }
-    
-    .table th {
-        font-weight: 500;
-        color: #6c757d;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        border-top: none;
-    }
-    
-    .table td {
-        vertical-align: middle;
-        padding: 1rem 0.75rem;
-        border-top: 1px solid #f8f9fa;
-    }
-    
-    /* Avatar Styles */
-    .avatar-circle {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-    
-    /* Badge Styles */
-    .badge {
-        font-weight: 500;
-        padding: 0.35em 0.65em;
-        font-size: 0.75rem;
-    }
-    
-    .bg-soft-primary {
-        background-color: rgba(13, 110, 253, 0.1);
-    }
-    
-    .bg-soft-success {
-        background-color: rgba(25, 135, 84, 0.1);
-    }
-    
-    .bg-soft-warning {
-        background-color: rgba(255, 193, 7, 0.1);
-    }
-    
+
     .bg-soft-danger {
         background-color: rgba(220, 53, 69, 0.1);
-    }
-    
-    .bg-soft-secondary {
-        background-color: rgba(108, 117, 125, 0.1);
-    }
-    
-    .bg-soft-info {
-        background-color: rgba(13, 202, 240, 0.1);
-    }
-    
-    /* Completed row styling */
-    .table-success-light {
-        background-color: rgba(25, 135, 84, 0.03);
-    }
-    
-    /* Action buttons */
-    .action-buttons .btn {
-        width: 30px;
-        height: 30px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        margin-left: 5px;
-        border-radius: 6px;
-    }
-    
-    .btn-soft-primary {
-        color: #0d6efd;
-        background-color: rgba(13, 110, 253, 0.1);
-        border: none;
-    }
-    
-    .btn-soft-warning {
-        color: #ffc107;
-        background-color: rgba(255, 193, 7, 0.1);
-        border: none;
-    }
-    
-    /* Icon container */
-    .icon-container {
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    /* Info badge */
-    .info-badge .badge {
-        font-weight: 400;
-        font-size: 0.8rem;
     }
 </style>
 
@@ -294,6 +187,23 @@
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
+
+        // Flash overdue rows
+        const overdueRows = document.querySelectorAll('.table-danger-light');
+        overdueRows.forEach(row => {
+            row.style.animation = 'pulseAlert 1.5s infinite';
+        });
     });
+
+    // Add pulse animation for overdue tasks
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes pulseAlert {
+            0% { background-color: rgba(220, 53, 69, 0.03); }
+            50% { background-color: rgba(220, 53, 69, 0.08); }
+            100% { background-color: rgba(220, 53, 69, 0.03); }
+        }
+    `;
+    document.head.appendChild(style);
 </script>
 @endsection

@@ -3,22 +3,31 @@
 @section('title', 'Edit Issue')
 
 @section('content')
-    <div class="container py-4">
+    <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-white border-bottom-0 py-3">
-                        <h3 class="mb-0 fw-bold">Edit Issue #{{ $issue->issue_id }}</h3>
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header bg-white border-bottom-0 py-4">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="fas fa-edit text-primary "></i>
+                            </div>
+                            <div>
+                                <h2 class="h4 mb-0 fw-bold text-dark">Edit Issue #{{ $issue->issue_id }}</h2>
+                                <p class="text-muted mb-0">Update the details of your reported issue</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
+                    
+                    <div class="card-body px-4 py-4">
                         <form action="{{ route('Student.updateissue', $issue->issue_id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
 
                             <!-- Location Selection -->
                             <div class="mb-4">
-                                <label for="location_id" class="form-label fw-bold">Location</label>
-                                <select class="form-select @error('location_id') is-invalid @enderror" id="location_id" name="location_id" required>
+                                <label for="location_id" class="form-label fw-semibold text-dark">Location <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg @error('location_id') is-invalid @enderror" id="location_id" name="location_id" required>
                                     <option value="">Select a location</option>
                                     @foreach($locations as $location)
                                         <option value="{{ $location->location_id }}" 
@@ -28,50 +37,50 @@
                                     @endforeach
                                 </select>
                                 @error('location_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <!-- Issue Type -->
                             <div class="mb-4">
-                                <label for="issue_type" class="form-label fw-bold">Issue Type</label>
-                                <select class="form-select @error('issue_type') is-invalid @enderror" id="issue_type" name="issue_type" required>
+                                <label for="issue_type" class="form-label fw-semibold text-dark">Issue Type <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg @error('issue_type') is-invalid @enderror" id="issue_type" name="issue_type" required>
                                     <option value="">Select issue type</option>
                                     <option value="Plumbing" {{ $issue->issue_type == 'Plumbing' ? 'selected' : '' }}>Plumbing</option>
                                     <option value="Electrical" {{ $issue->issue_type == 'Electrical' ? 'selected' : '' }}>Electrical</option>
-                                    <option value="Furniture" {{ $issue->issue_type == 'Structural' ? 'selected' : '' }}>Furniture</option>
-                                   
+                                    <option value="Structural" {{ $issue->issue_type == 'Structural' ? 'selected' : '' }}>Structural</option>
                                 </select>
                                 @error('issue_type')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <!-- Urgency Level -->
                             <div class="mb-4">
-                                <label for="urgency_level" class="form-label fw-bold">Urgency Level</label>
-                                <select class="form-select @error('urgency_level') is-invalid @enderror" id="urgency_level" name="urgency_level" required>
+                                <label for="urgency_level" class="form-label fw-semibold text-dark">Urgency Level <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg @error('urgency_level') is-invalid @enderror" id="urgency_level" name="urgency_level" required>
                                     <option value="">Select urgency level</option>
                                     <option value="High" {{ $issue->urgency_level == 'High' ? 'selected' : '' }}>High</option>
                                     <option value="Medium" {{ $issue->urgency_level == 'Medium' ? 'selected' : '' }}>Medium</option>
                                     <option value="Low" {{ $issue->urgency_level == 'Low' ? 'selected' : '' }}>Low</option>
                                 </select>
                                 @error('urgency_level')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <!-- Description -->
                             <div class="mb-4">
-                                <label for="issue_description" class="form-label fw-bold">Description</label>
+                                <label for="issue_description" class="form-label fw-semibold text-dark">Description <span class="text-danger">*</span></label>
                                 <textarea class="form-control @error('issue_description') is-invalid @enderror" 
-                                    id="issue_description" name="issue_description" rows="5" required>{{ old('issue_description', $issue->issue_description) }}</textarea>
+                                    id="issue_description" name="issue_description" rows="5" required
+                                    placeholder="Please describe the issue in detail...">{{ old('issue_description', $issue->issue_description) }}</textarea>
                                 @error('issue_description')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
 
-<!-- In your edit form (editissue.blade.php) -->
+                          <!-- Attachments Section -->
 <div class="mb-4">
     <label for="attachments" class="form-label fw-bold">Update Attachments</label>
     <input class="form-control @error('attachments.*') is-invalid @enderror" 
@@ -89,30 +98,29 @@
                     <div class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
                             <i class="fas fa-paperclip me-2"></i>
-                            <a href="{{ Storage::disk($attachment->storage_disk)->url($attachment->file_path) }}" 
+                            <a href="{{ Storage::url($attachment->file_path) }}" 
                                target="_blank" class="text-decoration-none">
                                 {{ $attachment->original_name }}
                             </a>
                         </div>
-                        <span class="text-muted small">{{ $attachment->file_size }} bytes</span>
+                        <span class="badge bg-light text-dark"> {{ round($attachment->file_size / 1024, 1) }} KB</span>
                     </div>
                 @endforeach
             </div>
-            <div class="form-text mt-2">
-                <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+            <div class="alert alert-warning mt-2 p-2 small">
+                <i class="fas fa-exclamation-triangle me-1"></i>
                 Uploading new files will delete all existing attachments above.
             </div>
         </div>
     @endif
 </div>
-
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <div class="d-flex justify-content-between align-items-center border-top pt-4 mt-3">
                                 <a href="{{ route('Student.issue_details', $issue->issue_id) }}" 
-                                   class="btn btn-outline-secondary me-md-2 px-4">
-                                    Cancel
+                                   class="btn btn-outline-secondary px-4">
+                                    <i class="fas fa-arrow-left me-2"></i> Cancel
                                 </a>
-                                <button type="submit" class="btn btn-primary px-4">
-                                    <i class="fas fa-save me-1"></i> Update Issue
+                                <button type="submit" class="btn btn-primary px-4 py-2">
+                                    <i class="fas fa-save me-2"></i> Save Changes
                                 </button>
                             </div>
                         </form>
@@ -122,3 +130,20 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+<style>
+    .file-upload-wrapper {
+        transition: all 0.3s ease;
+    }
+    .file-upload-wrapper:hover {
+        background-color: #f8f9fa !important;
+    }
+    .form-select-lg {
+        padding: 0.75rem 1rem;
+    }
+    textarea {
+        min-height: 150px;
+    }
+</style>
+@endpush

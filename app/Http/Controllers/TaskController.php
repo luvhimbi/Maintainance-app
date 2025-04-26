@@ -26,14 +26,18 @@ class TaskController extends Controller
 
 
     public function viewTasks()
-    {
-        // Fetch all tasks with their assignee information
-        $task = Task::with(['assignee', 'issue'])->get();
-        $tasks = Task::with('admin')->get(); 
-        // Pass the tasks to the view
-        return view('admin.tasks.view', compact('task'));
-    }
+{
+    // Fetch all tasks with related data in a single query
+    $tasks = Task::with(['assignee', 'issue', 'admin'])->get();
 
+    // Calculate overdue tasks count
+    $overdueCount = Task::where('expected_completion', '<', now())
+        ->where('issue_status', '!=', 'Completed')
+        ->count();
+
+    // Pass data to the view
+    return view('admin.tasks.view', compact('tasks', 'overdueCount'));
+}
     public function showUpdateForm($task_id)
     {
         $task = Task::findOrFail($task_id);

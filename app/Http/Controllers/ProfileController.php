@@ -11,6 +11,7 @@ use App\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Hash;
 use App\Models\MaintenanceStaff;
 
+
 class ProfileController extends Controller
 {
     public function index()

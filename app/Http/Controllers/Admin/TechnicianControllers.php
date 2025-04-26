@@ -36,7 +36,8 @@ class TechnicianControllers extends Controller
     }
 public function store(Request $request)
 {
-    $request->validate([
+
+   $validated =  $request->validate([
         'username' => 'required|string|max:50|unique:users',
         'email' => 'required|string|email|max:200|unique:users',
         'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -53,9 +54,12 @@ public function store(Request $request)
         'status' => 'Active',
     ]);
 
-    MaintenanceStaff::create([ 
+ $staff=   MaintenanceStaff::create([ 
         'user_id' => $user->user_id, 
-        'specialization' => $request->specialization,
+        'specializaton' => $validated['specialization'],
+        'availability_status' => 'Available',
+        'current_workload' => '0'
+
     ]);
 
     return redirect()->route('admin.technicians.index')
