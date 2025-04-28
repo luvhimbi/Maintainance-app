@@ -19,14 +19,7 @@ class LocationQrController extends Controller
         $locations = Location::all();
         return view('admin.locations.index', compact('locations'));
     }
-   /**
-     * Show the form for creating a new location
-     */
-    public function create()
-    {
-        return view('admin.locations.create');
-    }
-
+  
     /**
      * Store a newly created location
      */

@@ -104,7 +104,7 @@
                     </div>
                     <h4 class="text-muted mb-3">No Completed Tasks Yet</h4>
                     <p class="text-muted">Tasks you mark as completed will appear here</p>
-                    <a href="{{ route('technician.tasks.active') }}" class="btn btn-primary mt-2">
+                    <a href="{{ route('technician.dashboard') }}" class="btn btn-primary mt-2">
                         <i class="fas fa-tasks me-1"></i> View Active Tasks
                     </a>
                 </div>

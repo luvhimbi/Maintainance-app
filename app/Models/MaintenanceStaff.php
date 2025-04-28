@@ -18,10 +18,7 @@ class MaintenanceStaff extends Model
         'current_workload',
        
     ];
- protected $casts = [
-        'specialization' => 'string', // Laravel doesn't know it's an enum in DB
-        'availability_status' => 'string',
-    ];
+
     /**
      * Get the user associated with the maintenance staff.
      */

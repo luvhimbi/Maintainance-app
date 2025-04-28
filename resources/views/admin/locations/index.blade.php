@@ -9,9 +9,7 @@
                 <h2 class="h5 mb-1">Location Management</h2>
                 <p class="text-muted small mb-0">Manage all building locations and rooms</p>
             </div>
-            <a href="{{ route('admin.locations.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus me-1"></i> Add Location
-            </a>
+        
         </div>
 
         <!-- Card Body -->

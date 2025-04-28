@@ -22,17 +22,19 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'user_id',
-        'username',
-        'password_hash',
-        'email',
-        'phone_number',
-        'user_role',
-        'two_factor_enabled',
-    'two_factor_code',
-    'two_factor_expires_at',
-    ];
+  protected $fillable = [
+    'user_id',
+    'username',
+    'password_hash',
+    'email',
+    'phone_number',
+    'user_role',
+    'status',
+    'first_name',
+    'last_name',
+    'address' 
+];
+
     public function getAuthPassword()
     {
         return $this->password_hash; // Use the `password_hash` field
@@ -110,16 +112,22 @@ public function isStudent()
 {
     return $this->role === 'Student';
 }
-    public function maintenanceStaff()
-    {
+public function maintenanceStaff()
+{
         return $this->hasOne(MaintenanceStaff::class, 'user_id');
-    }
-    public function sendWelcomeNotification()
+ }
+ 
+ public function sendWelcomeNotification()
     {
         $this->notify(new DatabaseNotification('Welcome to our app support!', url('/')));
     }
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class, 'assignee_id');
+    }
+
+     public function campusMember(): HasOne
+    {
+        return $this->hasOne(CampusMember::class);
     }
 }

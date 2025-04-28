@@ -135,16 +135,18 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('technician.directions') }}">
-                            <i class="fas fa-map"></i>SmartNav
+                            <i class="fa-solid fa-map-pin "></i>SmartNav
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('notification.index') }}">
                             <i class="fas fa-bell"></i>Notifications
                             @auth
-                                <span class="notification-counter" id="notificationCounter">
+                             @if(auth()->user()->unreadNotifications->count() > 0)
+                                <span class="notification-counter badge bg-danger notification-badge" id="notificationCounter">
                                     {{ auth()->user()->unreadNotifications->count() }}
                                 </span>
+                                    @endif
                             @endauth
                         </a>
                     </li>
