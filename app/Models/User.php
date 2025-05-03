@@ -77,32 +77,16 @@ class User extends Authenticatable
     {
         return $this->hasOne(Admin::class, 'user_id');
     }
- public function threads()
-    {
-        return $this->hasMany(Thread::class);
-    }
 
-    public function replies()
-    {
-        return $this->hasMany(Reply::class);
-    }
 
-    public function categories()
-    {
-        return $this->hasMany(Category::class);
-    }
-    /**
-     * Get the maintenance staff record associated with the user.
-     */
-    // app/Models/User.php
+
+   
+ 
 public function isAdmin()
 {
     return $this->role === 'Admin';
 }
-public function mentions()
-{
-    return $this->hasMany(Mention::class);
-}
+
 public function isMaintenanceStaff()
 {
     return $this->role === 'Technician';

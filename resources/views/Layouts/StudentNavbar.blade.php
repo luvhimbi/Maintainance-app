@@ -4,22 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard') - Maintenance System</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Poppins Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('./css/global.css') }}">
-    
- 
+
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -127,7 +127,7 @@
                 <i class="fas fa-tools me-2"></i>
             OCM
             </a>
-            
+
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <i class="fas fa-bars"></i>
             </button>
@@ -139,23 +139,23 @@
                             <i class="fas fa-home me-2"></i>Home
                         </a>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('Student.createissue') ? 'active' : '' }}" 
+                        <a class="nav-link {{ Request::routeIs('Student.createissue') ? 'active' : '' }}"
                            href="{{ route('Student.createissue') }}">
                             <i class="fas fa-plus-circle me-2"></i>Report Issue
                         </a>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('Student.view_issues') ? 'active' : '' }}" 
+                        <a class="nav-link {{ Request::routeIs('Student.view_issues') ? 'active' : '' }}"
                            href="{{ route('Student.view_issues') }}">
                             <i class="fas fa-tasks me-2"></i>Issue History
                         </a>
                     </li>
-                    
+
                     <li class="nav-item position-relative">
-                        <a class="nav-link {{ Request::routeIs('notifications.index') ? 'active' : '' }}" 
+                        <a class="nav-link {{ Request::routeIs('notifications.index') ? 'active' : '' }}"
                            href="{{ route('notifications.index') }}">
                             <i class="fas fa-bell me-2"></i>Notifications
                             @auth
@@ -171,12 +171,12 @@
                     <!-- User Menu -->
                     @auth
                         <li class="nav-item dropdown ms-lg-3">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" 
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
                                id="userDropdown" role="button" data-bs-toggle="dropdown">
                                 <div class="user-avatar">
-                                    {{ strtoupper(substr(Auth::user()->username, 0, 1)) }}
+                                    {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}
                                 </div>
-                                <span class="d-none d-lg-block">{{ Auth::user()->username }}</span>
+                                <span class="d-none d-lg-block">{{ Auth::user()->first_name  }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li>
@@ -251,7 +251,7 @@
         if (logoutForm) {
             logoutForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
+
                 Swal.fire({
                     title: 'Are you sure?',
                     text: "You will be logged out of the system!",

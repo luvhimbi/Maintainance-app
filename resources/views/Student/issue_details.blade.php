@@ -76,10 +76,10 @@
                             @if ($issue->task && $issue->task->assignee)
                                 <div class="d-flex align-items-center mb-2">
                                     <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; flex-shrink: 0;">
-                                        {{ substr($issue->task->assignee->username, 0, 1) }}
+                                        {{ substr($issue->task->assignee->first_name, 0, 1) }}
                                     </div>
                                     <div>
-                                        <p class="mb-0 fw-bold">{{ $issue->task->assignee->username }}</p>
+                                        <p class="mb-0 fw-bold">{{ $issue->task->assignee->first_name }}</p>
                                     </div>
                                 </div>
                                 <div class="ms-1 ps-1 border-start">
@@ -155,29 +155,29 @@
         <div class="timeline ps-3">
             @foreach ($issue->task->updates->sortByDesc('update_timestamp') as $update)
                 <div class="timeline-item position-relative pb-4">
-                    <div class="timeline-badge position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center bg-white border border-3 
+                    <div class="timeline-badge position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center bg-white border border-3
                         @if($update->status_change == 'In Progress') border-warning
                         @elseif($update->status_change == 'Resolved') border-success
                         @else border-primary @endif"
                         style="width: 24px; height: 24px;">
-                        <i class="fas fa-circle fs-6 
+                        <i class="fas fa-circle fs-6
                             @if($update->status_change == 'In Progress') text-warning
                             @elseif($update->status_change == 'Resolved') text-success
                             @else text-primary @endif"></i>
                     </div>
-                    
+
                     <div class="timeline-content ms-5 ps-3">
                         <div class="card border-0 shadow-sm mb-3">
                             <div class="card-body p-4">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div class="d-flex align-items-center">
                                         @if($update->staff)
-                                            <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                            <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3"
                                                  style="width: 40px; height: 40px; font-size: 1.1rem;">
-                                                {{ substr($update->staff->username, 0, 1) }}
+                                                {{ substr($update->staff->first_name, 0, 1) }}
                                             </div>
                                             <div>
-                                                <h6 class="mb-0 text-dark">{{ $update->staff->username }}</h6>
+                                                <h6 class="mb-0 text-dark">{{ $update->staff->first_name}}</h6>
                                                 <span class="badge bg-primary bg-opacity-10 text-primary">{{ $update->staff->user_role }}</span>
                                             </div>
                                         @else
@@ -188,20 +188,20 @@
                                         {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y · g:i A') }}
                                     </span>
                                 </div>
-                                
+
                                 <div class="mb-3">
-                                    <span class="badge rounded-pill 
+                                    <span class="badge rounded-pill
                                         @if($update->status_change == 'In Progress') bg-warning bg-opacity-10 text-warning
                                         @elseif($update->status_change == 'Resolved') bg-success bg-opacity-10 text-success
                                         @else bg-primary bg-opacity-10 text-primary @endif">
-                                        <i class="fas 
+                                        <i class="fas
                                             @if($update->status_change == 'In Progress') fa-wrench me-1
                                             @elseif($update->status_change == 'Resolved') fa-check me-1
                                             @else fa-info-circle me-1 @endif"></i>
                                         {{ $update->status_change }}
                                     </span>
                                 </div>
-                                
+
                                 <p class="mb-0 text-dark">{{ $update->update_description }}</p>
                             </div>
                         </div>
@@ -242,7 +242,7 @@
                             @endfor
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="comments" class="form-label">Additional comments (optional)</label>
                         <textarea class="form-control" id="comments" name="comments" rows="3"></textarea>

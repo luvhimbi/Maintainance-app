@@ -1,6 +1,9 @@
--update the update task to  show alerts
--correct save student and maintainace stuff 
--add alert for deleting students ,maintanance and location 
--add proper logic on the person who assigns a task 
--change the student role to user to fit for staff and students to report
-- update the profiles to work
+
+* to do for today 
+- I need to create pages for creating reports for the admin
+- I need check the mapbox api and use the navigation api to the best of its ability for the web
+- I need to change how notification show  
+- I need to implement the exceptions for the app 
+- I need to decide on how information for the user is stored by the admin or remove this features (will decide)
+- I need to write test cases for each functionality and validate if its works or not 
+- I also need to make sure the part of when an issue is queued and when technicians are busy how that logic should work

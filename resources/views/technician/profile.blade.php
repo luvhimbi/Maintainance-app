@@ -5,10 +5,11 @@
 @section('content')
     <div class="container">
         <h1>Profile</h1>
-        <p><strong>Name:</strong> {{ $user->username }}</p>
+             <p><Strong>Name: </Strong> {{ $user->first_name }} {{ $user->last_name }}</p>
             <p><strong>Email:</strong> {{ $user->email }}</p>
             <p><strong>Phone Number:</strong> {{ $user->phone_number }}</p>
             <p><strong>Role:</strong> {{ $user->user_role }}</p>
+        <p><strong>address: </strong> {{ $user->address}}</p>
             <p><strong>Specialization:</strong> {{ $maintenanceStaff->specialization }}</p>
             <p><strong>Availability Status:</strong> {{ $maintenanceStaff->availability_status }}</p>
             <p><strong>Current Workload:</strong> {{ $maintenanceStaff->current_workload }}</p>

@@ -26,7 +26,7 @@
                         <div class="metric-icon rounded-circle bg-primary bg-opacity-10 p-3">
                             <i class="fas fa-users text-primary"></i>
                         </div>
-                       
+
                     </div>
                     <h3 class="fw-bold mb-1">{{ $userCounts['total'] }}</h3>
                     <p class="text-uppercase text-muted small mb-2">Total Users</p>
@@ -46,7 +46,7 @@
                         <div class="metric-icon rounded-circle bg-success bg-opacity-10 p-3">
                             <i class="fas fa-tasks text-success"></i>
                         </div>
-                      
+
                     </div>
                     <h3 class="fw-bold mb-1">{{ $taskCounts['total'] }}</h3>
                     <p class="text-uppercase text-muted small mb-2">Total Tasks</p>
@@ -68,15 +68,14 @@
                             <i class="fas fa-check-circle text-info"></i>
                         </div>
                         <span class="badge bg-info bg-opacity-10 text-info p-2">
-                            {{ number_format(($taskCounts['completed']/$taskCounts['total'])*100, 1) }}% Rate
+                             {{ number_format($taskCounts['completion_rate'], 1) }}% Rate
                         </span>
                     </div>
                     <h3 class="fw-bold mb-1">{{ $taskCounts['completed'] }}</h3>
                     <p class="text-uppercase text-muted small mb-2">Completed Tasks</p>
                     <div class="mt-3">
                         <div class="progress" style="height: 8px; border-radius: 4px;">
-                            <div class="progress-bar bg-info" 
-                                 style="width: {{ ($taskCounts['completed']/$taskCounts['total'])*100 }}%">
+                            <div class="progress-bar bg-info" style="width: {{ $taskCounts['completion_rate'] }}%">
                             </div>
                         </div>
                     </div>
@@ -92,7 +91,7 @@
                         <div class="metric-icon rounded-circle bg-warning bg-opacity-10 p-3">
                             <i class="fas fa-tools text-warning"></i>
                         </div>
-                      
+
                     </div>
                     <h3 class="fw-bold mb-1">{{ $userCounts['technicians'] }}</h3>
                     <p class="text-uppercase text-muted small mb-2">Active Technicians</p>
@@ -166,7 +165,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Task Status Summary -->
     <div class="row g-4 mt-4">
         <div class="col-12">
@@ -174,7 +173,7 @@
                 <div class="card-header bg-white border-0 pt-4 pb-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold">Task Status Summary</h5>
-                      
+
                     </div>
                 </div>
                 <div class="card-body">
@@ -232,12 +231,12 @@
         border-radius: 12px;
         overflow: hidden;
     }
-    
+
     .hover-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
     }
-    
+
     .metric-icon {
         width: 48px;
         height: 48px;
@@ -246,17 +245,17 @@
         justify-content: center;
         font-size: 1.5rem;
     }
-    
+
     .progress {
         border-radius: 10px;
         overflow: hidden;
     }
-    
+
     .progress-bar {
         min-width: 20px;
         border-radius: 10px;
     }
-    
+
     .avatar {
         width: 36px;
         height: 36px;
@@ -265,24 +264,24 @@
         justify-content: center;
         font-weight: 500;
     }
-    
+
     .list-group-item:hover {
         background-color: rgba(0,0,0,0.01);
     }
-    
+
     .card {
         border-radius: 12px;
     }
-    
+
     .card-header {
         border-top-left-radius: 12px !important;
         border-top-right-radius: 12px !important;
     }
-    
+
     .btn {
         border-radius: 8px;
     }
-    
+
     .badge {
         border-radius: 6px;
     }

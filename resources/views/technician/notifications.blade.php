@@ -4,7 +4,7 @@
 
 <div class="container">
     <h2>Your Notifications</h2>
-    
+
     <!-- Mark All as Read Button -->
     <form action="{{ route('notifications.markAllRead') }}" method="POST" class="mb-4">
         @csrf
@@ -52,7 +52,7 @@
 <script>
     // Get the authenticated user's ID
     const userId = "{{ auth()->id() }}";
-    
+
     // Initialize Pusher
     const pusher = new Pusher("{{ config('broadcasting.connections.pusher.key') }}", {
         cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
@@ -67,7 +67,7 @@
     channel.bind('Illuminate\\Notifications\\Events\\BroadcastNotificationCreated', function(data) {
         // Play notification sound
         playNotificationSound();
-        
+
         // Show toast notification
         Swal.fire({
             toast: true,
@@ -80,7 +80,7 @@
 
         // Prepend the new notification to the container
         const notificationsContainer = document.getElementById('notifications-container');
-        
+
         // Create new notification element
         const newNotification = document.createElement('div');
         newNotification.className = 'card mb-3 border-primary';
@@ -98,15 +98,15 @@
                 </a>
             </div>
         `;
-        
+
         // Insert at the top of the container
         if (document.querySelector('.alert-info')) {
             // Remove the "no notifications" message if it exists
             document.querySelector('.alert-info').remove();
         }
-        
+
         notificationsContainer.insertBefore(newNotification, notificationsContainer.firstChild);
-        
+
         // Update notification count in navbar (if you have one)
         updateNotificationCount();
     });

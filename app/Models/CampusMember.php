@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CampusMember extends Model
+class CampusMember extends User
 {
     public $timestamps = false;
     protected $primaryKey = 'user_id';

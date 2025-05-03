@@ -19,21 +19,21 @@ return new class extends Migration
             $table->string('address', 255)->nullable()->after('last_name');
         });
 
-        DB::statement("ALTER TABLE users ALTER COLUMN user_role DROP DEFAULT");
+//        DB::statement("ALTER TABLE users ALTER COLUMN user_role DROP DEFAULT");
+//
+//        // ⚡ Step 2: Create old ENUM
+//        DB::statement("CREATE TYPE user_role_enum_old AS ENUM ('Student', 'Technician', 'Admin')");
+//
+//        // ⚡ Step 3: Change back to old ENUM
+//        DB::statement("ALTER TABLE users ALTER COLUMN user_role TYPE user_role_enum_old USING user_role::text::user_role_enum_old");
+//
+//        // ⚡ Step 4: Set old default
+//        DB::statement("ALTER TABLE users ALTER COLUMN user_role SET DEFAULT 'Student'");
+//
+//        // ⚡ Step 5: Drop the new ENUM
+//        DB::statement("DROP TYPE IF EXISTS user_role_enum_new");
 
-        // ⚡ Step 2: Create old ENUM
-        DB::statement("CREATE TYPE user_role_enum_old AS ENUM ('Student', 'Technician', 'Admin')");
 
-        // ⚡ Step 3: Change back to old ENUM
-        DB::statement("ALTER TABLE users ALTER COLUMN user_role TYPE user_role_enum_old USING user_role::text::user_role_enum_old");
-
-        // ⚡ Step 4: Set old default
-        DB::statement("ALTER TABLE users ALTER COLUMN user_role SET DEFAULT 'Student'");
-
-        // ⚡ Step 5: Drop the new ENUM
-        DB::statement("DROP TYPE IF EXISTS user_role_enum_new");
-
-      
     }
 
     public function down(): void
@@ -48,16 +48,16 @@ return new class extends Migration
             $table->dropColumn('address');
         });
 
-        // Drop the new ENUM
-        DB::statement("DROP TYPE IF EXISTS user_role_enum_new");
-
-        // Create old ENUM
-        DB::statement("CREATE TYPE user_role_enum_old AS ENUM ('Student', 'Technician', 'Admin')");
-
-        // Change back to old ENUM
-        DB::statement("ALTER TABLE users ALTER COLUMN user_role TYPE user_role_enum_old USING user_role::text::user_role_enum_old");
-
-        // Set old default
-        DB::statement("ALTER TABLE users ALTER COLUMN user_role SET DEFAULT 'Student'");
+//        // Drop the new ENUM
+//        DB::statement("DROP TYPE IF EXISTS user_role_enum_new");
+//
+//        // Create old ENUM
+//        DB::statement("CREATE TYPE user_role_enum_old AS ENUM ('Student', 'Technician', 'Admin')");
+//
+//        // Change back to old ENUM
+//        DB::statement("ALTER TABLE users ALTER COLUMN user_role TYPE user_role_enum_old USING user_role::text::user_role_enum_old");
+//
+//        // Set old default
+//        DB::statement("ALTER TABLE users ALTER COLUMN user_role SET DEFAULT 'Student'");
     }
 };

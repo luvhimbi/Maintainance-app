@@ -115,80 +115,145 @@ class IssueController extends Controller
 
         return view('Student.confirmissue', compact('formData', 'attachments', 'location'));
     }
+/*
+ * update the created_at here also
+ */
+    public function save()
+    {
+        // Retrieve session data
+        $formData = session()->get('formData', []);
+        $attachments = session()->get('attachments', []);
 
-   public function save()
-{
-    // Retrieve session data
-    $formData = session()->get('formData', []);
-    $attachments = session()->get('attachments', []);
+        // If no form data exists, redirect back to the form
+        if (empty($formData)) {
+            return redirect()->route('Student.createissue')->with('error', 'Please fill out the form first.');
+        }
 
-    // If no form data exists, redirect back to the form
-    if (empty($formData)) {
-        return redirect()->route('Student.createissue')->with('error', 'Please fill out the form first.');
+        // Check for duplicate issue within last 24 hours
+        $existingIssue = Issue::where('reporter_id', $formData['reporter_id'])
+            ->where('issue_type', $formData['issue_type'])
+            ->whereRaw('LOWER(issue_description) = ?', [strtolower($formData['issue_description'])])
+            ->where('created_at', '>', now()->subDay())
+            ->first();
+
+        if ($existingIssue) {
+            return redirect()->route('Student.createissue')->with([
+                'error' => 'You already submitted this issue within the last 24 hours. ' .
+                    'Existing Issue ID: #' . $existingIssue->issue_id,
+                'existing_issue_id' => $existingIssue->issue_id
+            ]);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Save the issue to the database with a default status of 'Open'
+            $issue = Issue::create([
+                'reporter_id' => $formData['reporter_id'],
+                'location_id' => $formData['location_id'],
+                'issue_type' => $formData['issue_type'],
+                'issue_description' => $formData['issue_description'],
+                'urgency_level' => $formData['urgency_level'],
+                'issue_status' => 'Open',
+            ]);
+
+            session()->put('reported_issue_id', $issue->issue_id);
+
+            $task = Task::create([
+                'issue_id' => $issue->issue_id,
+                'priority' => $this->mapUrgencyToPriority($formData['urgency_level']),
+                'issue_status' => 'Pending',
+                'expected_completion' => Carbon::now()->addWeek()
+            ]);
+
+            // Assign task and get the assigned technician (if any)
+            $assignedTechnician = $this->assignOrQueueTask($task);
+
+            // Save attachments to the database
+            foreach ($attachments as $attachment) {
+                IssueAttachment::create([
+                    'issue_id' => $issue->issue_id,
+                    'file_path' => $attachment['path'],
+                    'original_name' => $attachment['original_name'],
+                    'mime_type' => $attachment['mime_type'],
+                    'file_size' => $attachment['file_size'],
+                    'storage_disk' => 'public',
+                ]);
+            }
+
+            // Get related data for notifications
+            $location = Location::find($formData['location_id']);
+            $reporter = User::find($formData['reporter_id']);
+
+            // Enhanced Reporter Notification
+            $reporterMessage = sprintf(
+                "New Issue #%s\n\n".
+                "Type: %s\n".
+                "Location: %s\n".
+                "Urgency: %s\n".
+                "Submitted: %s\n".
+                "Status: %s\n\n".
+                "%s",
+                $issue->issue_id,
+                $issue->issue_type,
+                $location->name ?? 'Unknown Location',
+                $issue->urgency_level,
+                $issue->created_at,
+                $issue->issue_status,
+                $assignedTechnician
+                    ? "Assigned Technician: {$assignedTechnician->first_name}"
+                    : "Awaiting technician assignment"
+            );
+
+            $reporter->notify(new DatabaseNotification(
+                $reporterMessage,
+                route('Student.issue_details', $issue->issue_id),
+                'New Issue Submitted'
+            ));
+
+            // Enhanced Technician Notification
+            if ($assignedTechnician) {
+                $technicianMessage = sprintf(
+                    "New Assignment #%s\n\n".
+                    "Priority: %s\n".
+                    "Expected Completion: %s\n".
+                    "Location: %s\n".
+                    "Reporter: %s\n".
+                    "Urgency: %s\n\n".
+                    "%s",
+                    $issue->issue_id,
+                    $task->priority,
+                    $task->expected_completion,
+                    $location->name ?? 'Unknown Location',
+                    $reporter->full_name,
+                    $issue->urgency_level,
+                    $issue->issue_description
+                );
+
+                $assignedTechnician->notify(new DatabaseNotification(
+                    $technicianMessage,
+                    route('technician.task_details', $issue->issue_id),
+                    'New Task Assignment'
+                ));
+            }
+
+            DB::commit();
+
+            // Clear session data after successful submission
+            session()->forget(['formData', 'attachments']);
+
+            return redirect()->route('issue.success')->with([
+                'success' => 'Issue reported successfully!',
+                'assigned_technician' => $assignedTechnician ? $assignedTechnician->first_name : null,
+                'issue_id' => $issue->issue_id
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Issue submission failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to submit issue. Please try again.');
+        }
     }
-
-    // Save the issue to the database with a default status of 'Open'
-    $issue = Issue::create([
-        'reporter_id' => $formData['reporter_id'],
-        'location_id' => $formData['location_id'],
-        'issue_type' => $formData['issue_type'],
-        'issue_description' => $formData['issue_description'],
-        'urgency_level' => $formData['urgency_level'],
-        'issue_status' => 'Open', // Set default status
-    ]);
- session()->put('reported_issue_id', $issue->issue_id);
-
-    $task = Task::create([
-        'issue_id' => $issue->issue_id,
-        'priority' => $this->mapUrgencyToPriority($formData['urgency_level']),
-        'issue_status' => 'Pending', // Explicitly set status
-        'expected_completion' => Carbon::now()->addWeek() // 7 days from now
-    ]);
-
-    // Assign task and get the assigned technician (if any)
-    $assignedTechnician = $this->assignOrQueueTask($task);
-    
-    // Save attachments to the database
-    foreach ($attachments as $attachment) {
-        IssueAttachment::create([
-            'issue_id' => $issue->issue_id,
-            'file_path' => $attachment['path'],
-            'original_name' => $attachment['original_name'],
-            'mime_type' => $attachment['mime_type'],
-            'file_size' => $attachment['file_size'],
-            'storage_disk' => 'public',
-        ]);
-    }
-
-    // Notify the reporter
-    $reporter = User::find($formData['reporter_id']);
-    
-    // Create notification message based on assignment status
-    $notificationMessage = $assignedTechnician 
-        ? 'Your issue #' . $issue->issue_id . ' has been assigned to ' . $assignedTechnician->name . '.'
-        : 'Your issue #' . $issue->issue_id . ' has been submitted and is awaiting assignment.';
-
-    $reporter->notify(new DatabaseNotification(
-        $notificationMessage,
-        route('Student.issue_details', $issue->issue_id)
-    ));
-
-    // If assigned, notify the technician as well
-    if ($assignedTechnician) {
-        $technicianNotification = 'You have been assigned a new issue #' . $issue->issue_id . 
-                                ' with priority: ' . $task->priority;
-        
-        $assignedTechnician->notify(new DatabaseNotification(
-            $technicianNotification,
-            route('Technician.issue_details', $issue->issue_id)
-        ));
-    }
-
-    return redirect()->route('issue.success')->with([
-        'success' => 'Issue reported successfully!',
-        'assigned_technician' => $assignedTechnician ? $assignedTechnician->name : null
-    ]);
-}
 
 private function mapUrgencyToPriority($urgency)
 {
@@ -218,6 +283,14 @@ public function editReportedIssue(Issue $issue)
     $locations = Location::all();
     return view('Student.editissue', compact('issue', 'locations'));
 }
+
+
+/*
+ * this is a method for updating the issue
+ * to do update this as well
+ *
+ */
+
 
 public function update(Request $request, Issue $issue)
 {
@@ -268,7 +341,7 @@ public function update(Request $request, Issue $issue)
         // Add new attachments
         foreach ($request->file('attachments') as $file) {
             $path = $file->store('attachments', 'public');
-            
+
             IssueAttachment::create([
                 'issue_id' => $issue->issue_id,
                 'file_path' => $path,
@@ -279,81 +352,83 @@ public function update(Request $request, Issue $issue)
             ]);
         }
     }
-    
-       
+
+
 
     return redirect()->route('Student.issue_details', $issue->issue_id)
         ->with('success', 'Issue updated successfully!');
 }
 
-public function assignOrQueueTask(Task $task)
-{
-    // Find available technician with matching specialization and workload < 3
-    $technician = User::whereHas('maintenanceStaff', function ($query) use ($task) {
-        $query->where('availability_status', 'Available')
-              ->where('specialization', $task->issue->issue_type); // Match specialization to issue type
-    })
-    ->join('maintenance_staff', 'users.user_id', '=', 'maintenance_staff.user_id') // Join the tables
-    ->orderBy('maintenance_staff.current_workload', 'asc') // Order by workload
-    ->select('users.*') // Select only user columns
-    ->first();
+    public function assignOrQueueTask(Task $task)
+    {
+        // Find available technician with matching specialization and workload < 3
+        $technician = User::whereHas('maintenanceStaff', function ($query) use ($task) {
+            $query->where('availability_status', 'Available')
+                ->where('specialization', $task->issue->issue_type); // Match specialization to issue type
+        })
+            ->join('maintenance_staff', 'users.user_id', '=', 'maintenance_staff.user_id') // Join the tables
+            ->orderBy('maintenance_staff.current_workload', 'asc') // Order by workload
+            ->select('users.*') // Select only user columns
+            ->first();
 
-    if ($technician) {
-        // Assign tasks
-        $task->update([
-            'assignee_id' => $technician->user_id,
-            
-            'assignment_date' => now(),
-        ]);
-        
+        if ($technician) {
+            // Assign tasks
+            $task->update([
+                'assignee_id' => $technician->user_id,
+                'assignment_date' => now(),
+            ]);
 
-        // Update technician workload
-        DB::table('maintenance_staff')
-            ->where('user_id', $technician->user_id)
-            ->increment('current_workload');
-
-        // Mark as busy if workload reaches 3
-        if ($technician->maintenanceStaff->current_workload + 1 >= 3) {
+            // Update technician workload
             DB::table('maintenance_staff')
                 ->where('user_id', $technician->user_id)
-                ->update(['availability_status' => 'Busy']);
+                ->increment('current_workload');
+
+            // Mark as busy if workload reaches 6 (updated from your original 3 to match your condition)
+            if ($technician->maintenanceStaff->current_workload >= 6) {
+                DB::table('maintenance_staff')
+                    ->where('user_id', $technician->user_id)
+                    ->update(['availability_status' => 'Busy']);
+            }
+
+            // Return the technician
+            return $technician;
+        } else {
+            // Queue the tasks (assignee_id remains null)
+            Log::info("Task {$task->task_id} queued - no available technicians");
+            return null;
         }
-    } else {
-        // Queue the tasks (assignee_id remains null)
-        Log::info("Task {$task->task_id} queued - no available technicians");
-    }
-}
-
-
-
-public function completeTask($taskId)
-{
-    $task = Task::findOrFail($taskId);
-    $task->update(['issue_status' => 'Completed']);
-
-    if ($task->assignee_id) {
-        // Decrement workload
-        DB::table('maintenance_staff')
-            ->where('user_id', $task->assignee_id)
-            ->decrement('current_workload');
-
-        // Recheck availability
-        $workload = DB::table('maintenance_staff')
-            ->where('user_id', $task->assignee_id)
-            ->value('current_workload');
-
-        if ($workload < 3) {
-            DB::table('maintenance_staff')
-                ->where('user_id', $task->assignee_id)
-                ->update(['availability_status' => 'Available']);
-        }
-
-        // Assign queued tasks to freed-up technician
-        $this->assignQueuedTasks($task->assignee_id);
     }
 
-    return redirect()->back()->with('success', 'Task completed!');
-}
+
+
+//public function completeTask($taskId)
+//{
+//    $task = Task::findOrFail($taskId);
+//    $task->update(['issue_status' => 'Completed']);
+//
+//    if ($task->assignee_id) {
+//        // Decrement workload
+//        DB::table('maintenance_staff')
+//            ->where('user_id', $task->assignee_id)
+//            ->decrement('current_workload');
+//
+//        // Recheck availability
+//        $workload = DB::table('maintenance_staff')
+//            ->where('user_id', $task->assignee_id)
+//            ->value('current_workload');
+//
+//        if ($workload < 3) {
+//            DB::table('maintenance_staff')
+//                ->where('user_id', $task->assignee_id)
+//                ->update(['availability_status' => 'Available']);
+//        }
+//
+//        // Assign queued tasks to freed-up technician
+//        $this->assignQueuedTasks($task->assignee_id);
+//    }
+//
+//    return redirect()->back()->with('success', 'Task completed!');
+//}
 
 
 public function assignQueuedTasks($technicianId)
@@ -405,8 +480,8 @@ public function assignQueuedTasks($technicianId)
                 }
             ])
             ->findOrFail($id);
-        
+
         return view('Student.issue_details', compact('issue'));
     }
-   
+
 }

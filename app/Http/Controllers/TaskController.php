@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MaintenanceStaff;
 use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\Issue;
@@ -44,77 +45,73 @@ class TaskController extends Controller
         return view('technician.task_update_form', compact('task'));
     }
 
-    
+
     // Handle the update submission
     public function updateTask(Request $request, $task_id)
     {
-        // Validate the request
         $request->validate([
             'status' => 'required|in:Pending,In Progress,Completed',
             'update_description' => 'required|string',
         ]);
-    
-        // Find the task
+
         $task = Task::findOrFail($task_id);
         $oldStatus = $task->issue_status;
         $newStatus = $request->status;
-    
-        // Update the task status
+
+        // Update task status
         $task->issue_status = $newStatus;
         $task->save();
-    
-        // Update the related issue status
+
+        // Update related issue status
         $issue = Issue::findOrFail($task->issue_id);
-    
+
         if ($newStatus === 'Completed') {
             $issue->issue_status = 'Resolved';
+
+            // Decrement workload for the assigned maintenance staff
+            MaintenanceStaff::where('user_id', $task->assignee_id)
+                ->decrement('current_workload');
         } else {
             $issue->issue_status = $newStatus;
         }
         $issue->save();
-    
+
         // Log the update
         $update = $task->updates()->create([
             'staff_id' => auth()->id(),
             'update_description' => $request->update_description,
             'status_change' => $newStatus,
         ]);
-    
-        // Get the involved parties
+
+        // Notification logic remains the same
         $reporter = User::find($issue->reporter_id);
-        $technician = User::find($issue->assignee_id);
         $updater = auth()->user();
-    
-        // Notification for the reporter (user who reported the issue)
+
         if ($reporter) {
             $reporter->notify(new DatabaseNotification(
                 $this->createReporterMessage($issue, $task, $oldStatus, $newStatus, $updater, $request->update_description),
-                
                 route('Student.issue_details', [$task->issue_id])
             ));
         }
-    
-       // Notification for the technician (assignee)
-// In your controller method (top)
 
+        if ($issue->assignee && Auth::id() !== $task->assignee->id) {
+            $task->assignee->notify(new DatabaseNotification(
+                $this->createTechnicianMessage(
+                    $issue,
+                    $task,
+                    $oldStatus,
+                    $newStatus,
+                    Auth::user(),
+                    $request->update_description
+                ),
+                route('technician.task_details', $task->id)
+            ));
+        }
 
-// Later in notification code
-if ($issue->assignee && Auth::id() !== $task->assignee->id) {
-    $task->assignee->notify(new DatabaseNotification(
-        $this->createTechnicianMessage(
-            $issue,
-            $task,
-            $oldStatus,
-            $newStatus,
-            Auth::user(),
-            $request->update_description
-        ),
-        route('technician.task_details', $task->id)
-    ));
-}     return redirect()->route('tasks.update.form', $task->task_id)
+        return redirect()->route('tasks.update.form', $task->task_id)
             ->with('success', 'Task updated successfully!');
     }
-    
+
     /**
      * Create notification message for the reporter
      */
@@ -130,12 +127,12 @@ if ($issue->assignee && Auth::id() !== $task->assignee->id) {
             $issue->issue_type,
             $oldStatus,
             $newStatus,
-            $updater->name,
+            $updater->first_name,
             $description,
             $task->description ?? 'No additional details'
         );
     }
-    
+
     /**
      * Create notification message for the technician
      */
@@ -152,45 +149,15 @@ if ($issue->assignee && Auth::id() !== $task->assignee->id) {
             $issue->issue_type,
             $oldStatus,
             $newStatus,
-            $updater->name,
+            $updater->first_name,
             $description,
             $issue->issue_description,
             $issue->reporter->name
         );
     }
 
-    // Delete a comment
-    public function destroy(Comment $comment)
-    {
-        // Ensure the authenticated user owns the comment
-        if (auth()->id() !== $comment->user_id) {
-            return redirect()->back()->with('error', 'You are not authorized to delete this comment.');
-        }
 
-        $comment->delete();
-        return redirect()->back()->with('success', 'Comment deleted successfully.');
-    }
 
-    // Update a comment
-    public function update(Request $request, Comment $comment)
-    {
-        // Ensure the authenticated user owns the comment
-        if (auth()->id() !== $comment->user_id) {
-            return redirect()->back()->with('error', 'You are not authorized to edit this comment.');
-        }
-
-        // Validate the request
-        $request->validate([
-            'comment' => 'required|string|max:500',
-        ]);
-
-        // Update the comment
-        $comment->update([
-            'comment' => $request->comment,
-        ]);
-
-        return redirect()->back()->with('success', 'Comment updated successfully.');
-    }
 
 
     public function completedTasks()

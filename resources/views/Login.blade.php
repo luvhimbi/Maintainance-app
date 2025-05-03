@@ -77,12 +77,12 @@
 <body>
     <div class="container">
         <div class="login-container">
-            
+
             <div class="brand-logo">
                 <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="img-fluid">
             </div>
             <h1 class="form-title text-center"><i class="bi bi-box-arrow-in-right me-2"></i>Login</h1>
-            
+
             @if ($errors->any())
                 <div class="alert alert-danger">
                     <ul class="mb-0">
@@ -92,33 +92,33 @@
                     </ul>
                 </div>
             @endif
-            
+
             <form action="{{ route('login.submit') }}" method="POST">
                 @csrf
                 <div class="mb-4">
                     <label for="email" class="form-label">Email address</label>
                     <div class="input-group">
-                       
+
                         <input type="email" class="form-control form-control-with-icon" id="email" name="email" required>
                     </div>
                     <div id="emailHelp" class="form-text">Enter your registered email address</div>
                 </div>
-                
+
                 <div class="mb-4">
                     <label for="password" class="form-label">Password</label>
                     <div class="input-group">
-                       
+
                         <input type="password" class="form-control form-control-with-icon" id="password" name="password" required>
                     </div>
                 </div>
-                
+
                 <div class="mb-4">
                     <label class="form-label">Select Role</label>
                     <div class="role-selection">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="role" id="role-student" value="Student" checked required>
-                            <label class="form-check-label" for="role-student">
-                                Student
+                            <input class="form-check-input" type="radio" name="role" id="role-CampusMemnber" value="Campus_Member" checked required>
+                            <label class="form-check-label" for="role-campusMember">
+                               Campus_Member
                             </label>
                         </div>
                         <div class="form-check">
@@ -135,7 +135,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-right me-2"></i>Login</button>
                     <a href="{{ route('password.reset') }}" class="btn btn-secondary"><i class="bi bi-key me-2"></i>Reset Password</a>
@@ -143,7 +143,7 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

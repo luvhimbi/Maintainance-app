@@ -16,7 +16,18 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        return view('Student.profile', ['user' => Auth::user()]);
+        // Fetch the authenticated user
+        $user = Auth::user();
+
+        // Fetch the maintenance staff details for the authenticated user
+        $campus_member= DB::table('campus_members')
+            ->where('user_id', $user->user_id)
+            ->first();
+
+        return view('Student.profile', [
+            'user' => Auth::user(),
+             'campus_member' => $campus_member
+        ]);
     }
 
 
@@ -59,25 +70,25 @@ class ProfileController extends Controller
     public function adminUpdate(Request $request)
     {
         $user = Auth::user();
-    
+
         // Validate request
         $request->validate([
             'username' => 'required|string|max:255',
             'email' => ['required', 'email', 'max:255'],
             'phone_number' => 'nullable|string|max:15',
         ]);
-    
+
         // Update user details
         $user->update([
             'username' => $request->username,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
         ]);
-    
-       
+
+
         $user->notify(new DatabaseNotification(
             'Your profile has been updated successfully',
-            route('profile') 
+            route('profile')
         ));
         return redirect()->route('adminEdit')
             ->with('success', 'Profile updated successfully.');
@@ -88,24 +99,24 @@ class ProfileController extends Controller
     public function techUpdate(Request $request)
     {
         $user = Auth::user();
-    
+
         // Validate request
         $request->validate([
             'username' => 'required|string|max:255',
             'email' => ['required', 'email', 'max:255'],
             'phone_number' => 'nullable|string|max:15',
         ]);
-    
+
         // Update user details
         $user->update([
             'username' => $request->username,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
         ]);
-    
+
         $user->notify(new DatabaseNotification(
             'Your profile has been updated successfully',
-            route('profile') 
+            route('profile')
         ));
         return redirect()->route('tech_edit')
             ->with('success', 'Profile updated successfully.');
@@ -114,25 +125,25 @@ class ProfileController extends Controller
     // public function update(Request $request)
     // {
     //     $user = Auth::user();
-    
+
     //     // Validate request
     //     $request->validate([
     //         'username' => 'required|string|max:255',
     //         'email' => ['required', 'email', 'max:255'],
     //         'phone_number' => 'nullable|string|max:15',
     //     ]);
-    
+
     //     // Update user details
     //     $user->update([
     //         'username' => $request->username,
     //         'email' => $request->email,
     //         'phone_number' => $request->phone_number,
     //     ]);
-    
-       
+
+
     //     $user->notify(new DatabaseNotification(
     //         'Your profile has been updated successfully',
-    //         route('profile') 
+    //         route('profile')
     //     ));
     //     return redirect()->route('test.profile.edit')
     //         ->with('success', 'Profile updated successfully.');
@@ -141,28 +152,28 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
-    
+
         // Get original values before update
         $original = [
             'username' => $user->username,
             'email' => $user->email,
             'phone_number' => $user->phone_number,
         ];
-    
+
         // Validate request
         $request->validate([
             'username' => 'required|string|max:255',
             'email' => 'required', 'email', 'max:255',
             'phone_number' => 'nullable|string|max:15',
         ]);
-    
+
         // Update user details
         $user->update([
             'username' => $request->username,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
         ]);
-    
+
         // Determine what changed
         $changes = [];
         if ($original['username'] !== $user->username) {
@@ -176,7 +187,7 @@ class ProfileController extends Controller
             $newPhone = $user->phone_number ?? 'not set';
             $changes[] = "Phone number changed from '{$originalPhone}' to '{$newPhone}'";
         }
-    
+
         // Create detailed notification message
         $message = 'Your profile has been updated.';
         if (!empty($changes)) {
@@ -184,12 +195,12 @@ class ProfileController extends Controller
         } else {
             $message .= "\n\nNo fields were changed.";
         }
-    
+
         $user->notify(new DatabaseNotification(
             $message,
             route('profile')
         ));
-    
+
         return redirect()->route('test.profile.edit')
             ->with('success', 'Profile updated successfully.');
     }
@@ -198,26 +209,26 @@ class ProfileController extends Controller
     public function updatePassword(Request $request)
     {
         $user = Auth::user();
-    
+
         // Validate request
         $request->validate([
             'current_password' => 'required|string',
             'new_password' => 'required|string|min:8|confirmed',
         ]);
-    
+
         // Verify current password
         if (!Hash::check($request->current_password, $user->password_hash)) {
             return back()->withErrors(['current_password' => 'The current password is incorrect.']);
         }
-    
+
         // Update password
         $user->update([
             'password_hash' => Hash::make($request->new_password),
         ]);
-    
+
         // Logout the user
         Auth::logout();
-    
+
         // Redirect to login with a success message
         return redirect()->route('login')->with('success', 'Your password has been updated successfully. Please login again.');
     }
@@ -228,15 +239,15 @@ class ProfileController extends Controller
         'notifications' => 'required|array',
         'notifications.*' => 'exists:notifications,id'
     ]);
-    
+
     try {
         auth()->user()->notifications()
             ->whereIn('id', $request->notifications)
             ->delete();
-            
+
         return redirect()->route('notifications.index')
             ->with('success', 'Selected notifications deleted successfully');
-            
+
     } catch (\Exception $e) {
         return redirect()->route('notifications.index')
             ->with('error', 'Failed to delete notifications: ' . $e->getMessage());

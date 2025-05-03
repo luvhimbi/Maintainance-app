@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+
     /**
      * Run the migrations.
      *
@@ -13,7 +14,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tasks', function (Blueprint $table) {
+        Schema::create('task', function (Blueprint $table) {
             $table->id('task_id'); // Primary key with auto-increment
             $table->unsignedBigInteger('issue_id'); // Foreign key to issue table
             $table->unsignedBigInteger('assignee_id')->nullable(); // Foreign key to user table

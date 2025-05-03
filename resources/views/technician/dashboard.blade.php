@@ -4,14 +4,14 @@
 
 @section('content')
 <div class="container-fluid px-4">
-      
+
     <!-- Welcome & Stats Section -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="welcome-card bg-white p-4 rounded-3 shadow-sm">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                     <div>
-                        <h1 class="h3 fw-bold mb-2">Welcome back, {{ Auth::user()->username }}!</h1>
+                        <h1 class="h3 fw-bold mb-2">Welcome back, {{ Auth::user()->first_name }}!</h1>
                         <p class="text-muted mb-0">Here's what's happening with your tasks today</p>
                     </div>
                     <div class="mt-3 mt-md-0">

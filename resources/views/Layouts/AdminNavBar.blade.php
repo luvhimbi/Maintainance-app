@@ -153,7 +153,7 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                                 <div class="me-2 d-none d-lg-inline">
-                                    <span>{{ Auth::user()->username }}</span>
+                                    <span>{{ Auth::user()->first_name }}</span>
                                 </div>
                                 <i class="fas fa-user-circle" style="font-size: 1.25rem;"></i>
                             </a>

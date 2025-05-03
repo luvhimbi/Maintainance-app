@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FeedbackController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
@@ -13,43 +14,43 @@ use App\Http\Controllers\notificationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\LocationQrController;
 use App\Http\Controllers\Admin\TechnicianControllers;
-use App\Http\Controllers\Admin\TaskAssignmentController; 
+use App\Http\Controllers\Admin\TaskAssignmentController;
 use App\Http\Controllers\Admin\ReportController;
 
 
 
 // Show login form and handle submissions
-Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 
-// Password reset route 
+// Password reset route
 Route::get('/reset-password', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'sendResetLink'])->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset.form');
 Route::post('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.update');
 
 // guarded  routes for authenticated users
-Route::middleware('auth')->group(function () {
+Route::middleware('auth','prevent-back')->group(function () {
     Route::get('/student/dashboard', [StudentController::class, 'dashboard'])->name('Student.dashboard');
     Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 });
 
 // profile update routes for students
-Route::middleware('auth')->group(function () {
+Route::middleware('auth','prevent-back','campus_member')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
    Route::get('/test-profile', [ProfileController::class, 'edit'])->name('test.profile.edit');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
 });
 //this is a profile for technician
-Route::middleware('auth')->group(function () {
+Route::middleware('auth','prevent-back')->group(function () {
     Route::get('/adminEditProfile', [ProfileController::class, 'adminEditProfile'])->name('adminEdit');
     Route::post('/adminEditProfile', [ProfileController::class, 'adminUpdate'])->name('admin_profile.update');
 });
 
 // this for edit a profile for a technician
-Route::middleware('auth')->group(function () {
+Route::middleware('auth','prevent-back','technician')->group(function () {
     Route::get('/techEditProfile', [ProfileController::class, 'editProfile'])->name('tech_edit');
     Route::post('/techEditProfile', [ProfileController::class, 'techUpdate'])->name('tech_profile.update');
     Route::get('/techProfile', [ProfileController::class, 'techProfile'])->name('techProfile');
@@ -63,7 +64,7 @@ Route::get('/home', function () {
 
 
 //all issues related urls for the student
-Route::middleware('auth')->group(function () {
+Route::middleware('auth','prevent-back','campus_member')->group(function () {
     Route::post('/report-issue', [IssueController::class, 'store'])->name('issue.store');
     Route::post('/save-issue', [IssueController::class, 'save'])->name('issue.save');
     Route::get('/view-issues', [IssueController::class, 'viewAllIssues'])->name('Student.view_issues');
@@ -110,13 +111,13 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     // Route to view completed tasks
     Route::get('/completed-tasks', [TaskController::class, 'completedTasks'])->name('completed.tasks');
-    
+
     // Route to view tasks updates
     Route::get('/tasks/{task_id}/updates', [TaskController::class, 'taskUpdates'])->name('tasks.updates');
-    
+
     // Admin route to view tasks
     Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('admin.tasks.view');
-    
+
     // Route to view task progress
     Route::get('/tasks/{task}/progress', [TaskAssignmentController::class, 'show'])->name('tasks.progress.show');
 Route::get('/assigned-tasks', [TaskController::class, 'assignedTasks'])->name('Assigned_tasks');
@@ -136,7 +137,7 @@ Route::put('/tasks/update/{task_id}', [TaskController::class, 'updateTask'])->na
 
 
     // Location Management Routes
-Route::resource('locations', LocationQrController::class)->except(['show']);   
+Route::resource('locations', LocationQrController::class)->except(['show']);
 Route::get('locations', [LocationQRController::class, 'index'])->name('admin.locations.index');
 Route::post('locations', [LocationQrController::class, 'store'])->name('admin.locations.store');
 Route::get('locations/{location}/edit', [LocationQrController::class, 'edit'])->name('admin.locations.edit');

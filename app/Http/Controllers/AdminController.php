@@ -11,8 +11,7 @@ class AdminController extends Controller
 {
 
 public function dashboard()
-{
-    // User statistics
+{// User statistics
     $userCounts = [
         'total' => User::count(),
         'students' => User::where('user_role', 'Student')->count(),
@@ -20,28 +19,37 @@ public function dashboard()
         'admins' => User::where('user_role', 'Admin')->count(),
     ];
 
-    // Task statistics
+// Task statistics
+    $totalTasks = Task::count();
+    $completedTasks = Task::where('issue_status', 'Completed')->count();
+    $inProgressTasks = Task::where('issue_status', 'In Progress')->count();
+    $pendingTasks = Task::where('issue_status', 'Pending')->count();
+
+// Calculate completion rate safely
+    $completionRate = $totalTasks > 0 ? ($completedTasks / $totalTasks) * 100 : 0;
+
     $taskCounts = [
-        'total' => Task::count(),
-        'completed' => Task::where('issue_status', 'Completed')->count(),
-        'in_progress' => Task::where('issue_status', 'In Progress')->count(),
-        'pending' => Task::where('issue_status', 'Pending')->count(),
+        'total' => $totalTasks,
+        'completed' => $completedTasks,
+        'in_progress' => $inProgressTasks,
+        'pending' => $pendingTasks,
+        'completion_rate' => $completionRate,
     ];
 
-    // Recent activities
+// Recent activities
     $recentTasks = Task::with('assignee')
-                    ->orderBy('created_at', 'desc')
-                    ->take(5)
-                    ->get();
+        ->orderBy('created_at', 'desc')
+        ->take(5)
+        ->get();
 
-    // Technician performance
+// Technician performance
     $topTechnicians = User::where('user_role', 'Technician')
-                        ->withCount(['tasks as completed_tasks' => function($query) {
-                            $query->where('issue_status', 'Completed');
-                        }])
-                        ->orderByDesc('completed_tasks')
-                        ->take(3)
-                        ->get();
+        ->withCount(['tasks as completed_tasks' => function($query) {
+            $query->where('issue_status', 'Completed');
+        }])
+        ->orderByDesc('completed_tasks')
+        ->take(3)
+        ->get();
 
     return view('admin.dashboard', compact(
         'userCounts',
@@ -49,7 +57,8 @@ public function dashboard()
         'recentTasks',
         'topTechnicians'
     ));
+
 }
 
-  
+
 }

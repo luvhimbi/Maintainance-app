@@ -22,6 +22,7 @@ return new class extends Migration
         DB::table('notifications')->truncate();
         DB::table('issue')->truncate();
         DB::table('task')->truncate();
+        DB::table('Location')->truncate();
         DB::table('task_update')->truncate();
         DB::table('maintenance_staff')->truncate();
         DB::table('admin')->truncate();

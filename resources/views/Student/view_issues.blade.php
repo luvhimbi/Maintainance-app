@@ -71,7 +71,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge rounded-pill 
+                                    <span class="badge rounded-pill
                                         @if($issue->urgency_level == 'Low') bg-success-subtle text-success
                                         @elseif($issue->urgency_level == 'Medium') bg-warning-subtle text-warning
                                         @elseif($issue->urgency_level == 'High') bg-danger-subtle text-danger
@@ -80,7 +80,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="badge rounded-pill 
+                                    <span class="badge rounded-pill
                                         @if($issue->issue_status == 'Open') bg-primary-subtle text-primary
                                         @elseif($issue->issue_status == 'In Progress') bg-warning-subtle text-warning
                                         @elseif($issue->issue_status == 'Resolved') bg-success-subtle text-success
@@ -103,7 +103,7 @@
                                     </div>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <a href="{{ route('Student.issue_details', $issue->issue_id) }}" 
+                                    <a href="{{ route('Student.issue_details', $issue->issue_id) }}"
                                        class="btn btn-primary btn-sm px-3">
                                         <i class="fas fa-eye me-2"></i>View Details
                                     </a>
@@ -114,7 +114,7 @@
                 </table>
             </div>
         </div>
-        
+
         <div class="d-flex justify-content-center mt-4">
             {{ $issues->links('pagination::bootstrap-5') }}
         </div>
@@ -125,11 +125,8 @@
                     <div class="empty-state-icon mb-4">
                         <i class="fas fa-clipboard-list fa-4x text-primary-subtle"></i>
                     </div>
-                    <h4 class="fw-bold mb-2">No Issues Found</h4>
-                    <p class="text-muted mb-4">You haven't reported any maintenance issues yet.</p>
-                    <a href="{{ route('Student.createissue') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Report New Issue
-                    </a>
+                    <h4 class="fw-bold mb-2">No Completed Issues Found</h4>
+                    <p class="text-muted mb-4">You currently don't have any completed maintenance issues.</p>
                 </div>
             </div>
         </div>
@@ -197,23 +194,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('issueSearch');
     const urgencyFilter = document.getElementById('urgencyFilter');
     const tableBody = document.getElementById('issuesTableBody');
-    
+
     function filterIssues() {
         const searchTerm = searchInput.value.toLowerCase();
         const urgencyValue = urgencyFilter.value;
         const rows = tableBody.getElementsByTagName('tr');
-        
+
         Array.from(rows).forEach(row => {
             const issueType = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
             const urgency = row.querySelector('td:nth-child(2)').textContent.trim();
             const location = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-            
+
             const matchesSearch = issueType.includes(searchTerm) || location.includes(searchTerm);
             const matchesUrgency = !urgencyValue || urgency.includes(urgencyValue);
-            
+
             row.style.display = matchesSearch && matchesUrgency ? '' : 'none';
         });
-        
+
         // Show/hide empty state
         const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
         const emptyState = document.querySelector('.empty-state');
@@ -221,16 +218,16 @@ document.addEventListener('DOMContentLoaded', function() {
             emptyState.style.display = visibleRows.length === 0 ? 'block' : 'none';
         }
     }
-    
+
     // Add debounce to search
     let searchTimeout;
     searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(filterIssues, 300);
     });
-    
+
     urgencyFilter.addEventListener('change', filterIssues);
-    
+
     // Initialize tooltips if using Bootstrap 5
     if (typeof bootstrap !== 'undefined') {
         const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');

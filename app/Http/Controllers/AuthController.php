@@ -18,31 +18,48 @@ class AuthController extends Controller
 {
 
 
-    // return the login view 
+    // Return the login view
     public function showLoginForm()
     {
+        // Check if user is already logged in
+        if (Auth::check()) {
+            // Redirect to appropriate dashboard based on role
+            switch (Auth::user()->user_role) {
+                case 'Campus_Member':
+                    return redirect()->route('Student.dashboard');
+                case 'Technician':
+                    return redirect()->route('technician.dashboard');
+                case 'Admin':
+                    return redirect()->route('admin.dashboard');
+                default:
+                    return redirect()->route('home');
+            }
+        }
+
         return view('login');
     }
-    
+
   // Show password reset form (optional)
   public function showResetForm()
   {
       return view('reset-password');
   }
-  
+
     // Handle login form submission
     public function login(Request $request)
 {
+
+
     // Validate the request
     $request->validate([
         'email' => 'required|email',
         'password' => 'required',
-        'role' => 'required|in:Student,Technician,Admin',
+        'role' => 'required|in:Campus_Member,Technician,Admin',
     ]);
 
     // Find the user by email
     $user = User::where('email', $request->email)->first();
-   
+
 
     // Check if the user exists
     if (!$user) {
@@ -53,7 +70,6 @@ class AuthController extends Controller
     if (!Hash::check($request->password, $user->password_hash)) {
         return back()->withErrors(['password' => 'Incorrect password.']);
     }
-
     // Check if the user's role matches the selected role
     if ($request->role !== $user->user_role ) {
         return back()->withErrors(['role' => 'Invalid role for this user.']);
@@ -64,20 +80,20 @@ class AuthController extends Controller
 
     // Redirect based on role
     switch ($request->role) {
-        case 'Student':
+        case 'Campus_Member':
             return redirect()->route('Student.dashboard');
         case 'Technician':
             return redirect()->route('technician.dashboard');
         case 'Admin':
             return redirect()->route('admin.dashboard');
         default:
-            return redirect()->route('home'); // Fallback route
+            return redirect()->route('home');
     }
 }
 
 
 
-  
+
 
 
    public function sendResetLink(Request $request)
@@ -96,7 +112,7 @@ class AuthController extends Controller
     $token = Str::random(60);
     $hashedToken = Hash::make($token);
 
-  
+
     // Store the token in the password_reset_tokens table
     DB::table('password_reset_tokens')->updateOrInsert(
         ['email' => $user->email],
@@ -108,7 +124,6 @@ class AuthController extends Controller
 
    // Generate the reset URL using plain token
     $resetUrl = url('/reset-password/' . $token . '?email=' . urlencode($user->email));
-//$2y$12$GLn2QTsw939t2ixSzTyf8./8KFnTP2OXx5KQKeQaYhBGmTDa4zilK
 
     // Send the reset email
     Mail::to($user->email)->send(new PasswordResetMail($resetUrl));
@@ -133,12 +148,12 @@ public function resetPassword(Request $request, $token)
         ->where('email', $request->email)
         ->first();
 
- 
+
 
     if (!$reset || !Hash::check($token, $reset->token)) {
         return back()->withErrors(['email' => 'Invalid or expired password reset token.']);
     }
-  
+
     // Update the user's password
     $user = User::where('email', $request->email)->first();
 
