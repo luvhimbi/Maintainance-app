@@ -1,13 +1,13 @@
 @extends('layouts.StudentNavbar')
 
-@section('title', 'Student Dashboard')
+@section('title', ' Dashboard')
 
 @section('content')
     <div class="container py-4">
         <!-- Header Section (unchanged) -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5">
             <div class="mb-3 mb-md-0">
-                <h1 class="fw-bold mb-2 h3">Welcome back, {{ Auth::user()->first_name}}</h1>
+              <h1 class="fw-bold mb-2 h3">Hi , {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h1>
                 <p class="lead text-muted mb-0">Track and manage your reported maintenance issues</p>
             </div>
             <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
@@ -55,10 +55,6 @@
                                                 <i class="fas fa-map-marker-alt me-1"></i>
                                                 {{ $issue->location->building_name ?? 'N/A'}}, Room {{ $issue->location->room_number ?? 'N/A'}}
                                             </span>
-                                            <span class="d-inline-block">
-                                                <i class="fas fa-clock me-1"></i>
-                                                {{ $issue->created_at }}
-                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -66,18 +62,6 @@
 
                             <!-- Middle Column - Timeline & Status -->
                             <div class="col-md-3">
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-hourglass-half text-muted me-2"></i>
-                                    <span class="small">
-                                        @if($issue->issue_status == 'Open')
-                                            Awaiting response
-                                        @elseif($issue->issue_status == 'In Progress')
-                                            Last updated {{ $issue->updated_at }}
-                                        @else
-                                            {{ $issue->issue_status }}
-                                        @endif
-                                    </span>
-                                </div>
                                 <div>
                                     <span class="badge bg-{{ $urgencyColor }} text-white px-3 py-1 rounded-pill">
                                         {{ $issue->urgency_level }} Priority

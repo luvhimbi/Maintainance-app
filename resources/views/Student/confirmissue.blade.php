@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirm Issue</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -233,11 +233,11 @@
             <div class="info-item">
                 <div class="info-label">Urgency Level:</div>
                 <div class="info-value">
-                    @if($formData['urgency_level'] == 'high')
+                    @if($formData['urgency_level'] == 'High')
                         <span class="badge bg-danger">High</span>
-                    @elseif($formData['urgency_level'] == 'medium')
+                    @elseif($formData['urgency_level'] == 'Medium')
                         <span class="badge bg-warning text-dark">Medium</span>
-                    @elseif ($formData['urgency_level']='low')
+                    @elseif($formData['urgency_level'] == 'Low')
                         <span class="badge bg-success">Low</span>
                     @endif
                 </div>
@@ -268,19 +268,53 @@
         </div>
         
         <div class="d-grid gap-3 mt-4">
-            <form action="{{ route('issue.save') }}" method="POST">
+            <form id="confirmForm" action="{{ route('issue.save') }}" method="POST">
                 @csrf
                 <button type="submit" class="btn btn-success w-100">
                     <i class="fas fa-check-circle me-2"></i>Confirm and Submit
                 </button>
             </form>
-            <a href="{{ route('issue.edit') }}" class="btn btn-outline-secondary w-100">
+            <a href="{{ route('Student.createissue') }}" class="btn btn-outline-secondary w-100">
                 <i class="fas fa-edit me-2"></i>Go Back and Edit
             </a>
         </div>
     </div>
 @endsection
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show error message if exists
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                confirmButtonColor: '#4361ee'
+            });
+        @endif
+
+        // Form submission confirmation
+        document.getElementById('confirmForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: 'Confirm Submission',
+                text: 'Are you sure you want to submit this issue?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4361ee',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, submit it!',
+                cancelButtonText: 'No, go back'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>

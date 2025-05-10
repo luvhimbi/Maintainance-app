@@ -7,9 +7,7 @@
     <div class="d-sm-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Technician Details</h1>
         <div>
-            <a href="{{ route('admin.technicians.edit', $technician->user_id) }}" class="btn btn-primary me-2">
-                <i class="bi bi-pencil"></i> Edit
-            </a>
+           
             <a href="{{ route('admin.technicians.index') }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
@@ -24,8 +22,12 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Username:</label>
-                        <p>{{ $technician->username }}</p>
+                        <label class="form-label fw-bold">firstname:</label>
+                        <p>{{ $technician->first_name }}</p>
+                    </div>
+                      <div class="mb-3">
+                        <label class="form-label fw-bold">lastname:</label>
+                        <p>{{ $technician->last_name }}</p>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Email:</label>
@@ -35,12 +37,7 @@
                         <label class="form-label fw-bold">Phone Number:</label>
                         <p>{{ $technician->phone_number ?? 'N/A' }}</p>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Status:</label>
-                        <span class="badge bg-{{ $technician->status == 'Active' ? 'success' : ($technician->status == 'Suspended' ? 'warning' : 'secondary') }}">
-                            {{ $technician->status }}
-                        </span>
-                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -53,7 +50,15 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Specialization:</label>
-                        <p>{{ $technician->technician->specialization }}</p>
+                        <p>{{ $technician->maintenanceStaff->specialization }}</p>
+                    </div>
+                     <div class="mb-3">
+                        <label class="form-label fw-bold">Availability_status:</label>
+                        <p>{{ $technician->maintenanceStaff->availability_status }}</p>
+                    </div>
+                      <div class="mb-3">
+                        <label class="form-label fw-bold">Current WorkLoad:</label>
+                        <p class="me-2">{{ $technician->maintenanceStaff->current_workload }} tasks</p>
                     </div>
                     <div class="mb-3">
                   

@@ -83,19 +83,6 @@ class IssueController extends Controller
     // In your controller where the issue is created/processed
     public function success()
     {
-
-
-        // Ensure the issue ID is in the session
-        // if (!session()->has('reporter_id')) {
-        //     return redirect()->route('home')->with('error', 'No issue found to track.');
-        // }
-
-        // // Get the issue from database
-        // $issue = Issue::find(session('reporter_id'));
-
-        // // Clear the session data
-        // session()->forget('reporter_id');
-
         return view('Student.success');
     }
 
@@ -155,6 +142,7 @@ class IssueController extends Controller
                 'issue_description' => $formData['issue_description'],
                 'urgency_level' => $formData['urgency_level'],
                 'issue_status' => 'Open',
+                'created_at' => now()
             ]);
 
             session()->put('reported_issue_id', $issue->issue_id);
@@ -163,7 +151,8 @@ class IssueController extends Controller
                 'issue_id' => $issue->issue_id,
                 'priority' => $this->mapUrgencyToPriority($formData['urgency_level']),
                 'issue_status' => 'Pending',
-                'expected_completion' => Carbon::now()->addWeek()
+                'expected_completion' => Carbon::now()->addWeek(),
+                'created_at' => now()
             ]);
 
             // Assign task and get the assigned technician (if any)
@@ -196,12 +185,12 @@ class IssueController extends Controller
                 "%s",
                 $issue->issue_id,
                 $issue->issue_type,
-                $location->name ?? 'Unknown Location',
+                $location->building_name ?? 'Unknown Location',
                 $issue->urgency_level,
                 $issue->created_at,
                 $issue->issue_status,
                 $assignedTechnician
-                    ? "Assigned Technician: {$assignedTechnician->first_name}"
+                    ? "Assigned Technician: {$assignedTechnician->first_name}{$assignedTechnician->last_name}"
                     : "Awaiting technician assignment"
             );
 
@@ -224,8 +213,8 @@ class IssueController extends Controller
                     $issue->issue_id,
                     $task->priority,
                     $task->expected_completion,
-                    $location->name ?? 'Unknown Location',
-                    $reporter->full_name,
+                    $location->buidling_name ?? 'Unknown Location',
+                    $reporter->first_name,
                     $issue->urgency_level,
                     $issue->issue_description
                 );
@@ -321,6 +310,7 @@ public function update(Request $request, Issue $issue)
         'issue_type' => $validated['issue_type'],
         'issue_description' => $validated['issue_description'],
         'urgency_level' => $validated['urgency_level'],
+        'updated_at' => now()
     ]);
 
     // Update task priority
@@ -359,6 +349,9 @@ public function update(Request $request, Issue $issue)
         ->with('success', 'Issue updated successfully!');
 }
 
+
+
+
     public function assignOrQueueTask(Task $task)
     {
         // Find available technician with matching specialization and workload < 3
@@ -366,8 +359,8 @@ public function update(Request $request, Issue $issue)
             $query->where('availability_status', 'Available')
                 ->where('specialization', $task->issue->issue_type); // Match specialization to issue type
         })
-            ->join('maintenance_staff', 'users.user_id', '=', 'maintenance_staff.user_id') // Join the tables
-            ->orderBy('maintenance_staff.current_workload', 'asc') // Order by workload
+            ->join('Technicians', 'users.user_id', '=', 'Technicians.user_id') // Join the tables
+            ->orderBy('Technicians.current_workload', 'asc') // Order by workload
             ->select('users.*') // Select only user columns
             ->first();
 
@@ -379,13 +372,13 @@ public function update(Request $request, Issue $issue)
             ]);
 
             // Update technician workload
-            DB::table('maintenance_staff')
+            DB::table('Technicians')
                 ->where('user_id', $technician->user_id)
                 ->increment('current_workload');
 
-            // Mark as busy if workload reaches 6 (updated from your original 3 to match your condition)
+            // Mark as busy if workload reaches 6
             if ($technician->maintenanceStaff->current_workload >= 6) {
-                DB::table('maintenance_staff')
+                DB::table('Technicians')
                     ->where('user_id', $technician->user_id)
                     ->update(['availability_status' => 'Busy']);
             }
@@ -401,34 +394,6 @@ public function update(Request $request, Issue $issue)
 
 
 
-//public function completeTask($taskId)
-//{
-//    $task = Task::findOrFail($taskId);
-//    $task->update(['issue_status' => 'Completed']);
-//
-//    if ($task->assignee_id) {
-//        // Decrement workload
-//        DB::table('maintenance_staff')
-//            ->where('user_id', $task->assignee_id)
-//            ->decrement('current_workload');
-//
-//        // Recheck availability
-//        $workload = DB::table('maintenance_staff')
-//            ->where('user_id', $task->assignee_id)
-//            ->value('current_workload');
-//
-//        if ($workload < 3) {
-//            DB::table('maintenance_staff')
-//                ->where('user_id', $task->assignee_id)
-//                ->update(['availability_status' => 'Available']);
-//        }
-//
-//        // Assign queued tasks to freed-up technician
-//        $this->assignQueuedTasks($task->assignee_id);
-//    }
-//
-//    return redirect()->back()->with('success', 'Task completed!');
-//}
 
 
 public function assignQueuedTasks($technicianId)

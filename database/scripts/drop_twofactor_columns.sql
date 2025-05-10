@@ -2,11 +2,10 @@
  this script is for removing unneed tables
  */
 
-ALTER TABLE users
+ALTER TABLE students
   DROP COLUMN IF EXISTS two_factor_enabled,
   DROP COLUMN IF EXISTS two_factor_code,
-  DROP COLUMN IF EXISTS two_factor_expires_at;
-/*
+  DROP COLUMN IF EXISTS two_factor_expires_at;/*
        this is for changing the constraint to include campus_member instead of student
  */
 
@@ -16,3 +15,13 @@ ALTER TABLE users ADD CONSTRAINT users_user_role_check
 
 -- Step 4: Verify the changes
 SELECT DISTINCT user_role FROM users;
+
+
+CREATE TABLE STUDENT (
+    id SERIAL PRIMARY KEY,
+    faculty_name VARCHAR(255) NOT NULL,
+    student_id VARCHAR(255) NOT NULL,
+    
+);
+
+

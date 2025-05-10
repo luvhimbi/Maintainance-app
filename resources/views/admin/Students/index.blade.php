@@ -12,16 +12,7 @@
                 </div>
                 
                 <div class="d-flex flex-column flex-sm-row gap-2 mt-3 mt-md-0">
-                  
-                    
-                    <!-- Status Filter -->
-                   
-                    
-                    <!-- Add New Button -->
-                    <a href="{{ route('admin.students.create') }}" class="btn btn-sm btn-success">
-                        <i class="fas fa-plus me-1"></i> New Student
-                    </a>
-                </div>
+ 
             </div>
         </div>
         
@@ -33,7 +24,7 @@
                         <tr>
                             <th class="ps-4">Student</th>
                             <th>Contact</th>
-                            <th>Status</th>
+                            <th>Address</th>
                             <th class="pe-4 text-end">Actions</th>
                         </tr>
                     </thead>
@@ -43,11 +34,9 @@
                             <!-- Student Info -->
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar-circle bg-light-primary text-primary me-3">
-                                        {{ substr($student->username, 0, 1) }}
-                                    </div>
+                                   
                                     <div>
-                                        <div class="fw-medium">{{ $student->username }}</div>
+                                        <div class="fw-medium">{{ $student->first_name }} {{ $student->last_name }}</div>
                                         <small class="text-muted">ID: {{ $student->user_id }}</small>
                                     </div>
                                 </div>
@@ -58,40 +47,20 @@
                                 <div class="text-primary">{{ $student->email }}</div>
                                 <small class="text-muted">{{ $student->phone_number ?? 'No phone' }}</small>
                             </td>
-                            
-                            <!-- Status -->
-                            <td>
-                                <span class="badge py-2 px-3 rounded-pill 
-                                    @if($student->status == 'Active') bg-soft-success text-success
-                                    @elseif($student->status == 'Inactive') bg-soft-secondary text-secondary
-                                    @else bg-soft-warning text-warning @endif">
-                                    <i class="fas fa-circle me-1" style="font-size: 6px; vertical-align: middle;"></i>
-                                    {{ $student->status }}
-                                </span>
+                             <td>
+    
+                                <small class="text-muted">{{ $student->address ?? 'No Address' }}</small>
                             </td>
-                            
+                       
                             <!-- Actions -->
                             <td class="pe-4 text-end">
                                 <div class="d-flex justify-content-end">
-                                    <!-- Edit Button -->
-                                    <a href="{{ route('admin.students.edit', $student->user_id) }}" 
-                                       class="btn btn-sm btn-soft-primary me-2"
-                                       data-bs-toggle="tooltip" title="Edit">
-                                        <i class="fas fa-pen"></i>
-                                    </a>
+                                
+                                <button type="button" class="btn btn-sm btn-soft-info me-2" data-bs-toggle="modal" data-bs-target="#studentModal{{ $student->user_id }}">
+    <i class="fas fa-eye"></i>
+</button>
                                     
-                                    <!-- Delete Form -->
-                                    <form action="{{ route('admin.students.destroy', $student->user_id) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-soft-danger"
-                                                data-bs-toggle="tooltip" 
-                                                title="Delete"
-                                                onclick="return confirm('Are you sure you want to delete this student?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+
                                 </div>
                             </td>
                         </tr>
@@ -118,7 +87,47 @@
                     </tbody>
                 </table>
             </div>
-            
+            @foreach($students as $student)
+<!-- Student Detail Modal -->
+<div class="modal fade" id="studentModal{{ $student->user_id }}" tabindex="-1" aria-labelledby="studentModalLabel{{ $student->id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="studentModalLabel{{ $student->user_id }}">Student Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <dl class="row">
+          <dt class="col-sm-4">Full Name</dt>
+          <dd class="col-sm-8">{{ $student->first_name }} {{ $student->last_name }}</dd>
+
+          <dt class="col-sm-4">Email</dt>
+          <dd class="col-sm-8">{{ $student->email }}</dd>
+
+          <dt class="col-sm-4">Phone Number</dt>
+          <dd class="col-sm-8">{{ $student->phone_number ?? 'N/A' }}</dd>
+
+          <dt class="col-sm-4">Student Number</dt>
+          <dd class="col-sm-8">{{ $student->studentDetail->student_number ?? 'N/A' }}</dd>
+
+          <dt class="col-sm-4">Course</dt>
+          <dd class="col-sm-8">{{ $student->studentDetail->course ?? 'N/A' }}</dd>
+
+          <dt class="col-sm-4">Faculty</dt>
+          <dd class="col-sm-8">{{ $student->studentDetail->faculty ?? 'N/A' }}</dd>
+
+          <dt class="col-sm-4">Address</dt>
+          <dd class="col-sm-8">{{ $student->address ?? 'N/A' }}</dd>
+        </dl>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+@endforeach
+
             @if($students->hasPages())
             <div class="card-footer bg-transparent border-0 pt-3">
                 <div class="d-flex justify-content-between align-items-center">

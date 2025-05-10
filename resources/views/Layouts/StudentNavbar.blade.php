@@ -25,6 +25,19 @@
             font-family: 'Poppins', sans-serif;
             background-color: #f8f9fa;
         }
+        .user-avatar {
+    width: 36px;  /* Increased from 32px */
+    height: 36px; /* Increased from 32px */
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px; /* Adjusted font size */
+    color: #4b5563;
+    margin-right: 0.5rem;
+}
 
         .navbar {
             padding: 1rem;
@@ -169,32 +182,33 @@
                     </li>
 
                     <!-- User Menu -->
-                    @auth
-                        <li class="nav-item dropdown ms-lg-3">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
-                               id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <div class="user-avatar">
-                                    {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}
-                                </div>
-                                <span class="d-none d-lg-block">{{ Auth::user()->first_name  }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('profile') }}">
-                                        <i class="fas fa-user me-2"></i>Profile
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item text-danger">
-                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
+                @auth
+    <li class="nav-item dropdown ms-lg-3">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
+           id="userDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+                {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}{{ strtoupper(substr(Auth::user()->last_name, 0, 1)) }}
+            </div>
+            <span class="d-none d-lg-block">{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li>
+                <a class="dropdown-item" href="{{ route('profile') }}">
+                    <i class="fas fa-user me-2"></i>Profile
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+
                     @else
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('login') }}">

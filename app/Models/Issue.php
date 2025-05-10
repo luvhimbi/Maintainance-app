@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Issue extends Model
 {
-    public $timestamps = false;
+    public $timestamps = true;
     use HasFactory;
     // Define the table associated with the model
     protected $table = 'issue';
@@ -58,7 +58,7 @@ public function hasFeedbackFrom(User $user)
 } public function reporter()
 {
     return $this->belongsTo(User::class, 'reporter_id', 'user_id'); // assuming 'reported_by' is the foreign key
-    
+
 }
 public function history()
 {
@@ -74,5 +74,5 @@ public function tasks()
     {
         return $this->hasMany(IssueAttachment::class, 'issue_id', 'issue_id');
     }
-    
+
 }

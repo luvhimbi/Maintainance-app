@@ -39,17 +39,17 @@ class NotificationController extends Controller
         try {
             // Get the authenticated user
             $user = auth()->user();
-            
+
             // Mark all unread notifications as read
             $user->unreadNotifications->markAsRead();
-            
+
             // Return success response
             return redirect()->back()->with('success', 'All notifications marked as read');
-            
+
         } catch (\Exception $e) {
             // Log the error if needed
             \Log::error('Error marking notifications as read: ' . $e->getMessage());
-            
+
             // Return error response
             return redirect()->back()->with('error', 'Failed to mark notifications as read');
         }
@@ -89,6 +89,21 @@ class NotificationController extends Controller
 
         return view('Technician.notifications', compact('notifications'));
     }
+    
+     public function indexAdmin()
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('error', 'You need to log in first.');
+        }
+
+        // Get notifications paginated
+        $notifications = auth()->user()->notifications()->paginate(10);
+
+        // Mark all unread notifications as read
+        auth()->user()->unreadNotifications->markAsRead();
+
+        return view('admin.notifications', compact('notifications'));
+    }
 
 /*
     * Show a specific notification and mark it as read when viewed.
@@ -97,12 +112,12 @@ class NotificationController extends Controller
 public function show($id)
 {
     $notification = auth()->user()->notifications()->findOrFail($id);
-    
+
     // Mark as read when viewed
     if ($notification->unread()) {
         $notification->markAsRead();
     }
-    
+
     return view('Student.show', compact('notification'));
 }
 
@@ -112,28 +127,44 @@ public function show($id)
 public function showTechnician($id)
 {
     $notification = auth()->user()->notifications()->findOrFail($id);
-    
+
     // Mark as read when viewed
     if ($notification->unread()) {
         $notification->markAsRead();
     }
-    
+
     return view('Technician.show', compact('notification'));
 }
+public function showAdmin($id)
+{
+    $notification = auth()->user()->notifications()->findOrFail($id);
 
+    // Mark as read when viewed
+    if ($notification->unread()) {
+        $notification->markAsRead();
+    }
+
+    return view('admin.show', compact('notification'));
+}
 public function destroy($id)
 {
+    $user = auth()->user();
     // Find the notification that belongs to the currently authenticated user
     $notification = auth()->user()->notifications()->findOrFail($id);
     $notification->delete();
 
+    $notifications = $user->notifications;
     // Determine redirect route based on the user's role
-    $user = auth()->user();
-    if ($user->hasRole('student')) {
-        return redirect()->route('student.notifications.index')
+
+    if ($user->user_role === 'Campus_Member') {
+        return view('student.notifications', compact('notifications'))
             ->with('success', 'Notification deleted successfully');
-    } elseif ($user->hasRole('technician')) {
-        return redirect()->route('technician.notifications.index')
+    } elseif ($user->user_role === 'Technician') {
+        return view('technician.notifications', compact('notifications'))
+            ->with('success', 'Notification deleted successfully');
+    }
+    elseif ($user->user_role === 'Admin') {
+        return view('admin.notifications', compact('notifications'))
             ->with('success', 'Notification deleted successfully');
     }
 

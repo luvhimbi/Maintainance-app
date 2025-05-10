@@ -16,7 +16,7 @@ class LocationQrController extends Controller
 
     public function index()
     {
-        $locations = Location::all();
+        $locations = Location::paginate(5); // Add pagination with 10 items per page
         return view('admin.locations.index', compact('locations'));
     }
   

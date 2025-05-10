@@ -220,15 +220,21 @@
         </div>
         
         <div class="tracking-box">
-            <p class="mb-3">You can track the status of your issue using the reference number:</p>
-            {{-- <h5 class="mb-4">{{ session('reporter_id') }}</h5>
+            <h5 class="mb-3">Issue Details:</h5>
+            <div class="issue-details">
+                <p><strong>Issue ID:</strong> #{{ session('issue_id') }}</p>
+                @if(session('assigned_technician'))
+                    <p><strong>Assigned Technician:</strong> {{ session('assigned_technician') }}</p>
+                @else
+                    <p><strong>Status:</strong> Awaiting technician assignment</p>
+                @endif
+            </div>
             
-            <div class="button-container">
-                <a href="{{ route('Student.issue_details', ['issue_id' => session('reporter_id')]) }}" 
+            <div class="button-container mt-4">
+                <a href="{{ route('Student.issue_details', ['id' => session('issue_id')]) }}" 
                    class="btn btn-primary">
-                    <i class="fas fa-search me-2"></i> Track Issue Status
-                </a> --}}
-                
+                    <i class="fas fa-search me-2"></i> View Issue Details
+                </a>
                 <a href="{{ route('home') }}" class="btn btn-outline-secondary">
                     <i class="fas fa-home me-2"></i> Return to Home
                 </a>

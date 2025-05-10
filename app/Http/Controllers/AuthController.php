@@ -18,48 +18,43 @@ class AuthController extends Controller
 {
 
 
-    // Return the login view
     public function showLoginForm()
-    {
-        // Check if user is already logged in
-        if (Auth::check()) {
-            // Redirect to appropriate dashboard based on role
-            switch (Auth::user()->user_role) {
-                case 'Campus_Member':
-                    return redirect()->route('Student.dashboard');
-                case 'Technician':
-                    return redirect()->route('technician.dashboard');
-                case 'Admin':
-                    return redirect()->route('admin.dashboard');
-                default:
-                    return redirect()->route('home');
-            }
+{
+    // Check if user is already logged in
+    if (Auth::check()) {
+        
+        switch (Auth::user()->user_role) {
+            case 'Student':
+            case 'Staff_Member':
+                return redirect()->route('Student.dashboard'); // Combined dashboard
+            case 'Technician':
+                return redirect()->route('technician.dashboard');
+            case 'Admin':
+                return redirect()->route('admin.dashboard');
+            default:
+                return redirect()->route('home');
         }
-
-        return view('login');
     }
 
-  // Show password reset form (optional)
-  public function showResetForm()
-  {
-      return view('reset-password');
-  }
+    return view('login');
+}
 
-    // Handle login form submission
-    public function login(Request $request)
+public function showResetForm()
 {
+    return view('reset-password');
+}
 
-
+public function login(Request $request)
+{
     // Validate the request
     $request->validate([
         'email' => 'required|email',
         'password' => 'required',
-        'role' => 'required|in:Campus_Member,Technician,Admin',
+        'role' => 'required|in:Student,Staff_Member,Technician,Admin', // Updated role options
     ]);
 
     // Find the user by email
     $user = User::where('email', $request->email)->first();
-
 
     // Check if the user exists
     if (!$user) {
@@ -70,8 +65,9 @@ class AuthController extends Controller
     if (!Hash::check($request->password, $user->password_hash)) {
         return back()->withErrors(['password' => 'Incorrect password.']);
     }
-    // Check if the user's role matches the selected role
-    if ($request->role !== $user->user_role ) {
+
+   
+    if ($request->role !== $user->user_role) {
         return back()->withErrors(['role' => 'Invalid role for this user.']);
     }
 
@@ -80,8 +76,9 @@ class AuthController extends Controller
 
     // Redirect based on role
     switch ($request->role) {
-        case 'Campus_Member':
-            return redirect()->route('Student.dashboard');
+        case 'Student':
+        case 'Staff_Member':
+            return redirect()->route('Student.dashboard'); 
         case 'Technician':
             return redirect()->route('technician.dashboard');
         case 'Admin':
@@ -90,7 +87,6 @@ class AuthController extends Controller
             return redirect()->route('home');
     }
 }
-
 
 
 

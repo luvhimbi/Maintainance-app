@@ -24,15 +24,13 @@ class User extends Authenticatable
      */
   protected $fillable = [
     'user_id',
-    'username',
     'password_hash',
     'email',
     'phone_number',
     'user_role',
-    'status',
     'first_name',
     'last_name',
-    'address' 
+    'address'
 ];
 
     public function getAuthPassword()
@@ -48,6 +46,12 @@ class User extends Authenticatable
         'password_hash', // Hide password_hash instead of password
         'remember_token',
     ];
+
+    public function hasRole(string $role): bool
+    {
+        return $this->user_role === $role;
+    }
+
 
     /**
      * The attributes that should be cast.
@@ -65,7 +69,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
+public function studentDetail()
+{
+    return $this->hasOne(Student::class, 'user_id');
+}
+public function staffDetail()
+{
+    return $this->hasOne(StaffMember::class, 'user_id');
+}
     public function feedbacks()
 {
     return $this->hasMany(Feedback::class);
@@ -80,8 +91,8 @@ class User extends Authenticatable
 
 
 
-   
- 
+
+
 public function isAdmin()
 {
     return $this->role === 'Admin';
@@ -100,7 +111,7 @@ public function maintenanceStaff()
 {
         return $this->hasOne(MaintenanceStaff::class, 'user_id');
  }
- 
+
  public function sendWelcomeNotification()
     {
         $this->notify(new DatabaseNotification('Welcome to our app support!', url('/')));

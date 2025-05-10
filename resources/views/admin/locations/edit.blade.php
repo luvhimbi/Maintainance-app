@@ -1,5 +1,5 @@
 @extends('Layouts.AdminNavBar')
-
+@section('title', 'Edit Location')
 @section('content')
 <div class="container-fluid location-edit py-4">
     <div class="card border-0 shadow-sm">

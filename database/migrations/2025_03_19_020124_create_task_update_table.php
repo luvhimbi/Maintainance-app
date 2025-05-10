@@ -12,17 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('task_update', function (Blueprint $table) {
-            $table->id('update_id'); // Primary key with auto-increment
-            $table->unsignedBigInteger('task_id'); // Foreign key to tasks table
-            $table->unsignedBigInteger('staff_id')->nullable(); // Foreign key to user table, nullable
-            $table->text('update_description'); // Update description
-            $table->string('status_change', 50); // Status change
-            $table->timestamp('update_timestamp')->useCurrent(); // Timestamp with default current time
+            $table->id('update_id'); 
+            $table->unsignedBigInteger('task_id');
+            $table->unsignedBigInteger('staff_id')->nullable(); 
+            $table->text('update_description');
+            $table->string('status_change', 50); 
+            $table->timestamp('update_timestamp')->useCurrent(); 
 
             // Foreign key constraints
             $table->foreign('task_id')
                   ->references('task_id')
-                  ->on('tasks')
+                  ->on('task')
                   ->onDelete('cascade'); // Cascade on delete
 
             $table->foreign('staff_id')

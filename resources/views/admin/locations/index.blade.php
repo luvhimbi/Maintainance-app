@@ -1,5 +1,5 @@
 @extends('Layouts.AdminNavBar')
-
+@section('title', 'View Locations')
 @section('content')
 <div class="container-fluid locations-management py-4">
     <div class="card border-0 shadow-sm">
@@ -97,6 +97,9 @@
                         @endforelse
                     </tbody>
                 </table>
+                <div class="pagination">
+                 {{ $locations->links('pagination::bootstrap-5') }}
+                </div>
             </div>
         </div>
     </div>

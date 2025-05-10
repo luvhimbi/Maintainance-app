@@ -12,8 +12,7 @@ class LocationSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        // Array of sample locations
+        
         $locations = [
             ['building_name' => 'Building 10', 'floor_number' => '1', 'room_number' => 'lab 138', 'description' => 'next to the tap on the ground floor'],
             ['building_name' => 'Building 14', 'floor_number' => '1', 'room_number' => '102', 'description' => 'Reception'],

@@ -81,6 +81,7 @@ class TaskController extends Controller
             'staff_id' => auth()->id(),
             'update_description' => $request->update_description,
             'status_change' => $newStatus,
+            'update_timestamp' => now(),
         ]);
 
         // Notification logic remains the same

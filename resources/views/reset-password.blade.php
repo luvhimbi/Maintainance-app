@@ -6,6 +6,8 @@
     <title>Reset Password</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +19,7 @@
             font-family: 'Poppins', sans-serif;
             background-color: #f8f9fa;
         }
-        .reset-container {
+        .auth-container {
             max-width: 700px;
             margin: 80px auto;
             padding: 30px;
@@ -29,6 +31,12 @@
             font-weight: 600;
             margin-bottom: 25px;
             color: #2c3e50;
+        }
+        .input-group-icon {
+            padding: 10px 15px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-right: none;
         }
         .btn-primary {
             width: 100%;
@@ -43,63 +51,74 @@
             height: 60px;
             width: auto;
         }
-        .login-link {
+        .auth-links {
             text-align: center;
             margin-top: 20px;
+        }
+        .password-toggle {
+            cursor: pointer;
+            padding: 10px 15px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-left: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="reset-container">
-            <div class="brand-logo">
-                <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="img-fluid">
-            </div>
-            <h1 class="form-title text-center">Reset Password</h1>
-            
-            <!-- Status Message (Success) -->
-            @if (session('status'))
-                <div class="alert alert-success">
-                    {{ session('status') }}
-                </div>
-            @endif
-
-            <!-- General Errors -->
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-            
-            <form action="{{ route('password.email') }}" method="POST">
-                @csrf
-                <div class="mb-4">
-                    <label for="email" class="form-label">Email address</label>
-                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                           id="email" name="email" value="{{ old('email') }}" required>
-                    <div id="emailHelp" class="form-text">Enter your email to receive a password reset link.</div>
-                    <!-- Field-specific error -->
-                    @error('email')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-                
-                <div class="mb-3">
-                    <button type="submit" class="btn btn-primary">Send Password Reset Link</button>
-                </div>
-                
-                <div class="login-link">
-                    Remember your password? <a href="{{ route('login') }}">Login here</a>
-                </div>
-            </form>
-        </div>
+<div class="auth-container">
+    <div class="brand-logo">
+        <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="img-fluid">
     </div>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <h1 class="form-title text-center">Reset Password</h1>
+
+    @if (session('status'))
+        <div class="alert alert-success alert-dismissible fade show">
+            {{ session('status') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if ($errors->any()))
+    <div class="alert alert-danger alert-dismissible fade show">
+        <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
+    <form action="{{ route('password.email') }}" method="POST">
+        @csrf
+        <div class="mb-4">
+            <label for="email" class="form-label">Email Address</label>
+            <div class="input-group">
+                    <span class="input-group-icon">
+                        <i class="bi bi-envelope"></i>
+                    </span>
+                <input type="email" class="form-control @error('email') is-invalid @enderror"
+                       id="email" name="email" value="{{ old('email') }}" required>
+                @error('email')
+                <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+            <div id="emailHelp" class="form-text">Enter your email to receive a password reset link</div>
+        </div>
+
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-send me-2"></i>Send Password Reset Link
+            </button>
+        </div>
+
+        <div class="auth-links">
+            Remember your password? <a href="{{ route('login') }}">Login here</a>
+        </div>
+    </form>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

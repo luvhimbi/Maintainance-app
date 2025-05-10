@@ -91,6 +91,19 @@
             background-color: #f0f5ff;
             color: #2563eb;
         }
+            .user-avatar {
+    width: 36px;  /* Increased from 32px */
+    height: 36px; /* Increased from 32px */
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px; /* Adjusted font size */
+    color: #4b5563;
+    margin-right: 0.5rem;
+}
         .dropdown-item.text-danger:hover {
             background-color: #fff5f5;
             color: #dc2626;
@@ -138,44 +151,46 @@
                             <i class="fa-solid fa-map-pin "></i>SmartNav
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('notification.index') }}">
-                            <i class="fas fa-bell"></i>Notifications
+                    <li class="nav-item position-relative">
+                        <a class="nav-link {{ Request::routeIs('notification.index') ? 'active' : '' }}"
+                           href="{{ route('notification.index') }}">
+                            <i class="fas fa-bell me-2"></i>Notifications
                             @auth
-                             @if(auth()->user()->unreadNotifications->count() > 0)
-                                <span class="notification-counter badge bg-danger notification-badge" id="notificationCounter">
-                                    {{ auth()->user()->unreadNotifications->count() }}
-                                </span>
-                                    @endif
+                                @if(auth()->user()->unreadNotifications->count() > 0)
+                                    <span class="badge bg-danger notification-badge">
+                                        {{ auth()->user()->unreadNotifications->count() }}
+                                    </span>
+                                @endif
                             @endauth
                         </a>
                     </li>
-                    @auth
-                        <li class="nav-item dropdown ms-lg-3">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
-                               id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <div class="user-avatar">
-                                    {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}
-                                </div>
-                                <span class="d-none d-lg-block">{{ Auth::user()->first_name}}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('techProfile') }}">
-                                        <i class="fas fa-user me-2"></i>Profile
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item text-danger">
-                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
+                     @auth
+    <li class="nav-item dropdown ms-lg-3">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
+           id="userDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+                {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}{{ strtoupper(substr(Auth::user()->last_name, 0, 1)) }}
+            </div>
+            <span class="d-none d-lg-block">{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li>
+                <a class="dropdown-item" href="{{ route('techProfile') }}">
+                    <i class="fas fa-user me-2"></i>Profile
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+
                     @else
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('login') }}">

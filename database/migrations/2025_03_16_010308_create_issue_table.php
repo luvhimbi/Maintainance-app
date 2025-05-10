@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('issue', function (Blueprint $table) {
-            $table->id('issue_id'); // This will create an auto-incrementing primary key
+            $table->id('issue_id'); 
             $table->unsignedBigInteger('reporter_id')->nullable();
             $table->unsignedBigInteger('location_id')->nullable();
             $table->string('issue_type', 50);
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->dateTime('report_date')->useCurrent();
             $table->enum('issue_status', ['Open', 'In Progress', 'Resolved', 'Closed']);
             $table->enum('urgency_level', ['Low', 'Medium', 'High']);
-            $table->timestamps(); // Adds created_at and updated_at columns
+            $table->timestamps(); 
 
             // Foreign key constraints
             $table->foreign('reporter_id')->references('user_id')->on('users')->onDelete('set null');

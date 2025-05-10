@@ -5,7 +5,7 @@
 
 <div class="container">
     <h2>Your Notifications</h2>
-    
+
     <!-- Mark All as Read Button (Optional) -->
     <form action="{{ route('notifications.markAllRead') }}" method="POST" class="mb-4">
         @csrf
@@ -13,6 +13,12 @@
             Mark All as Read
         </button>
     </form>
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
     @forelse($notifications as $notification)
     <div class="card mb-3 @if($notification->unread()) border-primary @endif">

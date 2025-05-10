@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Task extends Model
 {
     use HasFactory;
-    public $timestamps = false;
+    public $timestamps = true;
     // Specify the table name if it's different from the model name
     protected $table = 'task';
 

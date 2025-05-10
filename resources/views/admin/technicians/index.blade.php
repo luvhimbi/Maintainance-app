@@ -12,15 +12,15 @@
                     <h2 class="h5 mb-1">Manage Maintenance Staff</h2>
                     <p class="text-muted small mb-0">Manage all technician accounts and information</p>
                 </div>
-                
+
                 <div class="mt-3 mt-md-0">
-                    <a href="{{ route('admin.technicians.create') }}" class="btn btn-success btn-sm">
+                    <a href="{{ route('admin.technicians.create') }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-plus me-1"></i> Add New Technician
                     </a>
                 </div>
             </div>
         </div>
-        
+
         <!-- Card Body -->
         <div class="card-body p-0">
             @if(session('success'))
@@ -29,16 +29,18 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             @endif
-            
+
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4">ID</th>
-                            <th>Username</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
                             <th>Email</th>
                             <th>Specialization</th>
-                            <th>Status</th>
+                            <th>Address</th>
+                            <th>Phone Number</th>
                             <th class="pe-4 text-end">Actions</th>
                         </tr>
                     </thead>
@@ -48,12 +50,11 @@
                             <td class="ps-4">{{ $tech->user_id }}</td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar-circle bg-light-primary text-primary me-3">
-                                        {{ substr($tech->username, 0, 1) }}
-                                    </div>
-                                    <div class="fw-medium">{{ $tech->username }}</div>
+                                   
+                                    <div class="fw-medium">{{ $tech->first_name }}</div>
                                 </div>
                             </td>
+                            <td>{{ $tech->last_name }}</td>
                             <td>{{ $tech->email }}</td>
                             <td>
                                 @if($tech->maintenanceStaff)
@@ -62,30 +63,22 @@
                                     <span class="text-muted">N/A</span>
                                 @endif
                             </td>
-                            <td>
-                                <span class="badge py-2 px-3 rounded-pill 
-                                    @if($tech->status == 'Active') bg-soft-success text-success
-                                    @elseif($tech->status == 'Suspended') bg-soft-warning text-warning
-                                    @else bg-soft-secondary text-secondary @endif">
-                                    <i class="fas fa-circle me-1" style="font-size: 6px; vertical-align: middle;"></i>
-                                    {{ $tech->status }}
-                                </span>
-                            </td>
+                            <td>{{ $tech->address }}</td>
+                            <td>{{ $tech->phone_number }}</td>
                             <td class="pe-4 text-end">
                                 <div class="d-flex justify-content-end">
-                                    
-                                    <a href="{{ route('admin.technicians.edit', $tech->user_id) }}" 
-                                       class="btn btn-sm btn-soft-primary me-2"
+                                    <a href="{{ route('admin.technicians.edit', $tech->user_id) }}"
+                                      
                                        data-bs-toggle="tooltip" title="Edit">
                                         <i class="fas fa-pen"></i>
                                     </a>
                                     <form action="{{ route('admin.technicians.destroy', $tech->user_id) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" 
+                                        <button type="submit"
                                                 class="btn btn-sm btn-soft-danger delete-technician"
                                                 data-name="{{ $tech->username }}"
-                                                data-bs-toggle="tooltip" 
+                                                data-bs-toggle="tooltip"
                                                 title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -97,7 +90,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             @if($technicians->hasPages())
             <div class="card-footer bg-transparent border-0 pt-3">
                 <div class="d-flex justify-content-between align-items-center">
@@ -138,7 +131,7 @@
                 e.preventDefault();
                 const form = this.closest('form');
                 const technicianName = this.getAttribute('data-name');
-                
+
                 Swal.fire({
                     title: 'Delete Technician?',
                     html: `Are you sure you want to delete <strong>${technicianName}</strong>?`,

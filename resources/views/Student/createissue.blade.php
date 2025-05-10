@@ -78,7 +78,7 @@
         }
 
         .btn-danger {
-            background-color: var(--danger-color);
+            background-color: var (--danger-color);
             border-color: var(--danger-color);
         }
 
@@ -291,7 +291,8 @@
                         <select class="form-select" id="location" name="location_id" onchange="autoFillDetails()" required>
                             <option value="">Select location</option>
                             @foreach ($locations as $location)
-                                <option value="{{ $location->location_id }}" {{ (isset($formData['location_id']) && $formData['location_id'] == $location->location_id) ? 'selected' : '' }}>
+                                <option value="{{ $location->location_id }}" 
+                                    {{ (isset($formData['location_id']) && $formData['location_id'] == $location->location_id) ? 'selected' : '' }}>
                                     {{ $location->building_name }} - Floor {{ $location->floor_number }}, Room {{ $location->room_number }}
                                 </option>
                             @endforeach
@@ -301,15 +302,15 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label">Building</label>
-                            <input type="text" class="form-control bg-light" id="building" name="building" readonly>
+                            <input type="text" class="form-control bg-light" id="building" name="building" value="{{ $formData['building'] ?? '' }}" readonly>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Floor</label>
-                            <input type="text" class="form-control bg-light" id="floor" name="floor" readonly>
+                            <input type="text" class="form-control bg-light" id="floor" name="floor" value="{{ $formData['floor'] ?? '' }}" readonly>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Room</label>
-                            <input type="text" class="form-control bg-light" id="room" name="room" readonly>
+                            <input type="text" class="form-control bg-light" id="room" name="room" value="{{ $formData['room'] ?? '' }}" readonly>
                         </div>
                     </div>
 
@@ -320,33 +321,36 @@
                     <div class="mb-4">
                         <label class="form-label">Issue Type</label>
                         <div class="btn-group w-100" id="issueTypeGroup" role="group">
-                            <button type="button" class="btn btn-outline-primary" data-value="Electrical">
+                            <button type="button" class="btn btn-outline-primary {{ isset($formData['issue_type']) && $formData['issue_type'] == 'Electrical' ? 'active' : '' }}" data-value="Electrical">
                                 <i class="fas fa-bolt me-1"></i> Electrical
                             </button>
-                            <button type="button" class="btn btn-outline-primary" data-value="Plumbing">
+                            <button type="button" class="btn btn-outline-primary {{ isset($formData['issue_type']) && $formData['issue_type'] == 'Plumbing' ? 'active' : '' }}" data-value="Plumbing">
                                 <i class="fas fa-faucet me-1"></i> Plumbing
                             </button>
-                            <button type="button" class="btn btn-outline-primary" data-value="Structural">
+                            <button type="button" class="btn btn-outline-primary {{ isset($formData['issue_type']) && $formData['issue_type'] == 'Structural' ? 'active' : '' }}" data-value="Structural">
                                 <i class="fas fa-home me-1"></i> Structural
                             </button>
+                            <button type="button" class="btn btn-outline-primary {{ isset($formData['issue_type']) && $formData['issue_type'] == 'General' ? 'active' : '' }}" data-value="General">
+                                <i class="fas fa-ellipsis-h me-1"></i> General
+                            </button>
                         </div>
-                        <input type="hidden" id="issueType" name="issue_type" required>
+                        <input type="hidden" id="issueType" name="issue_type" value="{{ $formData['issue_type'] ?? '' }}" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Urgency Level</label>
                         <div class="btn-group w-100" id="urgencyGroup" role="group">
-                            <button type="button" class="btn btn-outline-success" data-value="Low">
+                            <button type="button" class="btn btn-outline-success {{ isset($formData['urgency_level']) && $formData['urgency_level'] == 'Low' ? 'active' : '' }}" data-value="Low">
                                 <i class="fas fa-check-circle me-1"></i> Low
                             </button>
-                            <button type="button" class="btn btn-outline-warning" data-value="Medium">
+                            <button type="button" class="btn btn-outline-warning {{ isset($formData['urgency_level']) && $formData['urgency_level'] == 'Medium' ? 'active' : '' }}" data-value="Medium">
                                 <i class="fas fa-exclamation-circle me-1"></i> Medium
                             </button>
-                            <button type="button" class="btn btn-outline-danger" data-value="High">
+                            <button type="button" class="btn btn-outline-danger {{ isset($formData['urgency_level']) && $formData['urgency_level'] == 'High' ? 'active' : '' }}" data-value="High">
                                 <i class="fas fa-fire me-1"></i> High
                             </button>
                         </div>
-                        <input type="hidden" id="urgencyLevel" name="urgency_level" required>
+                        <input type="hidden" id="urgencyLevel" name="urgency_level" value="{{ $formData['urgency_level'] ?? '' }}" required>
                     </div>
                 </div>
 
@@ -359,13 +363,16 @@
                     <div class="upload-box">
                         <div class="mb-4">
                             <label class="form-label">Description</label>
-                            <textarea class="form-control" id="description" name="issue_description" rows="5" placeholder="Please provide detailed information about the issue you're experiencing..." required></textarea>
+                            <textarea class="form-control" id="description" name="issue_description" rows="5" placeholder="Please provide detailed information about the issue you're experiencing..." required>{{ $formData['issue_description'] ?? '' }}</textarea>
                         </div>
 
                         <div class="file-upload-area text-center">
+
+
                             <div class="mb-3">
                                 <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
                                 <p class="mt-2">Upload photos or documents for better reference</p>
+
                             </div>
 
                             <input type="file" id="mediaUpload" name="attachments[]" hidden accept="image/*, video/*, .pdf, .doc, .docx" multiple>
@@ -387,12 +394,65 @@
         </form>
     </div>
     @endsection
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // JavaScript for dynamic behavior
         document.addEventListener('DOMContentLoaded', function () {
+            // Check for error messages
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: '{{ session('error') }}',
+                    confirmButtonColor: '#4361ee'
+                });
+            @endif
+
+            // Check for success messages
+            @if(session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '{{ session('success') }}',
+                    confirmButtonColor: '#4361ee'
+                });
+            @endif
+
+            // Form validation before submission
+            document.getElementById('reportForm').addEventListener('submit', function(e) {
+                const issueType = document.getElementById('issueType').value;
+                const urgencyLevel = document.getElementById('urgencyLevel').value;
+                const location = document.getElementById('location').value;
+                const description = document.getElementById('description').value;
+
+                if (!issueType || !urgencyLevel || !location || !description) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Missing Information',
+                        text: 'Please fill in all required fields before submitting.',
+                        confirmButtonColor: '#4361ee'
+                    });
+                }
+            });
+
+            // Auto-fill location details if returning from confirmation
+            if (document.getElementById('location').value) {
+                autoFillDetails();
+            }
+
             // Handle issue type selection
             const issueTypeGroup = document.getElementById('issueTypeGroup');
             const issueTypeInput = document.getElementById('issueType');
+            
+            // Set initial value if exists
+            if (issueTypeInput.value) {
+                const activeButton = issueTypeGroup.querySelector(`[data-value="${issueTypeInput.value}"]`);
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
+            }
+
             issueTypeGroup.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', function () {
                     issueTypeGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
@@ -404,6 +464,15 @@
             // Handle urgency level selection
             const urgencyGroup = document.getElementById('urgencyGroup');
             const urgencyLevelInput = document.getElementById('urgencyLevel');
+            
+            // Set initial value if exists
+            if (urgencyLevelInput.value) {
+                const activeButton = urgencyGroup.querySelector(`[data-value="${urgencyLevelInput.value}"]`);
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
+            }
+
             urgencyGroup.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', function () {
                     urgencyGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));

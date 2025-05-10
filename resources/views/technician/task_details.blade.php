@@ -144,35 +144,85 @@
         </div>
     </div>
     <!-- Task Updates Section -->
-<div class="mt-4">
-    <h5 class="mb-3">
-        <i class="fas fa-history me-2"></i>Task Updates
-    </h5>
+<!-- Task Updates Section -->
+<div class="mt-5">
+    <div class="d-flex align-items-center mb-4">
+        <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+            <i class="fas fa-tasks fs-4 text-primary"></i>
+        </div>
+        <h4 class="mb-0 text-dark">Task Updates</h4>
+    </div>
 
     @if ($task->updates->count() > 0)
-        <div class="list-group">
-            @foreach ($task->updates as $update)
-                <div class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <strong>{{ $update->staff->username }}</strong>
-                            <span class="badge bg-secondary">{{ $update->staff->user_role }}</span>
-                        </div>
-                        <small class="text-muted">{{ $update->update_timestamp}}</small>
+        <div class="timeline ps-3">
+            @foreach ($task->updates->sortByDesc('update_timestamp') as $update)
+                <div class="timeline-item position-relative pb-4">
+                    <div class="timeline-badge position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center bg-white border border-3
+                        @if($update->status_change == 'In Progress') border-warning
+                        @elseif($update->status_change == 'Completed') border-success
+                        @else border-primary @endif"
+                        style="width: 24px; height: 24px;">
+                        <i class="fas fa-circle fs-6
+                            @if($update->status_change == 'In Progress') text-warning
+                            @elseif($update->status_change == 'Completed') text-success
+                            @else text-primary @endif"></i>
                     </div>
-                    <p class="mb-0">{{ $update->update_description }}</p>
-                    <small class="text-muted">Status changed to: {{ $update->status_change }}</small>
+
+                    <div class="timeline-content ms-5 ps-3">
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="d-flex align-items-center">
+                                        @if($update->staff)
+                                            <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                 style="width: 40px; height: 40px; font-size: 1.1rem;">
+                                                {{ substr($update->staff->first_name, 0, 1) }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 text-dark">{{ $update->staff->first_name }} {{ $update->staff->last_name }}</h6>
+                                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ $update->staff->user_role }}</span>
+                                            </div>
+                                        @else
+                                            <span class="text-muted small">[Staff removed]</span>
+                                        @endif
+                                    </div>
+                                    <span class="text-muted small">
+                                        {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y · g:i A') }}
+                                    </span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <span class="badge rounded-pill
+                                        @if($update->status_change == 'In Progress') bg-warning bg-opacity-10 text-warning
+                                        @elseif($update->status_change == 'Completed') bg-success bg-opacity-10 text-success
+                                        @else bg-primary bg-opacity-10 text-primary @endif">
+                                        <i class="fas
+                                            @if($update->status_change == 'In Progress') fa-wrench me-1
+                                            @elseif($update->status_change == 'Completed') fa-check me-1
+                                            @else fa-info-circle me-1 @endif"></i>
+                                        {{ $update->status_change }}
+                                    </span>
+                                </div>
+
+                                <p class="mb-0 text-dark">{{ $update->update_description }}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endforeach
         </div>
     @else
-        <div class="alert alert-secondary">
-            <i class="fas fa-info-circle me-2"></i>No updates yet
+        <div class="card border-0 bg-light">
+            <div class="card-body text-center py-4">
+                <i class="fas fa-info-circle text-primary fs-4 mb-3"></i>
+                <h5 class="text-dark">No updates yet</h5>
+                <p class="text-muted mb-0">Task updates will appear here once available</p>
+            </div>
         </div>
     @endif
 </div>
 
-    <!-- Comment Section -->
+  
     
 @endsection
 

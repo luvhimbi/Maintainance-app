@@ -25,7 +25,7 @@
                         <tr class="table-light">
                             <th class="ps-4">ID</th>
                             <th>Issue Details</th>
-                            <th>Technician</th>
+                            <th>Technician Name</th>
                             <th>Assigned On</th>
                             <th>Due Date</th>
                             <th>Status</th>
@@ -35,11 +35,11 @@
                     </thead>
                     <tbody>
                         @foreach($tasks as $task)
-                            <tr class="@if($task->issue_status == 'Completed') table-success-light 
+                            <tr class="@if($task->issue_status == 'Completed') table-success-light
                                       @elseif($task->expected_completion->isPast() && $task->issue_status != 'Completed') table-danger-light @endif">
                                 <!-- Task ID -->
                                 <td class="ps-4 fw-semibold text-muted">#{{ $task->task_id }}</td>
-                                
+
                                 <!-- Issue Details -->
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -51,22 +51,20 @@
                                             <small class="text-muted">
                                                 @if($task->issue)
                                                     {{ Str::limit($task->issue->title, 25) }}
-                                                @else 
+                                                @else
                                                     N/A
                                                 @endif
                                             </small>
                                         </div>
                                     </div>
                                 </td>
-                                
+
                                 <!-- Technician -->
                                 <td>
                                     @if($task->assignee)
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-circle bg-light-primary me-2">
-                                                {{ strtoupper(substr($task->assignee->username, 0, 1)) }}
-                                            </div>
-                                            <span>{{ $task->assignee->username }}</span>
+                                         
+                                            <span>{{ $task->assignee->first_name }}{{$task->assignee->last_name}}</span>
                                         </div>
                                     @else
                                         <span class="badge bg-light text-secondary">
@@ -74,14 +72,14 @@
                                         </span>
                                     @endif
                                 </td>
-                                
+
                                 <!-- Assignment Date -->
                                 <td>
                                     <div class="text-muted small">
                                         {{ $task->assignment_date->format('d M Y') }}
                                     </div>
                                 </td>
-                                
+
                                 <!-- Due Date with Overdue Warning -->
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -95,7 +93,7 @@
                                         @endif
                                     </div>
                                 </td>
-                                
+
                                 <!-- Status -->
                                 <td>
                                     @php
@@ -112,7 +110,7 @@
                                         @endif
                                     </span>
                                 </td>
-                                
+
                                 <!-- Priority -->
                                 <td>
                                     @php
@@ -127,11 +125,11 @@
                                         {{ $task->priority }}
                                     </span>
                                 </td>
-                                
+
                                 <!-- Actions -->
                                 <td class="pe-4 text-end">
                                     <div class="action-buttons">
-                                        <a href="{{ route('tasks.progress.show', $task->task_id) }}" 
+                                        <a href="{{ route('tasks.progress.show', $task->task_id) }}"
                                             class="btn btn-sm btn-soft-primary"
                                             data-bs-toggle="tooltip"
                                             title="View Progress">

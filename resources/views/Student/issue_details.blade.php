@@ -79,7 +79,7 @@
                                         {{ substr($issue->task->assignee->first_name, 0, 1) }}
                                     </div>
                                     <div>
-                                        <p class="mb-0 fw-bold">{{ $issue->task->assignee->first_name }}</p>
+                                        <p class="mb-0 fw-bold">{{ $issue->task->assignee->first_name }} {{$issue->task->assignee->last_name}}</p>
                                     </div>
                                 </div>
                                 <div class="ms-1 ps-1 border-start">
@@ -226,31 +226,34 @@
 <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title" id="feedbackModalLabel">Provide Feedback</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header ">
+                <h5 class="modal-title" id="feedbackModalLabel"><i class="fas fa-comment-dots me-2"></i>Provide Feedback</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="feedbackForm" action="{{ route('feedback.submit', $issue->issue_id) }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-4 text-center">
-                        <h6>How would you rate the resolution of this issue?</h6>
-                        <div class="rating-stars mt-3">
+                        <h6 class="fw-bold">How would you rate the resolution of this issue?</h6>
+                        <div class="rating-stars mt-3 d-flex justify-content-center">
                             @for($i = 5; $i >= 1; $i--)
-                                <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" {{ $i == 5 ? 'checked' : '' }}>
-                                <label for="star{{ $i }}" title="{{ $i }} star"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" {{ $i == 5 ? 'checked' : '' }} class="d-none">
+                                <label for="star{{ $i }}" title="{{ $i }} star" class="star-label">
+                                    <i class="fas fa-star"></i>
+                                </label>
                             @endfor
                         </div>
+                        <p class="mt-2 fw-bold text-primary" id="ratingValue">5 Stars</p>
                     </div>
 
                     <div class="mb-3">
-                        <label for="comments" class="form-label">Additional comments (optional)</label>
-                        <textarea class="form-control" id="comments" name="comments" rows="3"></textarea>
+                        <label for="comments" class="form-label fw-bold">Additional Comments (Optional)</label>
+                        <textarea class="form-control" id="comments" name="comments" rows="4" placeholder="Share your thoughts..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Close</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-1"></i>Submit Feedback</button>
                 </div>
             </form>
         </div>
@@ -276,11 +279,24 @@
     });
 
   @endif
+    document.addEventListener('DOMContentLoaded', function () {
+        const stars = document.querySelectorAll('.rating-stars input');
+        const ratingValue = document.getElementById('ratingValue');
+
+        stars.forEach(star => {
+            star.addEventListener('change', function () {
+                const selectedRating = this.value;
+                ratingValue.textContent = `${selectedRating} Star${selectedRating > 1 ? 's' : ''}`;
+            });
+        });
+
+        @if($issue->issue_status == 'Resolved' && !$issue->hasFeedbackFrom(auth()->user()))
+            var feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+            feedbackModal.show();
+        @endif
+    });
 </script>
 @endpush
-
-
-@endsection
 
 @push('styles')
 <style>
@@ -372,5 +388,24 @@
         width: 100%;
         height: 100%;
     }
+    .rating-stars {
+        display: flex;
+        gap: 5px;
+    }
+    .star-label {
+        font-size: 2rem;
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    .star-label:hover,
+    .star-label:hover ~ .star-label,
+    .rating-stars input:checked ~ .star-label {
+        color: #ffc107; /* Gold color */
+    }
+    .rating-stars input:checked + .star-label {
+        color: #ffc107;
+    }
 </style>
 @endpush
+@endsection

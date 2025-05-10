@@ -18,9 +18,9 @@ class StudentController extends Controller
         $issues = Issue::where('reporter_id', $userId)
             ->where('issue_status', '!=', 'Resolved')
             ->where('issue_status', '!=', 'Closed')
-            ->with('location') // Eager load the location relationship
+            ->with('location')
             ->orderBy('updated_at', 'desc')
-            ->paginate(5); // Paginate with 10 items per page
+            ->paginate(5);
 
         return view('Student.dashboard', compact('issues'));
     }
