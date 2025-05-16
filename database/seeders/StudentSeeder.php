@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 
-
 class StudentSeeder extends Seeder
 {
     public function run()
@@ -18,7 +17,6 @@ class StudentSeeder extends Seeder
                 'email' => 'student1@university.edu',
                 'first_name' => 'Alex',
                 'last_name' => 'Johnson',
-                'phone' => '01122334477',
                 'course' => 'Computer Science',
                 'faculty' => 'ICT',
             ],
@@ -26,7 +24,6 @@ class StudentSeeder extends Seeder
                 'email' => 'student2@university.edu',
                 'first_name' => 'Maria',
                 'last_name' => 'Garcia',
-                'phone' => '01122334488',
                 'course' => 'Business Administration',
                 'faculty' => 'Business',
             ],
@@ -34,7 +31,6 @@ class StudentSeeder extends Seeder
                 'email' => 'student3@university.edu',
                 'first_name' => 'John',
                 'last_name' => 'Doe',
-                'phone' => '01122334499',
                 'course' => 'Mechanical Engineering',
                 'faculty' => 'Engineering',
             ],
@@ -42,7 +38,6 @@ class StudentSeeder extends Seeder
                 'email' => 'student4@university.edu',
                 'first_name' => 'Emma',
                 'last_name' => 'Brown',
-                'phone' => '01122334500',
                 'course' => 'Psychology',
                 'faculty' => 'Social Sciences',
             ],
@@ -50,7 +45,6 @@ class StudentSeeder extends Seeder
                 'email' => 'student5@university.edu',
                 'first_name' => 'Liam',
                 'last_name' => 'Smith',
-                'phone' => '01122334511',
                 'course' => 'Mathematics',
                 'faculty' => 'Sciences',
             ],
@@ -58,7 +52,6 @@ class StudentSeeder extends Seeder
                 'email' => 'student6@university.edu',
                 'first_name' => 'Sophia',
                 'last_name' => 'Williams',
-                'phone' => '01122334522',
                 'course' => 'Architecture',
                 'faculty' => 'Design',
             ],
@@ -66,25 +59,25 @@ class StudentSeeder extends Seeder
                 'email' => 'student7@university.edu',
                 'first_name' => 'James',
                 'last_name' => 'Taylor',
-                'phone' => '01122334533',
                 'course' => 'Law',
                 'faculty' => 'Law',
             ],
         ];
+
+        $phoneCounter = 1000; // Initialize a counter for unique phone numbers
 
         foreach ($students as $student) {
             $user = User::firstOrCreate(
                 ['email' => $student['email']],
                 [
                     'password_hash' => Hash::make('student123'),
-                    'phone_number' => $student['phone'],
+                    'phone_number' => '0112233' . $phoneCounter++, // Generate unique phone numbers
                     'user_role' => UserRole::STUDENT->value,
                     'first_name' => $student['first_name'],
                     'last_name' => $student['last_name'],
                     'address' => 'Student Dormitory, Main Campus',
                     'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(), 
-                   
+                    'updated_at' => Carbon::now(),
                 ]
             );
 

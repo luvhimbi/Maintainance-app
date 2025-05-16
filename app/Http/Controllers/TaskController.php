@@ -13,17 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 class TaskController extends Controller
 {
-    public function assignedTasks()
-    {
-        // Get the authenticated user's ID
-        $userId = auth()->id();
 
-        // Fetch tasks assigned to the user
-        $tasks = Task::where('assignee_id', $userId)->get();
-
-        // Pass the tasks to the view
-        return view('technician.tasks_assigned', compact('tasks'));
-    }
 
 
     public function viewTasks()
@@ -60,6 +50,12 @@ class TaskController extends Controller
 
         // Update task status
         $task->issue_status = $newStatus;
+
+        // Set actual completion time if status is changed to Completed
+        if ($newStatus === 'Completed' && $oldStatus !== 'Completed') {
+            $task->actual_completion = now(); // or Carbon::now() if you're using Carbon
+        }
+
         $task->save();
 
         // Update related issue status

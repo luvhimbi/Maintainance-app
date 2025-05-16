@@ -32,7 +32,7 @@
                         <select class="form-select" id="location" name="location_id" onchange="autoFillDetails()" required>
                             <option value="">Select location</option>
                             @foreach($locations as $location)
-                                <option value="{{ $location->location_id }}" 
+                                <option value="{{ $location->location_id }}"
                                     {{ $issue->location_id == $location->location_id ? 'selected' : '' }}>
                                     {{ $location->building_name }} - Floor {{ $location->floor_number }}, Room {{ $location->room_number }}
                                 </option>
@@ -70,6 +70,9 @@
                             </button>
                             <button type="button" class="btn btn-outline-primary {{ $issue->issue_type == 'Structural' ? 'active' : '' }}" data-value="Structural">
                                 <i class="fas fa-home me-1"></i> Structural
+                            </button>
+                            <button type="button" class="btn btn-outline-primary {{ $issue->issue_type == 'General' ? 'active' : '' }}" data-value="General">
+                                <i class="fas fa-ellipsis-h me-1"></i> General
                             </button>
                         </div>
                         <input type="hidden" id="issueType" name="issue_type" value="{{ $issue->issue_type }}" required>
@@ -125,7 +128,7 @@
                                             <div class="list-group-item d-flex justify-content-between align-items-center">
                                                 <div>
                                                     <i class="fas fa-paperclip me-2"></i>
-                                                    <a href="{{ Storage::url($attachment->file_path) }}" 
+                                                    <a href="{{ Storage::url($attachment->file_path) }}"
                                                        target="_blank" class="text-decoration-none">
                                                         {{ $attachment->original_name }}
                                                     </a>
@@ -262,7 +265,7 @@
             // Handle issue type selection
             const issueTypeGroup = document.getElementById('issueTypeGroup');
             const issueTypeInput = document.getElementById('issueType');
-            
+
             issueTypeGroup.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', function () {
                     issueTypeGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
@@ -274,7 +277,7 @@
             // Handle urgency level selection
             const urgencyGroup = document.getElementById('urgencyGroup');
             const urgencyLevelInput = document.getElementById('urgencyLevel');
-            
+
             urgencyGroup.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', function () {
                     urgencyGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));

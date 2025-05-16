@@ -47,7 +47,18 @@ class Task extends Model
     {
         return $this->belongsTo(User::class, 'assignee_id');
     }
-
+    public function getIssueIcon()
+    {
+        return match($this->issue->issue_type) {
+            'Plumbing' => 'fa-faucet-drip',
+            'Electrical' => 'fa-bolt-lightning',
+            'Furniture' => 'fa-couch',
+            'HVAC' => 'fa-fan',
+            'Internet' => 'fa-network-wired',
+            'Cleaning' => 'fa-broom',
+            default => 'fa-circle-exclamation'
+        };
+    }
     public function admin()
     {
         return $this->belongsTo(User::class, 'admin_id');

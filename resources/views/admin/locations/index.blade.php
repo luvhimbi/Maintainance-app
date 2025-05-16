@@ -1,204 +1,305 @@
 @extends('Layouts.AdminNavBar')
 @section('title', 'View Locations')
 @section('content')
-<div class="container-fluid locations-management py-4">
-    <div class="card border-0 shadow-sm">
-        <!-- Card Header -->
-        <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center py-3 px-4">
-            <div>
-                <h2 class="h5 mb-1">Location Management</h2>
-                <p class="text-muted small mb-0">Manage all building locations and rooms</p>
+    <div class="container-fluid locations-management py-4">
+        <div class="card border-0 shadow-sm">
+            <!-- Card Header -->
+            <div class="card-header bg-white border-bottom-0 py-3 px-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                    <div class="mb-3 mb-md-0">
+                        <h2 class="h5 mb-1">Location Management</h2>
+                        <p class="text-muted small mb-0">Manage all building locations and rooms</p>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="search-container w-100 w-md-auto">
+                        <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                            <input type="text"
+                                   id="locationSearch"
+                                   class="form-control"
+                                   placeholder="Search buildings, floors or rooms..."
+                                   aria-label="Search locations">
+                            <button class="btn btn-outline-secondary"
+                                    type="button"
+                                    id="clearSearch">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-        </div>
-
-        <!-- Card Body -->
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
+            <!-- Card Body -->
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
                         <tr>
                             <th class="ps-4">Building</th>
                             <th>Floor</th>
                             <th>Room</th>
                             <th class="pe-4" width="180">Actions</th>
                         </tr>
-                    </thead>
-                    <tbody>
+                        </thead>
+                        <tbody id="locationsTableBody">
                         @forelse($locations as $location)
-                        <tr>
-                            <!-- Building -->
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-container text-primary me-2">
-                                        <i class="fas fa-building"></i>
+                            <tr class="location-row"
+                                data-building="{{ strtolower($location->building_name) }}"
+                                data-floor="{{ $location->floor_number }}"
+                                data-room="{{ $location->room_number ?? '' }}">
+                                <!-- Building -->
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-container text-primary me-2">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <span class="fw-medium building-name">{{ $location->building_name }}</span>
                                     </div>
-                                    <span class="fw-medium">{{ $location->building_name }}</span>
-                                </div>
-                            </td>
+                                </td>
 
-                            <!-- Floor -->
-                            <td>
-                                <span class="badge bg-soft-secondary">
+                                <!-- Floor -->
+                                <td>
+                                <span class="badge  floor-number">
                                     Floor {{ $location->floor_number }}
                                 </span>
-                            </td>
+                                </td>
 
-                            <!-- Room -->
-                            <td>
-                                @if($location->room_number)
-                                    <span class="badge bg-soft-info">
+                                <!-- Room -->
+                                <td>
+                                    @if($location->room_number)
+                                        <span class="badge bg-soft-info room-number">
                                         Room {{ $location->room_number }}
                                     </span>
-                                @else
-                                    <span class="text-muted">N/A</span>
-                                @endif
-                            </td>
+                                    @else
+                                        <span class="text-muted">N/A</span>
+                                    @endif
+                                </td>
 
-                            <!-- Actions -->
-                            <td class="pe-4">
-                                <div class="d-flex">
-                                    <!-- Edit Button -->
+                                <!-- Actions -->
+                                <td class="pe-4">
+                                    <div class="d-flex">
+                                        <!-- Edit Button -->
+                                        <a href="{{ route('admin.locations.edit', $location->location_id) }}"
+                                           class="btn btn-sm btn-soft-primary me-2"
+                                           title="Edit">
+                                            <i class="fas fa-edit me-1"></i> Edit
+                                        </a>
 
-
-                                    <a href="{{ route('admin.locations.edit', $location->location_id) }}"
-                                       class="btn btn-sm btn-soft-primary me-2"
-                                       title="Edit">
-                                        <i class="fas fa-edit me-1"></i> Edit
-                                    </a>
-
-                                    <!-- Delete Form -->
-                                    <form action="{{ route('admin.locations.destroy', $location->location_id) }}"
-                                          method="POST"
-                                          class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="btn btn-sm btn-soft-danger"
-                                                title="Delete"
-                                                onclick="return confirm('Are you sure you want to delete this location?')">
-                                            <i class="fas fa-trash me-1"></i> Delete
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
+                                        <!-- Delete Form -->
+                                        <form action="{{ route('admin.locations.destroy', $location->location_id) }}"
+                                              method="POST"
+                                              class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-soft-danger"
+                                                    title="Delete"
+                                                    onclick="return confirm('Are you sure you want to delete this location?')">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="4" class="text-center py-5">
-                                <div class="empty-state">
-                                    <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
-                                    <h5 class="mb-1">No Locations Found</h5>
-                                    <p class="text-muted small">Add your first location to get started</p>
-
-                                </div>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                                        <h5 class="mb-1">No Locations Found</h5>
+                                        <p class="text-muted small">Add your first location to get started</p>
+                                    </div>
+                                </td>
+                            </tr>
                         @endforelse
-                    </tbody>
-                </table>
-                <div class="pagination">
-                 {{ $locations->links('pagination::bootstrap-5') }}
+                        </tbody>
+                    </table>
+
+                    <!-- Search Error State (Hidden by Default) -->
+                    <div id="searchErrorState" class="text-center py-5 d-none">
+                        <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
+                        <h5 class="mb-1">No Matching Locations Found</h5>
+                        <p class="text-muted small">Try adjusting your search query</p>
+                        <button class="btn btn-sm btn-outline-primary mt-2" id="resetSearch">
+                            <i class="fas fa-undo me-1"></i> Reset Search
+                        </button>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination px-4 py-3">
+                        {{ $locations->links('pagination::bootstrap-5') }}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<style>
-    /* Base Styles */
-    .locations-management {
-        max-width: 1600px;
-    }
+    <style>
+        /* Enhanced Styles */
+        .search-container {
+            max-width: 400px;
+        }
 
-    /* Card Header Styles */
-    .card-header {
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
+        #searchErrorState {
+            background-color: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+        /* Badge Styles */
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+            font-size: 0.75rem;
+            color: #212529; /* Ensure default dark text */
+        }
 
-    /* Table Styles */
-    .table {
-        margin-bottom: 0;
-    }
+        .bg-soft-secondary {
+            background-color: rgba(108, 117, 125, 0.2);
+            color: #212529 !important; /* Force dark text */
+        }
 
-    .table th {
-        font-weight: 500;
-        color: #6c757d;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        border-top: none;
-    }
+        .bg-soft-info {
+            background-color: rgba(23, 162, 184, 0.2);
+            color: #212529 !important; /* Force dark text */
+        }
 
-    .table td {
-        vertical-align: middle;
-        padding: 1rem 0.75rem;
-        border-top: 1px solid #f8f9fa;
-    }
+        .search-highlight {
+            background-color: #FFF9C4;
+            padding: 0 2px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
 
-    /* Badge Styles */
-    .badge {
-        font-weight: 500;
-        padding: 0.35em 0.65em;
-        font-size: 0.75rem;
-    }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .card-header {
+                flex-direction: column;
+            }
 
-    .bg-soft-primary {
-        background-color: rgba(13, 110, 253, 0.1);
-    }
+            .search-container {
+                width: 100%;
+                margin-top: 1rem;
+            }
 
-    .bg-soft-secondary {
-        background-color: rgba(1, 14, 26, 0.1);
-        color: black;
-    }
+            .table td, .table th {
+                padding: 0.75rem 0.5rem;
+            }
 
-    .bg-soft-info {
-        background-color: rgba(13, 98, 116, 0.623);
-        color:black;
-    }
+            .btn-sm {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
 
-    /* Button Styles */
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('locationSearch');
+            const clearSearch = document.getElementById('clearSearch');
+            const resetSearch = document.getElementById('resetSearch');
+            const locationRows = document.querySelectorAll('.location-row');
+            const emptyState = document.querySelector('.empty-state')?.closest('tr');
+            const searchErrorState = document.getElementById('searchErrorState');
+            const tableBody = document.getElementById('locationsTableBody');
 
-    .btn-soft-primary {
-        color: #0d6efd;
-        background-color: rgba(13, 110, 253, 0.1);
-        border: none;
-    }
+            function filterLocations() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                let visibleCount = 0;
 
-    .btn-soft-danger {
-        color: #dc3545;
-        background-color: rgba(220, 53, 69, 0.1);
-        border: none;
-    }
+                // Hide the default empty state if it exists
+                if (emptyState) {
+                    emptyState.style.display = 'none';
+                }
 
-    .btn-soft-primary:hover {
-        background-color: rgba(13, 110, 253, 0.2);
-    }
+                // Search through each location row
+                locationRows.forEach(row => {
+                    const building = row.dataset.building;
+                    const floor = row.dataset.floor;
+                    const room = row.dataset.room;
 
-    .btn-soft-danger:hover {
-        background-color: rgba(220, 53, 69, 0.2);
-    }
+                    const matchesSearch = searchTerm === '' ||
+                        building.includes(searchTerm) ||
+                        floor.includes(searchTerm) ||
+                        room.includes(searchTerm);
 
-    /* Icon container */
-    .icon-container {
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+                    if (matchesSearch) {
+                        row.style.display = '';
+                        visibleCount++;
 
-    /* Empty State */
-    .empty-state {
-        padding: 2rem;
-    }
+                        // Highlight matching text if search term exists
+                        if (searchTerm) {
+                            highlightMatches(row, searchTerm);
+                        } else {
+                            removeHighlights(row);
+                        }
+                    } else {
+                        row.style.display = 'none';
+                        removeHighlights(row);
+                    }
+                });
 
-    .empty-state i {
-        opacity: 0.5;
-    }
-</style>
+                // Show appropriate state
+                if (searchTerm && visibleCount === 0) {
+                    // Show search error state
+                    searchErrorState.classList.remove('d-none');
+                    if (emptyState) emptyState.style.display = 'none';
+                    tableBody.style.display = 'none';
+                } else {
+                    // Show normal results
+                    searchErrorState.classList.add('d-none');
+                    tableBody.style.display = '';
+                    if (visibleCount === 0 && emptyState) {
+                        emptyState.style.display = '';
+                    }
+                }
+            }
+
+            function highlightMatches(row, searchTerm) {
+                const elements = [
+                    row.querySelector('.building-name'),
+                    row.querySelector('.floor-number'),
+                    row.querySelector('.room-number')
+                ];
+
+                elements.forEach(el => {
+                    if (!el) return;
+
+                    const text = el.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        const regex = new RegExp(searchTerm, 'gi');
+                        el.innerHTML = el.textContent.replace(regex,
+                            match => `<span class="search-highlight">${match}</span>`
+                        );
+                    }
+                });
+            }
+
+            function removeHighlights(row) {
+                const highlights = row.querySelectorAll('.search-highlight');
+                highlights.forEach(highlight => {
+                    const parent = highlight.parentNode;
+                    parent.textContent = parent.textContent;
+                });
+            }
+
+            // Event Listeners
+            searchInput.addEventListener('input', filterLocations);
+
+            clearSearch.addEventListener('click', function() {
+                searchInput.value = '';
+                filterLocations();
+            });
+
+            resetSearch?.addEventListener('click', function() {
+                searchInput.value = '';
+                filterLocations();
+                searchInput.focus();
+            });
+
+            // Initialize with empty search
+            filterLocations();
+        });
+    </script>
 @endsection

@@ -1,133 +1,213 @@
-<!DOCTYPE html>
+{{-- PDF Template --}}
+{{-- filepath: resources/views/admin/reports/pdf/task_report.blade.php --}}
+    <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Task Report</title>
+    <title>Task Report - {{ now()->format('Y-m-d') }}</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #7f8c8d;
         }
+
+        body {
+            font-family: 'Helvetica', sans-serif;
+            margin: 1.5cm;
+            font-size: 12px;
+        }
+
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 15px;
         }
-        .header h1 {
-            color: #3a7bd5;
+
+        .report-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
             margin-bottom: 5px;
         }
-        .header p {
-            color: #666;
-            margin: 0;
+
+        .report-period {
+            font-size: 14px;
+            color: var(--secondary-color);
         }
-        .stats {
-            margin-bottom: 30px;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-        .stat-box {
-            background: #f8f9fa;
+
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 25px 0;
             padding: 15px;
-            border-radius: 5px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-card {
+            flex: 1;
+            padding: 15px;
+            margin: 0 10px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             text-align: center;
         }
-        .stat-box h3 {
-            margin: 0;
-            color: #3a7bd5;
-            font-size: 24px;
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
         }
-        .stat-box p {
-            margin: 5px 0 0;
-            color: #666;
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-top: 20px;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px;
+            font-weight: 600;
             text-align: left;
         }
-        th {
-            background: #f8f9fa;
-            font-weight: bold;
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ecf0f1;
         }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
         .priority-high {
-            color: #dc3545;
+            background-color: #ffeaea;
+            border-left: 4px solid #e74c3c;
         }
+
         .priority-medium {
-            color: #ffc107;
+            background-color: #fff5e6;
+            border-left: 4px solid #f39c12;
         }
+
         .priority-low {
-            color: #28a745;
+            background-color: #e8f5e9;
+            border-left: 4px solid #2ecc71;
         }
-        .status-completed {
-            color: #28a745;
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .status-pending {
-            color: #ffc107;
+
+        .bg-success { background: #27ae60; }
+        .bg-warning { background: #f1c40f; }
+        .bg-secondary { background: #95a5a6; }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+            font-size: 10px;
+            color: var(--secondary-color);
+            text-align: right;
         }
-        .status-in-progress {
-            color: #17a2b8;
+
+        .logo-container {
+            margin-bottom: 15px;
+        }
+
+        .logo {
+            height: 50px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Task Report</h1>
-        <p>Period: {{ $start_date }} to {{ $end_date }}</p>
+<div class="header">
+    <div class="logo-container">
+        <img src="{{ storage_path('images/images.png') }}" class="logo" alt="Company Logo">
     </div>
-
-    <div class="stats">
-        <div class="stats-grid">
-            <div class="stat-box">
-                <h3>{{ $stats['total'] }}</h3>
-                <p>Total Tasks</p>
-            </div>
-            <div class="stat-box">
-                <h3>{{ $stats['completed'] }}</h3>
-                <p>Completed Tasks</p>
-            </div>
-            <div class="stat-box">
-                <h3>{{ $stats['pending'] }}</h3>
-                <p>Pending Tasks</p>
-            </div>
-        </div>
+    <div class="report-title">Maintenance Task Report</div>
+    <div class="report-period">
+        {{ $startDate->format('M d, Y') }} to {{ $endDate->format('M d, Y') }}
     </div>
+</div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Task ID</th>
-                <th>Description</th>
-                <th>Priority</th>
-                <th>Status</th>
-                <th>Assigned To</th>
-                <th>Expected Completion</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($tasks as $task)
-            <tr>
-                <td>{{ $task->task_id }}</td>
-                <td>{{ $task->issue->issue_description }}</td>
-                <td class="priority-{{ strtolower($task->priority) }}">{{ $task->priority }}</td>
-                <td class="status-{{ strtolower($task->issue_status) }}">{{ $task->issue_status }}</td>
-                <td>{{ $task->assignee ? $task->assignee->first_name . ' ' . $task->assignee->last_name : 'Unassigned' }}</td>
-                <td>{{ $task->expected_completion ? Carbon\Carbon::parse($task->expected_completion)->format('M d, Y') : 'Not set' }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    <div class="footer">
-        <p>Generated on: {{ now()->format('M d, Y H:i:s') }}</p>
+<div class="stats-container">
+    <div class="stat-card">
+        <div class="stat-value">{{ $stats['total'] }}</div>
+        <div class="stat-label">Total Tasks</div>
     </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ $stats['completed'] }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ $stats['in_progress'] }}</div>
+        <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ $stats['high_priority'] }}</div>
+        <div class="stat-label">High Priority</div>
+    </div>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Task Type</th>
+        <th>Assignee</th>
+        <th>Status</th>
+        <th>Priority</th>
+        <th>Due Date</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach($tasks as $task)
+        <tr class="priority-{{ $task->priority }}">
+            <td>{{ $task->task_id }}</td>
+            <td>{{ $task->issue->issue_type }}</td>
+            <td>{{ $task->assignee ? $task->assignee->full_name : 'Unassigned' }}</td>
+            <td>
+                    <span class="badge
+                        @if($task->issue_status == 'Completed') bg-success
+                        @elseif($task->issue_status == 'In Progress') bg-warning
+                        @else bg-secondary
+                        @endif">
+                        {{ $task->issue_status }}
+                    </span>
+            </td>
+            <td>{{ ucfirst($task->priority) }}</td>
+            <td>{{ $task->expected_completion ? $task->expected_completion->format('M d, Y') : 'N/A' }}</td>
+        </tr>
+    @endforeach
+    </tbody>
+</table>
+
+<div class="footer">
+    Generated on {{ now()->format('M d, Y \a\t H:i') }} |
+    {{ config('app.name') }} Maintenance System
+</div>
 </body>
-</html> 
+</html>

@@ -30,7 +30,7 @@ class FeedbacksExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             $feedback->id,
-            $feedback->issue->title,
+            $feedback->issue->issue_type ?? 'n. ',
             $feedback->user->first_name ?? 'n. ' ,
             $feedback->rating,
             $feedback->comments,

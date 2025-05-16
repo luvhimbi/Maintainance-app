@@ -230,4 +230,25 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/admin/reports/technicians', [\App\Http\Controllers\Admin\ReportController::class, 'generateTechnicianReport'])->name('admin.reports.technicians');
     Route::get('/admin/reports/performance', [\App\Http\Controllers\Admin\ReportController::class, 'generatePerformanceReport'])->name('admin.reports.performance');
+    Route::get('/admin/reports/tasks', [\App\Http\Controllers\Admin\ReportController::class, 'taskReport'])->name('admin.reports.tasks');
+    Route::get('/admin/reports/technicians', [\App\Http\Controllers\Admin\ReportController::class, 'technicianReport'])->name('admin.reports.technicians');
+    Route::get('/admin/reports/performance', [\App\Http\Controllers\Admin\ReportController::class, 'performanceReport'])->name('admin.reports.performance');
+
+    // Export Routes
+    Route::get('/admin/reports/technician-performance/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.report.export.pdf');
+    Route::post('/admin/reports/technician-performance/export/excel', [ReportController::class, 'exportExcel'])->name('admin.report.export.excel');
+
+    // Task Report Export Routes
+    Route::get('/admin/reports/tasks/export/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportTaskPdf'])->name('admin.reports.tasks.export.pdf');
+    Route::get('/admin/reports/tasks/export/excel', [\App\Http\Controllers\Admin\ReportController::class, 'exportTaskExcel'])->name('admin.reports.tasks.export.excel');
+
+    // Technician Report Export Routes
+    Route::get('/admin/reports/technicians/export/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportTechnicianPdf'])->name('admin.reports.technicians.export.pdf');
+    Route::get('/admin/reports/technicians/export/excel', [\App\Http\Controllers\Admin\ReportController::class, 'exportTechnicianExcel'])->name('admin.reports.technicians.export.excel');
+
+    // Performance Report Export Routes
+    Route::get('/admin/reports/performance/export/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportPerformancePdf'])->name('admin.reports.performance.export.pdf');
+    Route::get('/admin/reports/performance/export/excel', [\App\Http\Controllers\Admin\ReportController::class, 'exportPerformanceExcel'])->name('admin.reports.performance.export.excel');
+    Route::post('/admin/reports/technician-performance/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.report.export.pdf');
+    Route::post('/admin/reports/technician-performance/export/excel', [ReportController::class, 'exportExcel'])->name('admin.report.export.excel');
 });

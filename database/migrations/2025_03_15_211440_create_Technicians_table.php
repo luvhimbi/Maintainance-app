@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('Technicians', function (Blueprint $table) {
             $table->unsignedBigInteger('user_id')->primary(); // Primary key
-            $table->enum('specialization', ['General', 'Electrical', 'Plumbling', 'Structural'])->default('General'); // Specialization
+            $table->enum('specialization', ['General', 'Electrical', 'Plumbing', 'Structural'])->default('General'); // Specialization
             $table->enum('availability_status', ['Available', 'Busy'])->default('Available'); 
             $table->integer('current_workload')->default(0); // Current workload
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade'); // Foreign key

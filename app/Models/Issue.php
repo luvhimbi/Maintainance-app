@@ -60,6 +60,8 @@ public function hasFeedbackFrom(User $user)
     return $this->belongsTo(User::class, 'reporter_id', 'user_id'); // assuming 'reported_by' is the foreign key
 
 }
+
+
 public function history()
 {
     return $this->hasMany(HistoryLog::class)->latest();

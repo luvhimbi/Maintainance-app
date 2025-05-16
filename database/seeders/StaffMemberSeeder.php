@@ -57,19 +57,21 @@ class StaffMemberSeeder extends Seeder
             ],
         ];
 
+        $phoneCounter = 100; // Initialize a counter for unique phone numbers
+
         foreach ($staffMembers as $staff) {
             $user = User::firstOrCreate(
                 ['email' => $staff['email']],
                 [
                     'password_hash' => Hash::make('password'),
-                    'phone_number' => '01122334' . rand(10, 99),
+                    'phone_number' => '01122334' . $phoneCounter++, // Increment counter for unique phone numbers
                     'user_role' => UserRole::STAFF->value,
                     'first_name' => $staff['first_name'],
                     'last_name' => $staff['last_name'],
-                    'address' => rand(1, 100) . ' Admin Building, Main Campus'
-                    ,'created_at' => Carbon::now(), 
-                    'updated_at' => Carbon::now(), 
-                    ]
+                    'address' => rand(1, 100) . ' Admin Building, Main Campus',
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]
             );
 
             StaffMember::firstOrCreate(

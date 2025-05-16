@@ -4,14 +4,31 @@
 <div class="container task-management-container py-4">
     <!-- Header Section -->
     <div class="header-section mb-4">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
             <div>
                 <h2 class="page-title mb-1">Task Management</h2>
                 <p class="page-subtitle text-muted">Manage and monitor all technician tasks</p>
             </div>
-            <div class="overdue-alert badge bg-danger bg-soft-danger">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                Overdue Tasks: {{ $overdueCount }}
+            <div class="d-flex flex-column flex-sm-row gap-2 mt-3 mt-md-0">
+                <div class="input-group">
+                    <span class="input-group-text bg-light">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" id="taskSearch" class="form-control" placeholder="Search tasks...">
+                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="searchFeedback" class="mt-2 small text-muted" style="display: none;">
+                    <span id="resultCount">0</span> tasks found
+                </div>
+                <div id="searchError" class="mt-2 small text-danger" style="display: none;">
+                    <i class="fas fa-exclamation-circle me-1"></i> No tasks match your search criteria
+                </div>
+                <div class="overdue-alert badge bg-danger bg-soft-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Overdue Tasks: {{ $overdueCount }}
+                </div>
             </div>
         </div>
     </div>
@@ -63,7 +80,7 @@
                                 <td>
                                     @if($task->assignee)
                                         <div class="d-flex align-items-center">
-                                         
+
                                             <span>{{ $task->assignee->first_name }}{{$task->assignee->last_name}}</span>
                                         </div>
                                     @else
@@ -176,6 +193,14 @@
     .bg-soft-danger {
         background-color: rgba(220, 53, 69, 0.1);
     }
+
+    /* Search highlight style */
+    .search-highlight {
+        background-color: #ffeb3b;
+        padding: 0 2px;
+        border-radius: 2px;
+        font-weight: bold;
+    }
 </style>
 
 <script>
@@ -191,6 +216,158 @@
         overdueRows.forEach(row => {
             row.style.animation = 'pulseAlert 1.5s infinite';
         });
+
+        // Task search functionality
+        const searchInput = document.getElementById('taskSearch');
+        const clearButton = document.getElementById('clearSearch');
+        const tableRows = document.querySelectorAll('tbody tr');
+
+        // Function to highlight text matches
+        function highlightText(element, searchTerm) {
+            if (!element || !searchTerm) return;
+
+            const text = element.textContent;
+            const lowerText = text.toLowerCase();
+            let startIndex = 0;
+
+            // If the search term isn't found in this element, return
+            if (!lowerText.includes(searchTerm.toLowerCase())) return;
+
+            // Clear the element's content
+            while (element.firstChild) {
+                element.removeChild(element.firstChild);
+            }
+
+            // Find all occurrences and highlight them
+            while (startIndex < text.length) {
+                const matchIndex = lowerText.indexOf(searchTerm.toLowerCase(), startIndex);
+
+                if (matchIndex === -1) {
+                    // No more matches, add the remaining text
+                    element.appendChild(document.createTextNode(text.substring(startIndex)));
+                    break;
+                }
+
+                // Add text before the match
+                if (matchIndex > startIndex) {
+                    element.appendChild(document.createTextNode(text.substring(startIndex, matchIndex)));
+                }
+
+                // Add the highlighted match
+                const highlightSpan = document.createElement('span');
+                highlightSpan.className = 'search-highlight';
+                highlightSpan.textContent = text.substring(matchIndex, matchIndex + searchTerm.length);
+                element.appendChild(highlightSpan);
+
+                // Move past this match
+                startIndex = matchIndex + searchTerm.length;
+            }
+        }
+
+        // Function to filter table rows based on search input
+        function filterTasks() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const searchFeedback = document.getElementById('searchFeedback');
+            const resultCount = document.getElementById('resultCount');
+            const searchError = document.getElementById('searchError');
+
+            let visibleCount = 0;
+
+            // Remove any existing highlights first
+            document.querySelectorAll('.search-highlight').forEach(el => {
+                const parent = el.parentNode;
+                parent.replaceChild(document.createTextNode(el.textContent), el);
+                // Normalize the parent to merge adjacent text nodes
+                parent.normalize();
+            });
+
+            tableRows.forEach(row => {
+                // Get all searchable elements in this row
+                const taskId = row.querySelector('.fw-semibold')?.textContent || '';
+                const issueId = row.querySelector('.fw-medium')?.textContent || '';
+                const issueTitle = row.querySelector('small.text-muted')?.textContent || '';
+                const technicianName = row.querySelector('td:nth-child(3)')?.textContent || '';
+                const assignmentDate = row.querySelector('td:nth-child(4)')?.textContent || '';
+                const dueDate = row.querySelector('td:nth-child(5)')?.textContent || '';
+                const status = row.querySelector('td:nth-child(6) .badge')?.textContent || '';
+                const priority = row.querySelector('td:nth-child(7) .badge')?.textContent || '';
+
+                const matchesSearch =
+                    taskId.toLowerCase().includes(searchTerm) ||
+                    issueId.toLowerCase().includes(searchTerm) ||
+                    issueTitle.toLowerCase().includes(searchTerm) ||
+                    technicianName.toLowerCase().includes(searchTerm) ||
+                    assignmentDate.toLowerCase().includes(searchTerm) ||
+                    dueDate.toLowerCase().includes(searchTerm) ||
+                    status.toLowerCase().includes(searchTerm) ||
+                    priority.toLowerCase().includes(searchTerm);
+
+                row.style.display = matchesSearch ? '' : 'none';
+
+                // Highlight matching text if there's a search term
+                if (matchesSearch && searchTerm) {
+                    highlightText(row.querySelector('.fw-semibold'), searchTerm);
+                    highlightText(row.querySelector('.fw-medium'), searchTerm);
+                    highlightText(row.querySelector('small.text-muted'), searchTerm);
+                    highlightText(row.querySelector('td:nth-child(3)'), searchTerm);
+                    highlightText(row.querySelector('td:nth-child(4) .text-muted'), searchTerm);
+                    highlightText(row.querySelector('td:nth-child(5) div'), searchTerm);
+                    highlightText(row.querySelector('td:nth-child(6) .badge'), searchTerm);
+                    highlightText(row.querySelector('td:nth-child(7) .badge'), searchTerm);
+                    visibleCount++;
+                }
+            });
+
+            // Update search feedback and error state
+            if (searchFeedback && resultCount) {
+                if (searchTerm) {
+                    resultCount.textContent = visibleCount;
+
+                    // Show either feedback or error message based on results
+                    if (visibleCount > 0) {
+                        searchFeedback.style.display = 'block';
+                        if (searchError) searchError.style.display = 'none';
+                    } else {
+                        searchFeedback.style.display = 'none';
+                        if (searchError) searchError.style.display = 'block';
+                    }
+                } else {
+                    searchFeedback.style.display = 'none';
+                    if (searchError) searchError.style.display = 'none';
+                }
+            }
+        }
+
+        // Add event listeners
+        if (searchInput) {
+            searchInput.addEventListener('input', filterTasks);
+
+            // Clear search when X button is clicked
+            if (clearButton) {
+                clearButton.addEventListener('click', function() {
+                    searchInput.value = '';
+                    filterTasks();
+
+                    // Explicitly hide the search feedback and error message
+                    const searchFeedback = document.getElementById('searchFeedback');
+                    const searchError = document.getElementById('searchError');
+                    if (searchFeedback) {
+                        searchFeedback.style.display = 'none';
+                    }
+                    if (searchError) {
+                        searchError.style.display = 'none';
+                    }
+                });
+            }
+
+            // Add keyboard shortcut (Ctrl+F or Cmd+F) to focus search
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+        }
     });
 
     // Add pulse animation for overdue tasks

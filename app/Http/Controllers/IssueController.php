@@ -174,23 +174,20 @@ class IssueController extends Controller
             $location = Location::find($formData['location_id']);
             $reporter = User::find($formData['reporter_id']);
 
-            // Enhanced Reporter Notification
             $reporterMessage = sprintf(
-                "New Issue #%s\n\n".
-                "Type: %s\n".
-                "Location: %s\n".
-                "Urgency: %s\n".
-                "Submitted: %s\n".
-                "Status: %s\n\n".
+                "New Issue #%s\n\n" .
+                "Type: %s\n" .
+                "Urgency: %s\n" .
+                "Submitted: %s\n" .
+                "Status: %s\n\n" .
                 "%s",
                 $issue->issue_id,
                 $issue->issue_type,
-                $location->building_name ?? 'Unknown Location',
                 $issue->urgency_level,
                 $issue->created_at,
                 $issue->issue_status,
                 $assignedTechnician
-                    ? "Assigned Technician: {$assignedTechnician->first_name}{$assignedTechnician->last_name}"
+                    ? "Assigned Technician: {$assignedTechnician->first_name} {$assignedTechnician->last_name}"
                     : "Awaiting technician assignment"
             );
 
@@ -199,21 +196,18 @@ class IssueController extends Controller
                 route('Student.issue_details', $issue->issue_id),
                 'New Issue Submitted'
             ));
-
             // Enhanced Technician Notification
             if ($assignedTechnician) {
                 $technicianMessage = sprintf(
                     "New Assignment #%s\n\n".
                     "Priority: %s\n".
                     "Expected Completion: %s\n".
-                    "Location: %s\n".
                     "Reporter: %s\n".
                     "Urgency: %s\n\n".
                     "%s",
                     $issue->issue_id,
                     $task->priority,
                     $task->expected_completion,
-                    $location->buidling_name ?? 'Unknown Location',
                     $reporter->first_name,
                     $issue->urgency_level,
                     $issue->issue_description
@@ -233,7 +227,7 @@ class IssueController extends Controller
 
             return redirect()->route('issue.success')->with([
                 'success' => 'Issue reported successfully!',
-                'assigned_technician' => $assignedTechnician ? $assignedTechnician->first_name : null,
+                'assigned_technician' => $assignedTechnician ? $assignedTechnician->first_name . ' ' . $assignedTechnician->last_name : null,
                 'issue_id' => $issue->issue_id
             ]);
 

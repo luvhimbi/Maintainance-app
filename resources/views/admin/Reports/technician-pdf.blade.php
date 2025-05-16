@@ -79,15 +79,60 @@
         .status-unknown {
             color: #6c757d;
         }
+        .badge {
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .badge-primary {
+            background-color: #3a7bd5;
+            color: white;
+            margin-right: 5px;
+        }
+        .filters {
+            margin-bottom: 15px;
+        }
+        .text-center {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Technician Performance Report</h1>
-        <div class="date-range">
-            Period: {{ $start_date }} to {{ $end_date }}
-        </div>
+        {{-- <div class="date-range">
+            Period: {{ $startDate }} to {{ $endDate }}
+        </div> --}}
     </div>
+
+    @if(!empty($filters))
+    <div class="filters">
+        <strong>Filters Applied:</strong>
+        @if($filters['status'] != 'all') <span class="badge badge-primary">Status: {{ ucfirst($filters['status']) }}</span> @endif
+        @if($filters['priority'] != 'all') <span class="badge badge-primary">Priority: {{ ucfirst($filters['priority']) }}</span> @endif
+        @if($filters['specialization'] != 'all') <span class="badge badge-primary">Specialization: {{ $filters['specialization'] }}</span> @endif
+        @if($filters['technician_id'] != 'all') 
+            @php
+                $technicianName = collect($technicians)->firstWhere('id', $filters['technician_id'])['name'] ?? 'N/A';
+            @endphp
+            <span class="badge badge-primary">Technician: {{ $technicianName }}</span>
+        @endif
+    </div>
+    @endif
 
     <table>
         <thead>
@@ -103,54 +148,35 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($technicians as $technician)
+            @forelse($technicians as $technician)
             <tr>
                 <td>{{ $technician['name'] }}</td>
                 <td>{{ $technician['specialization'] }}</td>
-                <td class="status-{{ strtolower($technician['availability']) }}">
-                    {{ $technician['availability'] }}
+                <td>
+                    @if(strtolower($technician['availability']) == 'available')
+                        <span class="badge badge-success">{{ $technician['availability'] }}</span>
+                    @elseif(strtolower($technician['availability']) == 'busy')
+                        <span class="badge badge-danger">{{ $technician['availability'] }}</span>
+                    @else
+                        <span class="badge badge-warning">{{ $technician['availability'] }}</span>
+                    @endif
                 </td>
                 <td>{{ $technician['workload'] }}</td>
                 <td>{{ $technician['total_tasks'] }}</td>
                 <td>{{ $technician['completed_tasks'] }}</td>
                 <td>{{ $technician['completion_rate'] }}%</td>
-                <td>{{ number_format($technician['avg_completion_time'], 1) }}</td>
+                <td>{{ $technician['avg_completion_time'] }}</td>
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="8" class="text-center">No technicians found for the selected filters and date range.</td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
-
-    <div class="stats">
-        <div class="stats-row">
-            <div class="stat-box">
-                <div class="stat-label">Total Technicians</div>
-                <div class="stat-value">{{ count($technicians) }}</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Average Completion Rate</div>
-                <div class="stat-value">
-                    {{ number_format($technicians->avg('completion_rate'), 1) }}%
-                </div>
-            </div>
-        </div>
-        <div class="stats-row">
-            <div class="stat-box">
-                <div class="stat-label">Average Workload</div>
-                <div class="stat-value">
-                    {{ number_format($technicians->avg('workload'), 1) }}
-                </div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">Average Completion Time</div>
-                <div class="stat-value">
-                    {{ number_format($technicians->avg('avg_completion_time'), 1) }} days
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="footer">
         Generated on {{ now()->format('F d, Y H:i:s') }}
     </div>
 </body>
-</html> 
+</html>

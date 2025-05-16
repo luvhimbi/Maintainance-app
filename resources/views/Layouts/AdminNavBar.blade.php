@@ -331,20 +331,20 @@
                     <span>Users</span>
                     <i class="fas fa-chevron-down ms-auto"></i>
                 </a>
-                <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.students.*') || request()->routeIs('admin.technicians.*') ? 'show' : '' }}" id="usersSubmenu">
-                    <li>
+                <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.students.*') || request()->routeIs('admin.technicians.*') || request()->routeIs('staff.*') ? 'show' : '' }}" id="usersSubmenu">
+                    <li class="sidebar-dropdown-item">
                         <a href="{{ route('admin.students.index') }}" class="sidebar-link {{ request()->routeIs('admin.students.*') ? 'active' : '' }}">
                             <i class="fas fa-user-graduate"></i>
                             <span>View Student info</span>
                         </a>
                     </li>
-                        <li>
-                        <a href="{{ route('staff.index') }}" class="sidebar-link {{ request()->routeIs('admin.students.*') ? 'active' : '' }}">
+                    <li class="sidebar-dropdown-item">
+                        <a href="{{ route('staff.index') }}" class="sidebar-link {{ request()->routeIs('staff.*') ? 'active' : '' }}">
                             <i class="fas fa-user"></i>
                             <span>View Staff info</span>
                         </a>
                     </li>
-                    <li>
+                    <li class="sidebar-dropdown-item">
                         <a href="{{ route('admin.technicians.index') }}" class="sidebar-link {{ request()->routeIs('admin.technicians.*') ? 'active' : '' }}">
                             <i class="fas fa-user-tie"></i>
                             <span>Manage Technicians</span>
@@ -353,14 +353,29 @@
                 </ul>
             </li>
 
-            <!-- Reports -->
-            <li class="sidebar-item">
-                <a href="{{ route('admin.reports.index') }}" class="sidebar-link">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Reports</span>
-                </a>
-            </li>
+<li class="sidebar-item">
+    <a href="#reportsSubmenu" class="sidebar-link" data-bs-toggle="collapse" role="button">
+        <i class="fas fa-chart-bar"></i>
+        <span>Reports</span>
+        <i class="fas fa-chevron-down ms-auto"></i>
+    </a>
+    <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.reports.*') ? 'show' : '' }}" id="reportsSubmenu">
 
+        <li>
+            <a href="{{ route('admin.reports.tasks') }}" class="sidebar-link {{ request()->routeIs('admin.reports.tasks') ? 'active' : '' }}">
+                <i class="fas fa-tasks"></i>
+                <span>Task Reports</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('admin.reports.technicians') }}" class="sidebar-link {{ request()->routeIs('admin.reports.technicians') ? 'active' : '' }}">
+                <i class="fas fa-user-tie"></i>
+                <span>Technician Reports</span>
+            </a>
+        </li>
+
+    </ul>
+</li>
                <li class="sidebar-item">
                 <a href="{{ route('admin.feedbacks.index') }}" class="sidebar-link">
                     <i class="fa-solid fa-comments"></i>
@@ -443,7 +458,7 @@
                                     <span>Profile</span>
                                 </a>
                             </li>
-                           
+
                             <div class="dropdown-divider"></div>
                             <li>
                                 <form action="{{ route('logout') }}" method="POST">

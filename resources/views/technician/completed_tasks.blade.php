@@ -46,8 +46,8 @@
                         <tr>
                             <th class="ps-4 py-3">Issue Type</th>
                             <th class="py-3">Priority</th>
-                            <th class="py-3">Status</th>
-                            <th class="py-3">Date Completed</th>
+                            <th class="py-3">Completion Time</th>
+                            <th class="py-3">Duration</th>
                             <th class="py-3">Location</th>
                             <th class="text-end pe-4 py-3">Actions</th>
                         </tr>
@@ -71,7 +71,10 @@
                                         <div class="icon-circle bg-light-primary me-3">
                                             <i class="fas {{ $iconClass }} text-primary"></i>
                                         </div>
-                                        <span class="fw-medium">{{ $task->issue->issue_type }}</span>
+                                        <div>
+                                            <span class="fw-medium d-block">{{ $task->issue->issue_type }}</span>
+                                            <small class="text-muted">Task #{{ $task->task_id }}</small>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
@@ -84,29 +87,53 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
-                                        Completed
-                                    </span>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-medium">
+            @if($task->actual_completion)
+                                                {{ $task->actual_completion->format('M d, Y') }}
+                                            @else
+                                                <span class="text-muted">Not recorded</span>
+                                            @endif
+        </span>
+                                        <small class="text-muted">
+                                            @if($task->actual_completion)
+                                                {{ $task->actual_completion->format('h:i A') }}
+                                            @endif
+                                        </small>
+                                    </div>
                                 </td>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <i class="far fa-calendar-alt text-muted me-2"></i>
-                                        <span>{{ \Carbon\Carbon::parse($task->expected_completion)->format('M d, Y') }}</span>
-                                    </div>
+                                    @php
+                                        $duration = $task->created_at->diff($task->actual_completion);
+                                        $durationString = '';
+                                        if ($duration->d > 0) $durationString .= $duration->d . 'd ';
+                                        if ($duration->h > 0) $durationString .= $duration->h . 'h ';
+                                        if ($duration->i > 0) $durationString .= $duration->i . 'm';
+                                    @endphp
+                                    <span class="badge bg-light text-dark">
+                                        {{ $durationString ?: 'Less than 1m' }}
+                                    </span>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="icon-circle bg-light-secondary me-2">
                                             <i class="fas fa-map-marker-alt text-secondary"></i>
                                         </div>
-                                        <span>{{ $task->issue->location->building_name ?? 'N/A' }}</span>
+                                        <div>
+                                            <span class="d-block">{{ $task->issue->location->building_name ?? 'N/A' }}</span>
+                                            <small class="text-muted">Room {{ $task->issue->location->room_number ?? 'N/A' }}</small>
+                                        </div>
                                     </div>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <a href="{{ route('tasks.updates', $task->task_id) }}"
-                                       class="btn btn-primary btn-sm px-3">
-                                        <i class="fas fa-history me-2"></i>View Log
-                                    </a>
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a href="{{ route('tasks.updates', $task->task_id) }}"
+                                           class="btn btn-primary btn-sm px-3"
+                                           data-bs-toggle="tooltip" title="View Update Log">
+                                            <i class="fas fa-history"></i>
+                                        </a>
+
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -114,10 +141,6 @@
                     </table>
                 </div>
             </div>
-
-{{--            <div class="d-flex justify-content-center mt-4">--}}
-{{--                {{ $completedTasks->links('pagination::bootstrap-5') }}--}}
-{{--            </div>--}}
         @else
             <div class="card shadow-sm border-0 rounded-3 hover-lift">
                 <div class="card-body py-5">
@@ -194,6 +217,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipList = tooltipTriggerList.map(tooltipTriggerEl => {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
             const searchInput = document.getElementById('taskSearch');
             const priorityFilter = document.getElementById('priorityFilter');
             const tableBody = document.getElementById('tasksTableBody');
@@ -205,10 +234,13 @@
 
                 Array.from(rows).forEach(row => {
                     const issueType = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                    const taskId = row.querySelector('td:nth-child(1) small').textContent.toLowerCase();
                     const priority = row.querySelector('td:nth-child(2)').textContent.trim();
-                    const location = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
+                    const location = row.querySelector('td:nth-child(5) span:first-child').textContent.toLowerCase();
 
-                    const matchesSearch = issueType.includes(searchTerm) || location.includes(searchTerm);
+                    const matchesSearch = issueType.includes(searchTerm) ||
+                        location.includes(searchTerm) ||
+                        taskId.includes(searchTerm);
                     const matchesPriority = !priorityValue || priority.includes(priorityValue);
 
                     row.style.display = matchesSearch && matchesPriority ? '' : 'none';
