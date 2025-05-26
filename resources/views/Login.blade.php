@@ -15,6 +15,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/global.css') }}">
     <!-- SweetAlert2 CSS -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         body {
@@ -138,21 +139,21 @@
                 <i class="fas fa-user-graduate me-2"></i> Student
             </label>
         </div>
-        
+
         <div class="form-check mb-2">
             <input class="form-check-input" type="radio" name="role" id="role-staff" value="Staff_Member">
             <label class="form-check-label" for="role-staff">
                 <i class="fas fa-briefcase me-2"></i> Staff
             </label>
         </div>
-        
+
         <div class="form-check mb-2">
             <input class="form-check-input" type="radio" name="role" id="role-technician" value="Technician">
             <label class="form-check-label" for="role-technician">
                 <i class="fas fa-tools me-2"></i> Technician
             </label>
         </div>
-        
+
         <div class="form-check mb-2">
             <input class="form-check-input" type="radio" name="role" id="role-admin" value="Admin">
             <label class="form-check-label" for="role-admin">

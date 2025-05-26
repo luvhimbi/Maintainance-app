@@ -247,260 +247,359 @@
 @section('title', 'Report Issue')
 
 @section('content')
-    <div class="form-container">
-        <div class="progress-steps">
-            <div class="step active">
-                <div class="step-number">1</div>
-                <div class="step-label">Report Issue</div>
-            </div>
-            <div class="step">
-                <div class="step-number">2</div>
-                <div class="step-label">Confirm Details</div>
-            </div>
-            <div class="step">
-                <div class="step-number">3</div>
-                <div class="step-label">Submission Complete</div>
-            </div>
-        </div>
-
-        <h3 class="text-center mb-4">Report an Issue</h3>
-
-        <!-- Display validation errors -->
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form id="reportForm" action="{{ route('issue.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-
-            <div class="split-section">
-                <!-- Left Column -->
-                <div class="left-column">
-                    <div class="section-title">
-                        <i class="fas fa-map-marker-alt"></i> Location Information
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Select Location</label>
-                        <select class="form-select" id="location" name="location_id" onchange="autoFillDetails()" required>
-                            <option value="">Select location</option>
-                            @foreach ($locations as $location)
-                                <option value="{{ $location->location_id }}" 
-                                    {{ (isset($formData['location_id']) && $formData['location_id'] == $location->location_id) ? 'selected' : '' }}>
-                                    {{ $location->building_name }} - Floor {{ $location->floor_number }}, Room {{ $location->room_number }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label">Building</label>
-                            <input type="text" class="form-control bg-light" id="building" name="building" value="{{ $formData['building'] ?? '' }}" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Floor</label>
-                            <input type="text" class="form-control bg-light" id="floor" name="floor" value="{{ $formData['floor'] ?? '' }}" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Room</label>
-                            <input type="text" class="form-control bg-light" id="room" name="room" value="{{ $formData['room'] ?? '' }}" readonly>
-                        </div>
-                    </div>
-
-                    <div class="section-title mt-4">
-                        <i class="fas fa-exclamation-triangle"></i> Issue Classification
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">Issue Type</label>
-                        <div class="btn-group w-100" id="issueTypeGroup" role="group">
-                            <button type="button" class="btn btn-outline-primary {{ isset($formData['issue_type']) && $formData['issue_type'] == 'Electrical' ? 'active' : '' }}" data-value="Electrical">
-                                <i class="fas fa-bolt me-1"></i> Electrical
-                            </button>
-                            <button type="button" class="btn btn-outline-primary {{ isset($formData['issue_type']) && $formData['issue_type'] == 'Plumbing' ? 'active' : '' }}" data-value="Plumbing">
-                                <i class="fas fa-faucet me-1"></i> Plumbing
-                            </button>
-                            <button type="button" class="btn btn-outline-primary {{ isset($formData['issue_type']) && $formData['issue_type'] == 'Structural' ? 'active' : '' }}" data-value="Structural">
-                                <i class="fas fa-home me-1"></i> Structural
-                            </button>
-                            <button type="button" class="btn btn-outline-primary {{ isset($formData['issue_type']) && $formData['issue_type'] == 'General' ? 'active' : '' }}" data-value="General">
-                                <i class="fas fa-ellipsis-h me-1"></i> General
-                            </button>
-                        </div>
-                        <input type="hidden" id="issueType" name="issue_type" value="{{ $formData['issue_type'] ?? '' }}" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Urgency Level</label>
-                        <div class="btn-group w-100" id="urgencyGroup" role="group">
-                            <button type="button" class="btn btn-outline-success {{ isset($formData['urgency_level']) && $formData['urgency_level'] == 'Low' ? 'active' : '' }}" data-value="Low">
-                                <i class="fas fa-check-circle me-1"></i> Low
-                            </button>
-                            <button type="button" class="btn btn-outline-warning {{ isset($formData['urgency_level']) && $formData['urgency_level'] == 'Medium' ? 'active' : '' }}" data-value="Medium">
-                                <i class="fas fa-exclamation-circle me-1"></i> Medium
-                            </button>
-                            <button type="button" class="btn btn-outline-danger {{ isset($formData['urgency_level']) && $formData['urgency_level'] == 'High' ? 'active' : '' }}" data-value="High">
-                                <i class="fas fa-fire me-1"></i> High
-                            </button>
-                        </div>
-                        <input type="hidden" id="urgencyLevel" name="urgency_level" value="{{ $formData['urgency_level'] ?? '' }}" required>
-                    </div>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="progress-steps mb-4 d-flex justify-content-center">
+                <div class="step active">
+                    <div class="step-number" style="background-color:#4361ee; border-color:#4361ee; color:white;">1</div>
+                    <div class="step-label" style="color:#4361ee; font-weight:600;">Issue Details</div>
                 </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-label" style="color:black;">Confirm Details</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-label" style="color:black;">Submission Complete</div>
+                </div>
+            </div>
+            <h3 class="text-center mb-4 fw-bold" style="color:#4361ee;">Report a Maintenance Issue</h3>
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <strong style="color:black;">Please fix these issues:</strong>
+                    <ul class="mb-0" style="color:black;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-                <!-- Right Column -->
-                <div class="right-column">
-                    <div class="section-title">
-                        <i class="fas fa-info-circle"></i> Issue Details
-                    </div>
-
-                    <div class="upload-box">
-                        <div class="mb-4">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" id="description" name="issue_description" rows="5" placeholder="Please provide detailed information about the issue you're experiencing..." required>{{ $formData['issue_description'] ?? '' }}</textarea>
-                        </div>
-
-                        <div class="file-upload-area text-center">
-
-
-                            <div class="mb-3">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
-                                <p class="mt-2">Upload photos or documents for better reference</p>
-
+            <form id="reportForm" action="{{ route('issue.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="row g-4">
+                    <!-- Screen 1: Location & Classification -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100 border-0">
+                            <div class="card-body">
+                                <h5 class="mb-3" ><i class="fas fa-map-marker-alt me-2"></i>Location Details</h5>
+                                <div class="mb-3">
+                                    <label class="form-label" style="color:black;">Select Location *</label>
+                                    <select class="form-select border-primary" name="location_id" id="location_id" required>
+                                        <option value="">-- Select location --</option>
+                                        @foreach($locations as $location)
+                                            <option value="{{ $location->location_id }}"
+                                                {{ (old('location_id') ?? ($formData['location_id'] ?? '')) == $location->location_id ? 'selected' : '' }}>
+                                                {{ $location->building_name }} - Floor {{ $location->floor_number }}, Room {{ $location->room_number }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="row g-2 mb-4">
+                                    <div class="col-4">
+                                        <label class="form-label" style="color:black;">Building</label>
+                                        <input type="text" class="form-control bg-light border-primary" id="building" value="{{ $formData['building'] ?? '' }}" readonly>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label" style="color:black;">Floor</label>
+                                        <input type="text" class="form-control bg-light border-primary" id="floor" value="{{ $formData['floor'] ?? '' }}" readonly>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label" style="color:black;">Room</label>
+                                        <input type="text" class="form-control bg-light border-primary" id="room" value="{{ $formData['room'] ?? '' }}" readonly>
+                                    </div>
+                                </div>
+                                <h5 class="mb-3" ><i class="fas fa-exclamation-circle me-2"></i>Issue Classification</h5>
+                                <label class="form-label" style="color:black;">Issue Type *</label>
+                                <div class="d-flex flex-wrap gap-2 mb-3" id="issueTypeGroup">
+                                    @php
+                                        $types = ['Electrical', 'Plumbing', 'Structural', 'HVAC', 'Furniture', 'PC', 'General'];
+                                        $icons = [
+                                            'Electrical' => 'bolt',
+                                            'Plumbing' => 'faucet',
+                                            'Structural' => 'home',
+                                            'HVAC' => 'fan',
+                                            'Furniture' => 'couch',
+                                            'PC' => 'desktop',
+                                            'General' => 'tools'
+                                        ];
+                                        $selectedType = old('issue_type') ?? ($formData['issue_type'] ?? '');
+                                    @endphp
+                                    @foreach($types as $type)
+                                        <button type="button"
+                                            class="btn btn-outline-primary{{ $selectedType == $type ? ' active' : '' }}"
+                                            data-value="{{ $type }}"
+                                            style="border-color:#4361ee; color:black;">
+                                            <i class="fas fa-{{ $icons[$type] }} me-1"></i> <span style="color:black;">{{ $type }}</span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                                <input type="hidden" id="issueType" name="issue_type" value="{{ $selectedType }}" required>
+                                <div id="pcFields" class="dynamic-section row g-3 mt-2" style="display: none;">
+                                    <div class="col-12">
+                                        <label class="form-label" style="color:black;">PC Number <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control border-primary" name="pc_number" min="1" max="100" value="{{ old('pc_number') }}">
+                                        <small class="text-muted" style="color:#4361ee;">PC number must be between 1 and 100.</small>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label" style="color:black;">PC Issue Type</label>
+                                        <select class="form-select border-primary" name="pc_issue_type">
+                                            <option value="">-- Select type --</option>
+                                            <option value="hardware" {{ old('pc_issue_type') == 'hardware' ? 'selected' : '' }}>Hardware</option>
+                                            <option value="software" {{ old('pc_issue_type') == 'software' ? 'selected' : '' }}>Software</option>
+                                            <option value="network" {{ old('pc_issue_type') == 'network' ? 'selected' : '' }}>Network</option>
+                                            <option value="peripheral" {{ old('pc_issue_type') == 'peripheral' ? 'selected' : '' }}>Peripheral</option>
+                                            <option value="other" {{ old('pc_issue_type') == 'other' ? 'selected' : '' }}>Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="critical_work_affected" id="critical_work"
+                                                {{ old('critical_work_affected') ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="critical_work" style="color:black;">
+                                                Affects critical work
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-3">
+                                    <div class="col-6">
+                                        <label class="form-label" style="color:black;">Urgency Level *</label>
+                                        <select class="form-select border-primary" name="urgency_level" id="urgencyLevel" required>
+                                            <option value="">Select Urgency Level</option>
+                                            <option value="High" {{ (old('urgency_level') ?? ($formData['urgency_level'] ?? '')) == 'High' ? 'selected' : '' }}>High</option>
+                                            <option value="Medium" {{ (old('urgency_level') ?? ($formData['urgency_level'] ?? '')) == 'Medium' ? 'selected' : '' }}>Medium</option>
+                                            <option value="Low" {{ (old('urgency_level') ?? ($formData['urgency_level'] ?? '')) == 'Low' ? 'selected' : '' }}>Low</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label" style="color:black;">Safety Hazard</label>
+                                        <select class="form-select border-primary" name="safety_hazard">
+                                            <option value="0">No</option>
+                                            <option value="1" {{ old('safety_hazard') == '1' ? 'selected' : '' }}>Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <label class="form-label" style="color:black;">Affected Areas</label>
+                                    <input type="number" class="form-control border-primary" name="affected_areas" value="{{ old('affected_areas', 1) }}" min="1">
+                                </div>
                             </div>
-
-                            <input type="file" id="mediaUpload" name="attachments[]" hidden accept="image/*, video/*, .pdf, .doc, .docx" multiple>
-                            <label for="mediaUpload" class="btn btn-outline-primary mb-3">
-                                <i class="fas fa-paperclip me-2"></i>Choose Files
-                            </label>
-                            <p class="small text-muted">Supported formats: Images, Videos, PDF, DOC</p>
-                            <div id="fileList" class="text-start mt-3"></div>
                         </div>
                     </div>
-
-                    <div class="d-grid gap-2 mt-4">
-                        <button type="submit" class="btn btn-outline-success submit-btn">
-                            <i class="fas fa-arrow-right me-2"></i>Review and Submit
-                        </button>
+                    <!-- Screen 2: Details & Attachments -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100 border-0">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="mb-3" ><i class="fas fa-align-left me-2"></i>Issue Details</h5>
+                                <div class="mb-3 flex-grow-1">
+                                    <label class="form-label" style="color:black;">Description *</label>
+                                    <textarea class="form-control border-primary" name="issue_description" rows="7" required>{{ old('issue_description') ?? ($formData['issue_description'] ?? '') }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label" style="color:black;">Attachments</label>
+                                    <input type="file" class="form-control border-primary" id="mediaUpload" name="attachments[]" multiple accept="image/*,.pdf,.doc,.docx">
+                                    <div class="form-text" style="color:#4361ee;">
+                                        Upload images (jpg, jpeg, png, gif), videos (mp4), or documents (pdf, doc, docx). Max 5 files.
+                                    </div>
+                                    <div id="fileList" class="text-start mt-3">
+                                        @if(isset($attachments) && is_array($attachments) && count($attachments))
+                                            @foreach($attachments as $file)
+                                                @php
+                                                    $ext = strtolower(pathinfo($file['original_name'], PATHINFO_EXTENSION));
+                                                    $icon = match($ext) {
+                                                        'jpg', 'jpeg', 'png', 'gif' => 'fa-file-image',
+                                                        'mp4' => 'fa-file-video',
+                                                        'pdf' => 'fa-file-pdf',
+                                                        'doc', 'docx' => 'fa-file-word',
+                                                        default => 'fa-file'
+                                                    };
+                                                @endphp
+                                                <div class="file-item">
+                                                    <i class="fas {{ $icon }}"></i>
+                                                    <span>{{ $file['original_name'] }}</span>
+                                                    <span class="text-muted ms-2">({{ number_format($file['file_size'] / 1024, 2) }} KB)</span>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="d-grid mt-auto">
+                                    <button type="submit" class="btn btn-primary btn-lg" style="background-color:#4361ee; border-color:#4361ee;">
+                                        <i class="fas fa-paper-plane me-2"></i> Submit to Review
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </form>
+                </div> <!-- row -->
+            </form>
+        </div>
     </div>
-    @endsection
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        // JavaScript for dynamic behavior
-        document.addEventListener('DOMContentLoaded', function () {
-            // Check for error messages
-            @if(session('error'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: '{{ session('error') }}',
-                    confirmButtonColor: '#4361ee'
-                });
-            @endif
+</div>
+@endsection
 
-            // Check for success messages
-            @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: '{{ session('success') }}',
-                    confirmButtonColor: '#4361ee'
-                });
-            @endif
+@push('styles')
+<style>
+    .progress-steps .step {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+    .progress-steps .step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 20px;
+        right: -50%;
+        width: 100%;
+        height: 2px;
+        background-color: #e0e0e0;
+        z-index: 0;
+    }
+    .progress-steps .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: white;
+        border: 2px solid #e0e0e0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    .progress-steps .step.active .step-number {
+        background-color: #4361ee;
+        border-color: #4361ee;
+        color: white;
+    }
+    .progress-steps .step-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-align: center;
+    }
+    .progress-steps .step.active .step-label {
+        color: #4361ee;
+        font-weight: 600;
+    }
+    .file-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        border: 1px solid #e0e0e0;
+    }
+    .file-item i {
+        color: #4361ee;
+        margin-right: 0.5rem;
+    }
+    .btn-outline-primary, .form-select, .form-control {
+        border-color: #4361ee !important;
+    }
+    .btn-outline-primary {
+        color: #4361ee !important;
+    }
+    .btn-outline-primary.active, .btn-outline-primary:active, .btn-outline-primary:focus, .btn-outline-primary:hover {
+        background-color: #4361ee !important;
+        color: #fff !important;
+        border-color: #4361ee !important;
+    }
+</style>
+@endpush
 
-            // Form validation before submission
-            document.getElementById('reportForm').addEventListener('submit', function(e) {
-                const issueType = document.getElementById('issueType').value;
-                const urgencyLevel = document.getElementById('urgencyLevel').value;
-                const location = document.getElementById('location').value;
-                const description = document.getElementById('description').value;
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // SweetAlert for error messages
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: '{{ session('error') }}',
+            confirmButtonColor: '#4361ee'
+        });
+    @endif
 
-                if (!issueType || !urgencyLevel || !location || !description) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Missing Information',
-                        text: 'Please fill in all required fields before submitting.',
-                        confirmButtonColor: '#4361ee'
-                    });
-                }
-            });
+    // Issue type button group logic
+    const issueTypeGroup = document.getElementById('issueTypeGroup');
+    const issueTypeInput = document.getElementById('issueType');
+    if (issueTypeInput.value) {
+        const activeButton = issueTypeGroup.querySelector(`[data-value="${issueTypeInput.value}"]`);
+        if (activeButton) {
+            issueTypeGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+            activeButton.classList.add('active');
+        }
+    }
+    issueTypeGroup.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', function () {
+            issueTypeGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            issueTypeInput.value = this.getAttribute('data-value');
+            togglePcFields();
+        });
+    });
 
-            // Auto-fill location details if returning from confirmation
-            if (document.getElementById('location').value) {
-                autoFillDetails();
+    // PC fields toggle logic
+    function togglePcFields() {
+        const pcFields = document.getElementById('pcFields');
+        if (issueTypeInput.value === 'PC') {
+            pcFields.style.display = 'flex';
+            pcFields.querySelectorAll('[name="pc_number"], [name="pc_issue_type"]').forEach(field => field.required = true);
+        } else {
+            pcFields.style.display = 'none';
+            pcFields.querySelectorAll('[name="pc_number"], [name="pc_issue_type"]').forEach(field => field.required = false);
+        }
+    }
+    togglePcFields();
+
+    // Location details autofill
+    function updateLocationDetails() {
+        const select = document.getElementById('location_id');
+        const selectedOption = select.options[select.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+            const text = selectedOption.text;
+            const match = text.match(/^(.*?) - Floor (.*?), Room (.*?)$/);
+            if (match) {
+                document.getElementById('building').value = match[1];
+                document.getElementById('floor').value = match[2];
+                document.getElementById('room').value = match[3];
             }
+        } else {
+            document.getElementById('building').value = '';
+            document.getElementById('floor').value = '';
+            document.getElementById('room').value = '';
+        }
+    }
+    document.getElementById('location_id').addEventListener('change', updateLocationDetails);
+    updateLocationDetails();
 
-            // Handle issue type selection
-            const issueTypeGroup = document.getElementById('issueTypeGroup');
-            const issueTypeInput = document.getElementById('issueType');
-            
-            // Set initial value if exists
-            if (issueTypeInput.value) {
-                const activeButton = issueTypeGroup.querySelector(`[data-value="${issueTypeInput.value}"]`);
-                if (activeButton) {
-                    activeButton.classList.add('active');
-                }
-            }
-
-            issueTypeGroup.querySelectorAll('button').forEach(button => {
-                button.addEventListener('click', function () {
-                    issueTypeGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    issueTypeInput.value = this.getAttribute('data-value');
-                });
-            });
-
-            // Handle urgency level selection
-            const urgencyGroup = document.getElementById('urgencyGroup');
-            const urgencyLevelInput = document.getElementById('urgencyLevel');
-            
-            // Set initial value if exists
-            if (urgencyLevelInput.value) {
-                const activeButton = urgencyGroup.querySelector(`[data-value="${urgencyLevelInput.value}"]`);
-                if (activeButton) {
-                    activeButton.classList.add('active');
-                }
-            }
-
-            urgencyGroup.querySelectorAll('button').forEach(button => {
-                button.addEventListener('click', function () {
-                    urgencyGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    urgencyLevelInput.value = this.getAttribute('data-value');
-                });
-            });
-
-            // Handle file upload display
-            const mediaUpload = document.getElementById('mediaUpload');
-            const fileList = document.getElementById('fileList');
-            mediaUpload.addEventListener('change', function () {
-                fileList.innerHTML = '';
-                Array.from(this.files).forEach(file => {
-                    fileList.innerHTML += `<div>${file.name} (${(file.size / 1024).toFixed(2)} KB)</div>`;
-                });
+    // File upload display with icon
+    const mediaUpload = document.getElementById('mediaUpload');
+    const fileList = document.getElementById('fileList');
+    if (mediaUpload) {
+        mediaUpload.addEventListener('change', function () {
+            fileList.innerHTML = '';
+            Array.from(this.files).forEach(file => {
+                let ext = file.name.split('.').pop().toLowerCase();
+                let icon = 'fa-file';
+                if(['jpg','jpeg','png','gif'].includes(ext)) icon = 'fa-file-image';
+                else if(ext === 'mp4') icon = 'fa-file-video';
+                else if(ext === 'pdf') icon = 'fa-file-pdf';
+                else if(['doc','docx'].includes(ext)) icon = 'fa-file-word';
+                fileList.innerHTML += `<div class="file-item"><i class="fas ${icon}"></i> ${file.name} (${(file.size / 1024).toFixed(2)} KB)</div>`;
             });
         });
-
-        // Auto-fill location details
-        function autoFillDetails() {
-            const locationSelect = document.getElementById('location');
-            const selectedOption = locationSelect.options[locationSelect.selectedIndex].text;
-            const [building, floor, room] = selectedOption.split(/ - Floor |, Room /);
-            document.getElementById('building').value = building;
-            document.getElementById('floor').value = floor;
-            document.getElementById('room').value = room;
-        }
-    </script>
+    }
+});
+</script>
+@endpush
 </body>
 </html>

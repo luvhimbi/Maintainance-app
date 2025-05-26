@@ -81,7 +81,7 @@
                                     @if($task->assignee)
                                         <div class="d-flex align-items-center">
 
-                                            <span>{{ $task->assignee->first_name }}{{$task->assignee->last_name}}</span>
+                                            <span>{{ $task->assignee->first_name }} {{ $task->assignee->last_name }}</span>
                                         </div>
                                     @else
                                         <span class="badge bg-light text-secondary">
@@ -158,6 +158,12 @@
                         @endforeach
                     </tbody>
                 </table>
+                <div id="noResultsMessage" class="p-4 text-center" style="display: none;">
+                    <div class="alert alert-warning d-inline-block w-100 shadow-sm" role="alert">
+                        <h5 class="alert-heading"><i class="fas fa-search-minus me-2"></i>No tasks found</h5>
+                        <p class="mb-0">We couldn't find any tasks matching your search. Please try a different keyword.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -270,19 +276,18 @@
             const searchFeedback = document.getElementById('searchFeedback');
             const resultCount = document.getElementById('resultCount');
             const searchError = document.getElementById('searchError');
+            const noResultsBlock = document.getElementById('noResultsMessage');
 
             let visibleCount = 0;
 
-            // Remove any existing highlights first
+            // Remove previous highlights
             document.querySelectorAll('.search-highlight').forEach(el => {
                 const parent = el.parentNode;
                 parent.replaceChild(document.createTextNode(el.textContent), el);
-                // Normalize the parent to merge adjacent text nodes
                 parent.normalize();
             });
 
             tableRows.forEach(row => {
-                // Get all searchable elements in this row
                 const taskId = row.querySelector('.fw-semibold')?.textContent || '';
                 const issueId = row.querySelector('.fw-medium')?.textContent || '';
                 const issueTitle = row.querySelector('small.text-muted')?.textContent || '';
@@ -304,7 +309,6 @@
 
                 row.style.display = matchesSearch ? '' : 'none';
 
-                // Highlight matching text if there's a search term
                 if (matchesSearch && searchTerm) {
                     highlightText(row.querySelector('.fw-semibold'), searchTerm);
                     highlightText(row.querySelector('.fw-medium'), searchTerm);
@@ -318,23 +322,16 @@
                 }
             });
 
-            // Update search feedback and error state
-            if (searchFeedback && resultCount) {
-                if (searchTerm) {
-                    resultCount.textContent = visibleCount;
-
-                    // Show either feedback or error message based on results
-                    if (visibleCount > 0) {
-                        searchFeedback.style.display = 'block';
-                        if (searchError) searchError.style.display = 'none';
-                    } else {
-                        searchFeedback.style.display = 'none';
-                        if (searchError) searchError.style.display = 'block';
-                    }
-                } else {
-                    searchFeedback.style.display = 'none';
-                    if (searchError) searchError.style.display = 'none';
-                }
+            // Update feedback UI
+            if (searchTerm) {
+                resultCount.textContent = visibleCount;
+                searchFeedback.style.display = visibleCount > 0 ? 'block' : 'none';
+                searchError.style.display = 'none';
+                noResultsBlock.style.display = visibleCount === 0 ? 'block' : 'none';
+            } else {
+                searchFeedback.style.display = 'none';
+                searchError.style.display = 'none';
+                noResultsBlock.style.display = 'none';
             }
         }
 

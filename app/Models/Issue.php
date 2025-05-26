@@ -26,6 +26,12 @@ class Issue extends Model
         'report_date',
         'issue_status',
         'urgency_level',
+        'safety_hazard',
+        'affects_operations',
+        'affected_areas',
+        'pc_number',
+        'pc_issue_type',
+        'critical_work_affected'
     ];
 
     // Define relationship with the Location model
@@ -62,10 +68,7 @@ public function hasFeedbackFrom(User $user)
 }
 
 
-public function history()
-{
-    return $this->hasMany(HistoryLog::class)->latest();
-}
+
 
 public function tasks()
     {

@@ -21,12 +21,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
+    
 
-
-
-    private function getTechnicianReportData(Request $request)
-    {
-        $statusFilter = $request->input('status', 'all');
+    
+    private function getTechnicianReportData(Request $request
+        $statusFilter = $request$request->input('status', 'all');
         $priorityFilter = $request->input('priority', 'all');
         $technicianId = $request->input('technician_id', 'all');
 
@@ -93,13 +92,13 @@ class ReportController extends Controller
         $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->subMonth();
         $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date')) : Carbon::now();
         $type = $request->input('type', 'pdf');
-
+        
         // Get filter values
         $statusFilter = $request->input('status', 'all');
         $priorityFilter = $request->input('priority', 'all');
         $technicianFilter = $request->input('technician_id', 'all');
         $issueTypeFilter = $request->input('issue_type', 'all');
-
+    
         $tasks = Task::with(['assignee', 'issue'])
             ->whereBetween('assignment_date', [$startDate, $endDate])
             ->when($statusFilter !== 'all', function ($query) use ($statusFilter) {
@@ -117,17 +116,17 @@ class ReportController extends Controller
                 });
             })
             ->get();
-
+    
         $stats = [
             'total' => $tasks->count(),
-            'completed' => $tasks->where('issue_status', 'Completed')->count(),
-            'pending' => $tasks->where('issue_status', 'Pending')->count(),
-            'in_progress' => $tasks->where('issue_status', 'In Progress')->count(),
-            'high_priority' => $tasks->where('priority', 'High')->count(),
-            'medium_priority' => $tasks->where('priority', 'Medium')->count(),
-            'low_priority' => $tasks->where('priority', 'Low')->count(),
+            'completed' => $tasks->where('issue_status', 'completed')->count(),
+            'pending' => $tasks->where('issue_status', 'pending')->count(),
+            'in_progress' => $tasks->where('issue_status', 'in_progress')->count(),
+            'high_priority' => $tasks->where('priority', 'high')->count(),
+            'medium_priority' => $tasks->where('priority', 'medium')->count(),
+            'low_priority' => $tasks->where('priority', 'low')->count(),
         ];
-
+    
         $data = [
             'tasks' => $tasks,
             'stats' => $stats,
@@ -142,17 +141,17 @@ class ReportController extends Controller
             'technicians' => User::where('user_role', 'Technician')->get(),
             'issue_types' => Issue::select('issue_type')->distinct()->pluck('issue_type'),
         ];
-
+    
         if ($type === 'pdf') {
             $pdf = PDF::loadView('admin.reports.tasks', $data);
             return $pdf->download('task-report-'.now()->format('Y-m-d').'.pdf');
         } elseif ($type === 'excel') {
             return Excel::download(new TaskReportExport($data), 'task-report-'.now()->format('Y-m-d').'.xlsx');
         }
-
+    
         return view('admin.reports.task-summary', $data);
     }
-
+    
     public function generateTechnicianReport(Request $request)
 {
     $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->subMonth();
@@ -218,6 +217,7 @@ class ReportController extends Controller
 
 
 
+    //THIS METHODS DISPLAY THE SUMMARY INFORMATION FOR THE TASKS AND TECHNICIANS
     public function taskReport(Request $request)
     {
         $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->subMonth();
@@ -225,7 +225,7 @@ class ReportController extends Controller
         $statusFilter = $request->input('status', 'all');
         $priorityFilter = $request->input('priority', 'all');
 
-        $tasks = Task::with(['assignee', 'issue.reporter', 'issue.location'])
+        $tasks = Task::with(['assignee', 'issue'])
             ->whereBetween('assignment_date', [$startDate, $endDate])
             ->when($statusFilter !== 'all', function ($query) use ($statusFilter) {
                 $query->where('issue_status', $statusFilter);
@@ -233,21 +233,16 @@ class ReportController extends Controller
             ->when($priorityFilter !== 'all', function ($query) use ($priorityFilter) {
                 $query->where('priority', $priorityFilter);
             })
-            ->orderBy('expected_completion', 'asc')
-            ->paginate(15); // Changed from get() to paginate()
+            ->get();
 
         $stats = [
-            'total' => $tasks->total(),
-            'completed' => Task::where('issue_status', 'Completed')->whereBetween('assignment_date', [$startDate, $endDate])->count(),
-            'pending' => Task::where('issue_status', 'Pending')->whereBetween('assignment_date', [$startDate, $endDate])->count(),
-            'in_progress' => Task::where('issue_status', 'In Progress')->whereBetween('assignment_date', [$startDate, $endDate])->count(),
-            'high_priority' => Task::where('priority', 'High')->whereBetween('assignment_date', [$startDate, $endDate])->count(),
-            'medium_priority' => Task::where('priority', 'Medium')->whereBetween('assignment_date', [$startDate, $endDate])->count(),
-            'low_priority' => Task::where('priority', 'Low')->whereBetween('assignment_date', [$startDate, $endDate])->count(),
-            'overdue' => Task::where('expected_completion', '<', now())
-                ->where('issue_status', '!=', 'Completed')
-                ->whereBetween('assignment_date', [$startDate, $endDate])
-                ->count()
+            'total' => $tasks->count(),
+            'completed' => $tasks->where('issue_status', 'Completed')->count(),
+            'pending' => $tasks->where('issue_status', 'Pending')->count(),
+            'in_progress' => $tasks->where('issue_status', 'In Progress')->count(),
+            'high_priority' => $tasks->where('priority', 'High')->count(),
+            'medium_priority' => $tasks->where('priority', 'Medium')->count(),
+            'low_priority' => $tasks->where('priority', 'Low')->count(),
         ];
 
         $filters = [
@@ -259,6 +254,7 @@ class ReportController extends Controller
 
         return view('admin.reports.tasks', compact('tasks', 'stats', 'filters', 'startDate', 'endDate'));
     }
+
     public function technicianReport(Request $request)
     {
         $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->subMonth();
@@ -266,7 +262,7 @@ class ReportController extends Controller
         $statusFilter = $request->input('status', 'all');
         $priorityFilter = $request->input('priority', 'all');
         $technicianId = $request->input('technician_id', 'all');
-
+    
         $technicians = User::where('user_role', 'Technician')
             ->when($technicianId !== 'all', function ($query) use ($technicianId) {
                 $query->where('id', $technicianId);
@@ -282,7 +278,7 @@ class ReportController extends Controller
                 $avgCompletionTime = $completedTasks->avg(function($task) {
                     return Carbon::parse($task->assignment_date)->diffInDays($task->expected_completion);
                 });
-
+    
                 return [
                     'id' => $technician->id,
                     'first_name' => $technician->first_name,
@@ -292,13 +288,13 @@ class ReportController extends Controller
                     'current_workload' => $technician->maintenanceStaff->current_workload ?? 0,
                     'total_tasks' => $technician->tasks->count(),
                     'completed_tasks' => $completedTasks->count(),
-                    'completion_rate' => $technician->tasks->count() > 0
+                    'completion_rate' => $technician->tasks->count() > 0 
                         ? round(($completedTasks->count() / $technician->tasks->count()) * 100, 2)
                         : 0,
                     'avg_completion_time' => $avgCompletionTime ? round($avgCompletionTime, 2) : 0
                 ];
             });
-
+    
         // Define summary statistics
         $stats = [
             'total_technicians' => $technicians->count(),
@@ -307,7 +303,7 @@ class ReportController extends Controller
             'avg_completion_rate' => $technicians->avg('completion_rate') ?? 0,
             'avg_completion_time' => $technicians->avg('avg_completion_time') ?? 0,
         ];
-
+    
         $filters = [
             'start_date' => $startDate->format('Y-m-d'),
             'end_date' => $endDate->format('Y-m-d'),
@@ -315,9 +311,9 @@ class ReportController extends Controller
             'priority' => $priorityFilter,
             'technician_id' => $technicianId,
         ];
-
+    
         return view('admin.reports.technician', compact('technicians', 'filters', 'stats', 'startDate', 'endDate'));
-    }
+    } 
 
 
 
@@ -327,7 +323,7 @@ class ReportController extends Controller
         return Excel::download(new TechnicianReportExport($data), 'technician-report-' . now()->format('Y-m-d') . '.xlsx');
     }
 
-
+ 
     public function exportTaskPdf(Request $request)
     {
         $data = $this->prepareTaskReportData($request);
@@ -360,12 +356,12 @@ class ReportController extends Controller
 
         $stats = [
             'total' => $tasks->count(),
-            'completed' => $tasks->where('issue_status', 'Completed')->count(),
-            'pending' => $tasks->where('issue_status', 'Pending')->count(),
+            'completed' => $tasks->where('issue_status', 'completed')->count(),
+            'pending' => $tasks->where('issue_status', 'pending')->count(),
             'in_progress' => $tasks->where('issue_status', 'In Progress')->count(),
-            'high_priority' => $tasks->where('priority', 'High')->count(),
-            'medium_priority' => $tasks->where('priority', 'Medium')->count(),
-            'low_priority' => $tasks->where('priority', 'Low')->count(),
+            'high_priority' => $tasks->where('priority', 'high')->count(),
+            'medium_priority' => $tasks->where('priority', 'medium')->count(),
+            'low_priority' => $tasks->where('priority', 'low')->count(),
         ];
 
         return compact('tasks', 'stats', 'startDate', 'endDate');
@@ -409,10 +405,10 @@ class ReportController extends Controller
         return compact('technicians', 'startDate', 'endDate');
     }
 
+  
+   
 
+   
 
-
-
-
-
+      
 }

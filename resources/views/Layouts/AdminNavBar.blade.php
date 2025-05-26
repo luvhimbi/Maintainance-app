@@ -360,7 +360,12 @@
         <i class="fas fa-chevron-down ms-auto"></i>
     </a>
     <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.reports.*') ? 'show' : '' }}" id="reportsSubmenu">
-
+        <li>
+            <a href="{{ route('admin.reports.students_and_staff') }}" class="sidebar-link {{ request()->routeIs('admin.reports.technicians') ? 'active' : '' }}">
+                <i class="fas fa-user-tie"></i>
+                <span>Students/Staff Reports</span>
+            </a>
+        </li>
         <li>
             <a href="{{ route('admin.reports.tasks') }}" class="sidebar-link {{ request()->routeIs('admin.reports.tasks') ? 'active' : '' }}">
                 <i class="fas fa-tasks"></i>
@@ -373,6 +378,8 @@
                 <span>Technician Reports</span>
             </a>
         </li>
+
+        
 
     </ul>
 </li>

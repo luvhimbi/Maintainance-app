@@ -110,6 +110,54 @@ class MaintenanceStaffSeeder extends Seeder
             'specialization' => Specialization::STRUCTURAL,
             'phone' => '0998877643'
             ],
+
+            // PC Technicians
+            [
+                'email' => 'pc1@example.com',
+                'first_name' => 'Peter',
+                'last_name' => 'Nguyen',
+                'specialization' => Specialization::PC,
+                'phone' => '0998877651'
+            ],
+            [
+                'email' => 'pc2@example.com',
+                'first_name' => 'Linda',
+                'last_name' => 'Martinez',
+                'specialization' => Specialization::PC,
+                'phone' => '0998877652'
+            ],
+
+            // HVAC Technicians
+            [
+                'email' => 'hvac1@example.com',
+                'first_name' => 'Carlos',
+                'last_name' => 'Lopez',
+                'specialization' => Specialization::HVAC,
+                'phone' => '0998877661'
+            ],
+            [
+                'email' => 'hvac2@example.com',
+                'first_name' => 'Grace',
+                'last_name' => 'Kim',
+                'specialization' => Specialization::HVAC,
+                'phone' => '0998877662'
+            ],
+
+            // Furniture Technicians
+            [
+                'email' => 'furniture1@example.com',
+                'first_name' => 'Samuel',
+                'last_name' => 'Wright',
+                'specialization' => Specialization::FURNITURE,
+                'phone' => '0998877671'
+            ],
+            [
+                'email' => 'furniture2@example.com',
+                'first_name' => 'Olivia',
+                'last_name' => 'Baker',
+                'specialization' => Specialization::FURNITURE,
+                'phone' => '0998877672'
+            ],
         ];
 
         foreach ($technicians as $tech) {

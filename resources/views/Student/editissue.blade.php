@@ -80,19 +80,15 @@
 
                     <div class="mb-3">
                         <label class="form-label">Urgency Level</label>
-                        <div class="btn-group w-100" id="urgencyGroup" role="group">
-                            <button type="button" class="btn btn-outline-success {{ $issue->urgency_level == 'Low' ? 'active' : '' }}" data-value="Low">
-                                <i class="fas fa-check-circle me-1"></i> Low
-                            </button>
-                            <button type="button" class="btn btn-outline-warning {{ $issue->urgency_level == 'Medium' ? 'active' : '' }}" data-value="Medium">
-                                <i class="fas fa-exclamation-circle me-1"></i> Medium
-                            </button>
-                            <button type="button" class="btn btn-outline-danger {{ $issue->urgency_level == 'High' ? 'active' : '' }}" data-value="High">
-                                <i class="fas fa-fire me-1"></i> High
-                            </button>
-                        </div>
-                        <input type="hidden" id="urgencyLevel" name="urgency_level" value="{{ $issue->urgency_level }}" required>
+                        <select class="form-select" id="urgencyLevel" name="urgency_level" required>
+                            <option value="">Select Urgency Level</option>
+                            <option value="High" {{ $issue->urgency_level == 'High' ? 'selected' : '' }}>High</option>
+                            <option value="Medium" {{ $issue->urgency_level == 'Medium' ? 'selected' : '' }}>Medium</option>
+                            <option value="Low" {{ $issue->urgency_level == 'Low' ? 'selected' : '' }}>Low</option>
+                        </select>
                     </div>
+
+
                 </div>
 
                 <!-- Right Column -->

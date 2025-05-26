@@ -267,14 +267,14 @@
             @endif
         </div>
         
-        <div class="d-grid gap-3 mt-4">
-            <form id="confirmForm" action="{{ route('issue.save') }}" method="POST">
+        <div class="d-flex justify-content-between mt-4">
+            <form action="{{ route('issue.save') }}" method="POST">
                 @csrf
-                <button type="submit" class="btn btn-success w-100">
+                <button type="submit" class="btn btn-success">
                     <i class="fas fa-check-circle me-2"></i>Confirm and Submit
                 </button>
             </form>
-            <a href="{{ route('Student.createissue') }}" class="btn btn-outline-secondary w-100">
+            <a href="{{ route('Student.createissue') }}" class="btn btn-secondary">
                 <i class="fas fa-edit me-2"></i>Go Back and Edit
             </a>
         </div>

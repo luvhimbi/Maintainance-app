@@ -11,16 +11,16 @@ class NotificationController extends Controller
     /**
      * Send a notification to a specific user.
      */
-    public function sendNotification()
-    {
-        $user = User::find(1);
-
-        if ($user) {
-            $user->notify(new DatabaseNotification('Hello, this is a test notification!'));
-        }
-
-        return redirect()->back()->with('success', 'Notification sent successfully!');
-    }
+//    public function sendNotification()
+//    {
+//        $user = User::find(1);
+//
+//        if ($user) {
+//            $user->notify(new DatabaseNotification('Hello, this is a test notification!'));
+//        }
+//
+//        return redirect()->back()->with('success', 'Notification sent successfully!');
+//    }
 
     /**
      * Mark all unread notifications as read.
@@ -89,7 +89,7 @@ class NotificationController extends Controller
 
         return view('Technician.notifications', compact('notifications'));
     }
-    
+
      public function indexAdmin()
     {
         if (!auth()->check()) {

@@ -10,9 +10,9 @@
                 <h1 class="fw-bold mb-2 h3">Hi , {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h1>
                 <p class="lead text-muted mb-0">Track and manage your reported maintenance issues</p>
             </div>
-            <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
-                <i class="fas fa-plus me-2"></i> Report An Issue
-            </a>
+{{--            <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">--}}
+{{--                <i class="fas fa-plus me-2"></i> Report An Issue--}}
+{{--            </a>--}}
         </div>
 
         <!-- Search Bar Section -->

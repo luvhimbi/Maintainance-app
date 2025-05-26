@@ -156,7 +156,7 @@
                     <li class="nav-item">
                         <a class="nav-link {{ Request::routeIs('Student.createissue') ? 'active' : '' }}"
                            href="{{ route('Student.createissue') }}">
-                            <i class="fas fa-plus-circle me-2"></i>Report Issue
+                            <i class="fas fa-plus-circle me-2"></i>New Issue
                         </a>
                     </li>
 

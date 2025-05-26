@@ -12,14 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('Technicians', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id')->primary(); // Primary key
-            $table->enum('specialization', ['General', 'Electrical', 'Plumbing', 'Structural'])->default('General'); // Specialization
-            $table->enum('availability_status', ['Available', 'Busy'])->default('Available'); 
-            $table->integer('current_workload')->default(0); // Current workload
-            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade'); // Foreign key
+            $table->unsignedBigInteger('user_id')->primary();
+            $table->enum('specialization', [
+                'General',
+                'Electrical',
+                'Plumbing',
+                'Structural',
+                'HVAC',
+                'Furniture',
+                'PC'
+            ])->default('General');
+            $table->enum('availability_status', ['Available', 'Busy', 'On Leave'])->default('Available');
+            $table->integer('current_workload')->default(0);
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
         });
     }
-
     /**
      * Reverse the migrations.
      */

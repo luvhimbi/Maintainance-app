@@ -185,11 +185,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('students', \App\Http\Controllers\Admin\StudentController::class)
             ->names([
                 'index' => 'admin.students.index',
-                'create' => 'admin.students.create',
-                'store' => 'admin.students.store',
-                'edit' => 'admin.students.edit',
-                'update' => 'admin.students.update',
-                'destroy' => 'admin.students.destroy'
+    
+              
             ]);
 });
 
@@ -198,7 +195,6 @@ Route::middleware('auth')->group(function () {
                 'index' => 'admin.technicians.index',
                 'create' => 'admin.technicians.create',
                 'store' => 'admin.technicians.store',
-                'show' => 'admin.technicians.show',
                 'edit' => 'admin.technicians.edit',
                 'update' => 'admin.technicians.update',
                 'destroy' => 'admin.technicians.destroy'
@@ -231,6 +227,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/reports/technicians', [\App\Http\Controllers\Admin\ReportController::class, 'generateTechnicianReport'])->name('admin.reports.technicians');
     Route::get('/admin/reports/performance', [\App\Http\Controllers\Admin\ReportController::class, 'generatePerformanceReport'])->name('admin.reports.performance');
     Route::get('/admin/reports/tasks', [\App\Http\Controllers\Admin\ReportController::class, 'taskReport'])->name('admin.reports.tasks');
+    Route::get('/admin/reports/students', [\App\Http\Controllers\Admin\ReportController::class, 'StudentsAndStaffReport'])->name('admin.reports.students_and_staff');
     Route::get('/admin/reports/technicians', [\App\Http\Controllers\Admin\ReportController::class, 'technicianReport'])->name('admin.reports.technicians');
     Route::get('/admin/reports/performance', [\App\Http\Controllers\Admin\ReportController::class, 'performanceReport'])->name('admin.reports.performance');
 

@@ -23,7 +23,7 @@ class IssueController extends Controller
 {
 
 
-    //this is for populating the dropdown
+   //this is called when the user  clicks on create or report an issue
     public function create()
     {
         // Fetch locations to populate a dropdown in the form
@@ -47,6 +47,8 @@ class IssueController extends Controller
             'urgency_level' => 'required|in:Low,Medium,High',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,pdf,doc,docx|max:2048', // Max 2MB per file
         ]);
+
+        // get the authenticated user's ID
         $reporterId = auth()->id();
 
         // Fetch the selected location details
@@ -147,15 +149,14 @@ class IssueController extends Controller
 
             session()->put('reported_issue_id', $issue->issue_id);
 
+            // Create the task
             $task = Task::create([
                 'issue_id' => $issue->issue_id,
                 'priority' => $this->mapUrgencyToPriority($formData['urgency_level']),
                 'issue_status' => 'Pending',
-                'expected_completion' => Carbon::now()->addWeek(),
+                'expected_completion' => Carbon::now()->addDays(3),
                 'created_at' => now()
             ]);
-
-            // Assign task and get the assigned technician (if any)
             $assignedTechnician = $this->assignOrQueueTask($task);
 
             // Save attachments to the database
@@ -238,34 +239,45 @@ class IssueController extends Controller
         }
     }
 
-private function mapUrgencyToPriority($urgency)
-{
-    return match($urgency) {
-        'Critical' => 'High',
-        'High' => 'Medium',
-        'Normal' => 'Low',
-        default => 'Low',
-    };
-}
-
-
-public function editReportedIssue(Issue $issue)
-{
-    // Check if the authenticated user is the reporter of this issue
-    if (Auth::id() !== $issue->reporter_id) {
-        abort(403, 'Unauthorized action.');
+    private function mapUrgencyToPriority($urgency)
+    {
+        return match($urgency) {
+            'High' => 'High',
+            'Medium' => 'Medium',
+            'Low' => 'Low',
+            default => 'Low',
+        };
     }
 
-    // Only allow editing if issue is still open
-    if ($issue->issue_status !== 'Open') {
-    return redirect()
-        ->route('Student.issue_details', $issue->issue_id)
-        ->with('swal_error', 'Only Open issues can be edited.');
-}
+    public function determinePriority($issueType)
+    {
+        // Determine priority based on issue type
+        return match($issueType) {
+            'Electrical' => 'High', // Electrical issues are high priority
+            'Plumbing' => 'Medium', // Plumbing issues are medium priority
+            'Structural' => 'High', // Structural issues are high priority
+            'General' => 'Low', // General issues are low priority
+            default => 'Low',
+        };
+    }
 
-    $locations = Location::all();
-    return view('Student.editissue', compact('issue', 'locations'));
-}
+    public function editReportedIssue(Issue $issue)
+    {
+        // Check if the authenticated user is the reporter of this issue
+        if (Auth::id() !== $issue->reporter_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Only allow editing if issue is still open
+        if ($issue->issue_status !== 'Open') {
+            return redirect()
+                ->route('Student.issue_details', $issue->issue_id)
+                ->with('swal_error', 'Only Open issues can be edited.');
+        }
+
+        $locations = Location::all();
+        return view('Student.editissue', compact('issue', 'locations'));
+    }
 
 
 /*
@@ -298,6 +310,42 @@ public function update(Request $request, Issue $issue)
             ->with('error', 'Only Open issues can be updated.');
     }
 
+    // Store the old issue type for comparison
+    $oldIssueType = $issue->issue_type;
+
+    // Store the old issue type for comparisonNOW CAN YOU PLEASE MAKE THAT THE USER SHOULD NO LONGER SELECT THE PRIORITY LEVEL OF AN ISSUE THAT THE SYSTEM MUST DETERMINE THE PRIORITY LEVEL AND CHECK ALSO THE FRONTENED FOR CREATEISSUE AND EDIT ISSUE
+    $oldIssueType = $issue->issue_type;
+
+    // Check if we need to reassign due to issue type change
+    $needsReassignment = $issue->task && $oldIssueType !== $validated['issue_type'];
+
+    // If we need to reassign, clear the current assignment first
+    if ($needsReassignment) {
+        // Remove the task from the current technician
+        if ($issue->task->assignee_id) {
+            // Decrease the current technician's workload
+            DB::table('Technicians')
+                ->where('user_id', $issue->task->assignee_id)
+                ->decrement('current_workload');
+
+            // Mark technician as Available if workload is less than 6
+            $technician = DB::table('Technicians')
+                ->where('user_id', $issue->task->assignee_id)
+                ->first();
+
+            if ($technician && $technician->current_workload < 6) {
+                DB::table('Technicians')
+                    ->where('user_id', $issue->task->assignee_id)
+                    ->update(['availability_status' => 'Available']);
+            }
+        }
+
+        // Clear the task's assignee while maintaining assignment_date
+        $issue->task->update([
+            'assignee_id' => null
+        ]);
+    }
+
     // Update the issue
     $issue->update([
         'location_id' => $validated['location_id'],
@@ -307,11 +355,23 @@ public function update(Request $request, Issue $issue)
         'updated_at' => now()
     ]);
 
-    // Update task priority
-    if ($issue->task) {
-        $issue->task->update([
-            'priority' => $this->mapUrgencyToPriority($validated['urgency_level'])
-        ]);
+    // Reassign if needed after issue update
+    if ($needsReassignment) {
+        // Reassign the task to a new technician
+        $newTechnician = $this->assignOrQueueTask($issue->task);
+        if ($newTechnician) {
+            // Update task priority with new urgency level
+            $issue->task->update([
+                'priority' => $this->mapUrgencyToPriority($validated['urgency_level'])
+            ]);
+        }
+    } else {
+        // Update task priority if issue type didn't change
+        if ($issue->task) {
+            $issue->task->update([
+                'priority' => $this->mapUrgencyToPriority($validated['urgency_level'])
+            ]);
+        }
     }
 
     // Handle attachments
@@ -348,46 +408,59 @@ public function update(Request $request, Issue $issue)
 
     public function assignOrQueueTask(Task $task)
     {
-        // Find available technician with matching specialization and workload < 3
-        $technician = User::whereHas('maintenanceStaff', function ($query) use ($task) {
+        // Get all available technicians with matching specialization
+        $technicians = User::whereHas('maintenanceStaff', function ($query) use ($task) {
             $query->where('availability_status', 'Available')
-                ->where('specialization', $task->issue->issue_type); // Match specialization to issue type
+                ->where('specialization', $task->issue->issue_type);
         })
-            ->join('Technicians', 'users.user_id', '=', 'Technicians.user_id') // Join the tables
-            ->orderBy('Technicians.current_workload', 'asc') // Order by workload
-            ->select('users.*') // Select only user columns
-            ->first();
+            ->join('Technicians', 'users.user_id', '=', 'Technicians.user_id')
+            ->select('users.*', 'Technicians.current_workload', 'Technicians.user_id as technician_id')
+            ->get();
 
-        if ($technician) {
-            // Assign tasks
-            $task->update([
-                'assignee_id' => $technician->user_id,
-                'assignment_date' => now(),
-            ]);
-
-            // Update technician workload
-            DB::table('Technicians')
-                ->where('user_id', $technician->user_id)
-                ->increment('current_workload');
-
-            // Mark as busy if workload reaches 6
-            if ($technician->maintenanceStaff->current_workload >= 6) {
-                DB::table('Technicians')
-                    ->where('user_id', $technician->user_id)
-                    ->update(['availability_status' => 'Busy']);
-            }
-
-            // Return the technician
-            return $technician;
-        } else {
-            // Queue the tasks (assignee_id remains null)
+        if ($technicians->isEmpty()) {
+            // Queue the task if no technicians available
             Log::info("Task {$task->task_id} queued - no available technicians");
             return null;
         }
+
+        // Calculate average workload for technicians in this specialization
+        $averageWorkload = $technicians->avg('current_workload') ?? 0;
+
+        // Filter technicians who are below average workload
+        $belowAverageTechnicians = $technicians->filter(function ($tech) use ($averageWorkload) {
+            return $tech->current_workload <= $averageWorkload;
+        });
+
+        // If no technicians below average, use all available technicians
+        $eligibleTechnicians = $belowAverageTechnicians->isEmpty() ? $technicians : $belowAverageTechnicians;
+
+        // Sort technicians by workload (lowest first)
+        $eligibleTechnicians = $eligibleTechnicians->sortBy('current_workload');
+
+        // Get the technician with the lowest workload
+        $technician = $eligibleTechnicians->first();
+
+        // Assign the task
+        $task->update([
+            'assignee_id' => $technician->technician_id,
+            'assignment_date' => now(),
+        ]);
+
+        // Update technician workload
+        DB::table('Technicians')
+            ->where('user_id', $technician->technician_id)
+            ->increment('current_workload');
+
+        // Mark as busy if workload reaches 6
+        if ($technician->current_workload >= 6) {
+            DB::table('Technicians')
+                ->where('user_id', $technician->technician_id)
+                ->update(['availability_status' => 'Busy']);
+        }
+
+        // Return the technician
+        return $technician;
     }
-
-
-
 
 
 public function assignQueuedTasks($technicianId)

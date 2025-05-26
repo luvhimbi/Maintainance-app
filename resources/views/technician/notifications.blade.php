@@ -3,7 +3,20 @@
 @section('content')
 
 <div class="container">
-    <h2>Your Notifications</h2>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ route('technician.dashboard') }}" class="text-decoration-none">
+                    Dashboard
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Notifications
+            </li>
+        </ol>
+    </nav>
+    <h1 class="h2 fw-bold mb-0">Notifications</h1>
+
 
     <!-- Mark All as Read Button -->
     <form action="{{ route('notifications.markAllRead') }}" method="POST" class="mb-4">

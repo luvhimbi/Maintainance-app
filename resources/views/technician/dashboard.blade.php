@@ -4,6 +4,12 @@
 
 @section('content')
     <div class="container-fluid px-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('technician.dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Overview</li>
+            </ol>
+        </nav>
         <!-- Welcome & Stats Section -->
         <div class="row mb-4">
             <div class="col-12">
@@ -44,41 +50,39 @@
                                 <i class="fas fa-clipboard-list me-2 text-primary"></i>Your Active Tasks
                             </h5>
                             <div class="d-flex flex-column flex-sm-row gap-2 mt-3 mt-md-0">
+                                <!-- Search Bar -->
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light">
-                                        <i class="fas fa-search text-muted"></i>
-                                    </span>
-                                    <input type="text" id="taskSearch" class="form-control" placeholder="Search tasks...">
-                                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <span class="input-group-text bg-light">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                                    <input type="text" id="taskSearch" class="form-control" placeholder="Search tasks..." aria-label="Search tasks">
+                                    <button class="btn btn-outline-secondary" type="button" id="clearSearch" aria-label="Clear search">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
+
+                                <!-- Filter Dropdown -->
                                 <div class="btn-group">
-                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fas fa-filter me-1"></i> Status
                                     </button>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <div class="dropdown-item">
-                                                <div class="form-check">
-                                                    <input class="form-check-input status-filter" type="checkbox" value="Pending" id="filterPending" checked>
-                                                    <label class="form-check-label" for="filterPending">Pending</label>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        @foreach(['Pending', 'In Progress'] as $status)
+                                            <li>
+                                                <div class="dropdown-item">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input status-filter" type="checkbox" value="{{ $status }}" id="filter{{ str_replace(' ', '', $status) }}" checked>
+                                                        <label class="form-check-label" for="filter{{ str_replace(' ', '', $status) }}">{{ $status }}</label>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="dropdown-item">
-                                                <div class="form-check">
-                                                    <input class="form-check-input status-filter" type="checkbox" value="In Progress" id="filterProgress" checked>
-                                                    <label class="form-check-label" for="filterProgress">In Progress</label>
-                                                </div>
-                                            </div>
-                                        </li>
+                                            </li>
+                                        @endforeach
                                     </ul>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="card-body p-0">
                         @if($tasks->isEmpty())
                             <div class="text-center py-5">
@@ -88,21 +92,21 @@
                             </div>
                         @else
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle">
+                                <table class="table table-hover align-middle mb-0">
                                     <thead class="table-light">
                                     <tr>
-                                        <th>Task ID</th>
-                                        <th>Issue Details</th>
-                                        <th>Priority</th>
-                                        <th>Status</th>
-                                        <th>Due Date</th>
-                                        <th>Location</th>
-                                        <th>Actions</th>
+                                        <th scope="col">Task ID</th>
+                                        <th scope="col">Issue Details</th>
+                                        <th scope="col">Priority</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Due Date</th>
+                                        <th scope="col">Location</th>
+                                        <th scope="col">Actions</th>
                                     </tr>
                                     </thead>
                                     <tbody id="tasksTableBody">
                                     @foreach ($tasks as $task)
-                                        @if($task->issue_status != 'Completed')
+                                        @if($task->issue_status !== 'Completed')
                                             <tr class="task-row"
                                                 data-id="{{ $task->task_id }}"
                                                 data-title="{{ $task->issue->issue_type }}"
@@ -112,7 +116,10 @@
                                                 data-location="{{ $task->issue->location->building_name ?? '' }} {{ $task->issue->location->room_number ?? '' }}"
                                                 data-due="{{ $task->expected_completion->format('Y-m-d') }}"
                                                 data-overdue="{{ $task->expected_completion->isPast() ? 'true' : 'false' }}">
+
                                                 <td class="fw-bold">#{{ $task->task_id }}</td>
+
+                                                <!-- Issue Details -->
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <div class="flex-shrink-0">
@@ -126,34 +133,42 @@
                                                         </div>
                                                     </div>
                                                 </td>
+
+                                                <!-- Priority -->
                                                 <td>
-                                                    <span class="badge priority-badge
-                                                        @if ($task->priority == 'Low') bg-success
-                                                        @elseif ($task->priority == 'Medium') bg-warning
-                                                        @elseif ($task->priority == 'High') bg-danger
-                                                        @endif">
-                                                        <i class="fas fa-flag me-1"></i>{{ $task->priority }}
-                                                    </span>
+                                                <span class="badge priority-badge
+                                                    @if ($task->priority == 'Low') bg-success
+                                                    @elseif ($task->priority == 'Medium') bg-warning
+                                                    @elseif ($task->priority == 'High') bg-danger
+                                                    @endif">
+                                                    <i class="fas fa-flag me-1"></i>{{ $task->priority }}
+                                                </span>
                                                 </td>
+
+                                                <!-- Status -->
                                                 <td>
-                                                    <span class="badge status-badge
-                                                        @if ($task->issue_status == 'Pending') bg-secondary
-                                                        @elseif ($task->issue_status == 'In Progress') bg-primary
-                                                        @endif">
-                                                        {{ $task->issue_status }}
-                                                    </span>
+                                                <span class="badge status-badge
+                                                    @if ($task->issue_status == 'Pending') bg-secondary
+                                                    @elseif ($task->issue_status == 'In Progress') bg-primary
+                                                    @endif">
+                                                    {{ $task->issue_status }}
+                                                </span>
                                                 </td>
+
+                                                <!-- Due Date -->
                                                 <td>
                                                     <div class="d-flex flex-column">
                                                         <small class="text-muted">Due</small>
                                                         <span class="fw-bold @if($task->expected_completion->isPast()) text-danger @endif">
-                                                            {{ $task->expected_completion->format('M d, Y') }}
+                                                        {{ $task->expected_completion->format('M d, Y') }}
                                                             @if($task->expected_completion->isPast())
                                                                 <span class="badge bg-danger ms-2">Overdue</span>
                                                             @endif
-                                                        </span>
+                                                    </span>
                                                     </div>
                                                 </td>
+
+                                                <!-- Location -->
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <i class="fas fa-map-marker-alt text-danger me-2"></i>
@@ -163,6 +178,8 @@
                                                         </div>
                                                     </div>
                                                 </td>
+
+                                                <!-- Actions -->
                                                 <td>
                                                     <div class="d-flex gap-2">
                                                         <a href="{{ route('technician.task_details', $task->task_id) }}"
@@ -180,7 +197,7 @@
                                 </table>
                             </div>
 
-                            <!-- No Results Error State (initially hidden) -->
+                            <!-- No Results -->
                             <div id="noResultsError" class="text-center py-5 d-none">
                                 <i class="fas fa-search fa-3x text-muted mb-3"></i>
                                 <h5 class="fw-bold">No tasks found</h5>
@@ -194,6 +211,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <style>
@@ -242,25 +260,31 @@
     </style>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            const tooltipList = tooltipTriggerList.map(tooltipTriggerEl => {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
+        document.addEventListener('DOMContentLoaded', function () {
+            // Bootstrap tooltips
+            const tooltipList = [...document.querySelectorAll('[data-bs-toggle="tooltip"]')]
+                .map(el => new bootstrap.Tooltip(el));
 
-            // Search and Filter Elements
+            // DOM references
             const searchInput = document.getElementById('taskSearch');
-            const clearSearch = document.getElementById('clearSearch');
+            const clearSearchBtn = document.getElementById('clearSearch');
             const statusFilters = document.querySelectorAll('.status-filter');
             const taskRows = document.querySelectorAll('.task-row');
             const noResultsError = document.getElementById('noResultsError');
             const resetFiltersBtn = document.getElementById('resetFilters');
+            const tableHead = document.querySelector('thead');
             const emptyState = document.querySelector('.text-center.py-5');
 
-            // Filter tasks based on search and status
+            // Debounce utility
+            let debounceTimer;
+            function debounce(callback, delay) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(callback, delay);
+            }
+
+            // Task filtering
             function filterTasks() {
-                const searchTerm = searchInput.value.toLowerCase();
+                const searchTerm = searchInput.value.trim().toLowerCase();
                 const selectedStatuses = Array.from(statusFilters)
                     .filter(checkbox => checkbox.checked)
                     .map(checkbox => checkbox.value.toLowerCase());
@@ -268,29 +292,12 @@
                 let visibleCount = 0;
 
                 taskRows.forEach(row => {
-                    const title = row.dataset.title.toLowerCase();
-                    const description = row.dataset.description.toLowerCase();
-                    const location = row.dataset.location.toLowerCase();
-                    const status = row.dataset.status.toLowerCase();
-                    const priority = row.dataset.priority.toLowerCase();
-                    const taskId = row.querySelector('td:first-child').textContent.toLowerCase();
+                    const matchesSearch = matchesText(row, searchTerm);
+                    const matchesStatus = selectedStatuses.includes(row.dataset.status.toLowerCase());
 
-                    // Check if matches search term
-                    const matchesSearch = searchTerm === '' ||
-                        title.includes(searchTerm) ||
-                        description.includes(searchTerm) ||
-                        location.includes(searchTerm) ||
-                        priority.includes(searchTerm) ||
-                        taskId.includes(searchTerm);
-
-                    // Check if matches status filter
-                    const matchesStatus = selectedStatuses.length === 0 ||
-                        selectedStatuses.includes(status);
-
-                    // Show/hide row
-                    if (matchesSearch && matchesStatus) {
+                    if ((searchTerm === '' || matchesSearch) && matchesStatus) {
                         row.style.display = '';
-                        highlightMatches(row, searchTerm);
+                        highlightSearch(row, searchTerm);
                         visibleCount++;
                     } else {
                         row.style.display = 'none';
@@ -298,108 +305,90 @@
                     }
                 });
 
-                // Show appropriate state
+                // UI state toggling
                 if (visibleCount === 0) {
-                    // Hide the empty state (no tasks at all)
-                    if (emptyState) emptyState.style.display = 'none';
-
-                    // Show no results error (for search/filter)
                     if (noResultsError) noResultsError.classList.remove('d-none');
-
-                    // Hide the table header if no results
-                    document.querySelector('thead')?.classList.add('d-none');
+                    if (tableHead) tableHead.classList.add('d-none');
                 } else {
-                    // Hide no results error
                     if (noResultsError) noResultsError.classList.add('d-none');
-
-                    // Show empty state if no tasks exist at all
-                    if (emptyState) emptyState.style.display = visibleCount === 0 ? '' : 'none';
-
-                    // Show the table header
-                    document.querySelector('thead')?.classList.remove('d-none');
+                    if (tableHead) tableHead.classList.remove('d-none');
                 }
             }
 
-            // Highlight matching text
-            function highlightMatches(row, searchTerm) {
-                if (!searchTerm) return;
-
-                const elementsToHighlight = [
-                    row.querySelector('h6.mb-0'), // Title
-                    row.querySelector('small.text-muted'), // Description
-                    row.querySelector('.priority-badge'), // Priority
-                    row.querySelector('.status-badge'), // Status
-                    row.querySelector('td:nth-child(5) .fw-bold'), // Due date
-                    row.querySelector('td:nth-child(6) > div > div') // Location
+            // Match task row with search term
+            function matchesText(row, searchTerm) {
+                const fields = [
+                    row.dataset.title,
+                    row.dataset.description,
+                    row.dataset.priority,
+                    row.dataset.location,
+                    row.dataset.status,
+                    row.dataset.id,
+                    row.dataset.due
                 ];
 
-                elementsToHighlight.forEach(el => {
-                    if (!el) return;
-                    const text = el.textContent;
-                    const regex = new RegExp(searchTerm, 'gi');
-                    el.innerHTML = text.replace(regex, match =>
-                        `<span class="search-highlight">${match}</span>`
-                    );
+                return fields.some(field => field && field.toLowerCase().includes(searchTerm));
+            }
+
+            // Highlight matching parts of text
+            function highlightSearch(row, searchTerm) {
+                if (!searchTerm) return;
+
+                const selectors = [
+                    'h6.mb-0',
+                    'small.text-muted',
+                    '.priority-badge',
+                    '.status-badge',
+                    'td:nth-child(5) .fw-bold',
+                    'td:nth-child(6) > div > div'
+                ];
+
+                selectors.forEach(selector => {
+                    const element = row.querySelector(selector);
+                    if (element) {
+                        const regex = new RegExp(`(${searchTerm})`, 'gi');
+                        const originalText = element.textContent;
+                        element.innerHTML = originalText.replace(regex, `<span class="search-highlight">$1</span>`);
+                    }
                 });
             }
 
-            // Remove highlights
+            // Remove all highlights from a row
             function removeHighlights(row) {
-                const highlights = row.querySelectorAll('.search-highlight');
-                highlights.forEach(highlight => {
-                    const parent = highlight.parentNode;
-                    parent.textContent = parent.textContent;
+                row.querySelectorAll('.search-highlight').forEach(span => {
+                    const parent = span.parentNode;
+                    parent.innerHTML = parent.textContent;
                 });
             }
 
-            // Reset all filters
+            // Reset filters and show all tasks
             function resetFilters() {
                 searchInput.value = '';
-                statusFilters.forEach(filter => {
-                    filter.checked = true;
-                });
+                statusFilters.forEach(cb => cb.checked = true);
                 filterTasks();
             }
 
-            // Event Listeners
+            // Event listeners
             if (searchInput) {
-                searchInput.addEventListener('input', filterTasks);
+                searchInput.addEventListener('input', () => debounce(filterTasks, 200));
             }
 
-            if (clearSearch) {
-                clearSearch.addEventListener('click', resetFilters);
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', resetFilters);
             }
 
-            statusFilters.forEach(filter => {
-                filter.addEventListener('change', filterTasks);
+            statusFilters.forEach(cb => {
+                cb.addEventListener('change', filterTasks);
             });
 
             if (resetFiltersBtn) {
                 resetFiltersBtn.addEventListener('click', resetFilters);
             }
 
-            // Start Task button handler
-            document.querySelectorAll('.start-task').forEach(button => {
-                button.addEventListener('click', function() {
-                    const taskId = this.dataset.taskId;
-                    fetch(`/technician/tasks/${taskId}/start`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                location.reload();
-                            }
-                        });
-                });
-            });
 
-            // Initial filter
+            // Initial filter call
             filterTasks();
         });
     </script>
+
 @endsection

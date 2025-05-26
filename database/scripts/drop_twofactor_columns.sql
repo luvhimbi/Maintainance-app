@@ -9,7 +9,7 @@ ALTER TABLE students
        this is for changing the constraint to include campus_member instead of student
  */
 
-ALTER TABLE users DROP CONSTRAINT IF EXISTS users_user_role_check;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS Technicians_specialization_check;
 ALTER TABLE users ADD CONSTRAINT users_user_role_check
     CHECK (user_role IN ('admin', 'technician', 'campus_member'));
 

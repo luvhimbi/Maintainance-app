@@ -29,11 +29,11 @@
                                     <span id="location-status">Tracking active</span>
                                 </div>
                                 <div class="small text-muted mt-1">
-                                    <span id="coordinates">0, 0</span> | 
+                                    <span id="coordinates">0, 0</span> |
                                     <span id="accuracy">Accuracy: 0m</span>
                                 </div>
                             </div>
-                            
+
                             <!-- Navigation UI -->
                             <div id="navigation-ui" class="position-absolute bottom-0 start-0 end-0 p-3 bg-white shadow-lg d-none">
                                 <div class="row align-items-center">
@@ -71,7 +71,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Controls Panel -->
                         <div class="col-lg-4">
                             <div class="p-3" style="height: 75vh; overflow-y: auto;">
@@ -81,14 +81,14 @@
                                             <i class="fas fa-directions me-2"></i>
                                             Navigation Controls
                                         </h5>
-                                        
+
                                         <div class="input-group mb-3">
                                             <span class="input-group-text bg-primary text-white">
                                                 <i class="fas fa-flag-checkered"></i>
                                             </span>
-                                            <input type="text" 
-                                                   class="form-control" 
-                                                   id="destination-input" 
+                                            <input type="text"
+                                                   class="form-control"
+                                                   id="destination-input"
                                                    placeholder="Enter destination address">
                                         </div>
 
@@ -171,17 +171,17 @@ function initMap() {
         map = new mapboxgl.Map({
             container: 'map',
             style: '{{ $mapboxStyle }}',
-            center: [28.098271679102634, -25.53978422415537], // TUT Soshanguve campus coordinates
+            center: [28.098271679102634, -25.53978422415537],
             zoom: 16 // Closer zoom for campus view
         });
 
         // Add navigation controls
         map.addControl(new mapboxgl.NavigationControl());
-        
+
         // Setup geolocation control
         geolocateControl = new mapboxgl.GeolocateControl({
-            positionOptions: { 
-                enableHighAccuracy: true 
+            positionOptions: {
+                enableHighAccuracy: true
             },
             trackUserLocation: true,
             showUserHeading: true,
@@ -195,7 +195,7 @@ function initMap() {
         // Wait for map to load before adding event listeners
         map.on('load', () => {
             console.log('Map loaded successfully');
-            
+
             // Check if geolocation is supported
             if (!navigator.geolocation) {
                 showLocationError('Geolocation is not supported by your browser');
@@ -204,7 +204,7 @@ function initMap() {
 
             // Request location permission
             requestLocationPermission();
-            
+
             // Setup event listeners
             setupEventListeners();
 
@@ -268,11 +268,11 @@ function addCampusBoundaries() {
 function requestLocationPermission() {
     const locationAlert = document.getElementById('location-permission-alert');
     const requestButton = document.getElementById('request-location');
-    
+
     if (locationAlert) {
         locationAlert.classList.remove('d-none');
     }
-    
+
     if (requestButton) {
         requestButton.addEventListener('click', () => {
             navigator.geolocation.getCurrentPosition(
@@ -334,7 +334,7 @@ function setupEventListeners() {
     const clearBtn = document.getElementById('clear-route');
     const clearPointsBtn = document.getElementById('clear-points');
     const toggleVoiceBtn = document.getElementById('toggle-voice');
-    
+
     if (startBtn && clearBtn) {
         startBtn.addEventListener('click', startNavigation);
         clearBtn.addEventListener('click', clearRoute);
@@ -342,7 +342,7 @@ function setupEventListeners() {
     } else {
         console.error('Navigation buttons not found');
     }
-    
+
     if (clearPointsBtn) {
         clearPointsBtn.addEventListener('click', clearClickedPoints);
         console.log('Clear points button set up');
@@ -375,7 +375,7 @@ function toggleVoiceGuidance() {
 
 function speak(text) {
     if (!voiceEnabled) return;
-    
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 1;
     utterance.pitch = 1;
@@ -387,12 +387,12 @@ function speak(text) {
 function updateUserLocation(position) {
     const { latitude, longitude, accuracy } = position.coords;
     userLocation = [longitude, latitude];
-    
+
     console.log('User location updated:', userLocation);
-    
+
     // Update location display
     updateLocationDisplay(position.coords);
-    
+
     // Add or update marker
     if (!userLocationMarker) {
         // Create a pulsing dot for user location
@@ -405,7 +405,7 @@ function updateUserLocation(position) {
         el.style.border = '2px solid white';
         el.style.boxShadow = '0 0 0 2px rgba(66, 133, 244, 0.5)';
         el.style.animation = 'pulse 1.5s infinite';
-        
+
         // Add style for the animation
         const style = document.createElement('style');
         style.innerHTML = `
@@ -416,17 +416,17 @@ function updateUserLocation(position) {
             }
         `;
         document.head.appendChild(style);
-        
+
         userLocationMarker = new mapboxgl.Marker(el)
             .setLngLat(userLocation)
             .addTo(map);
-            
+
         // Center map on first location acquisition
         map.flyTo({ center: userLocation, zoom: 15 });
     } else {
         userLocationMarker.setLngLat(userLocation);
     }
-    
+
     // Add accuracy circle
     updateAccuracyCircle(userLocation, accuracy);
 }
@@ -439,15 +439,15 @@ function updateAccuracyCircle(center, accuracyMeters) {
         map.removeLayer('accuracy-circle-border');
         map.removeSource('accuracy-circle');
     }
-    
+
     // Create a circle representing accuracy
     const accuracyCircle = turf.circle(center, accuracyMeters / 1000, { units: 'kilometers' });
-    
+
     map.addSource('accuracy-circle', {
         'type': 'geojson',
         'data': accuracyCircle
     });
-    
+
     map.addLayer({
         'id': 'accuracy-circle-fill',
         'type': 'fill',
@@ -457,7 +457,7 @@ function updateAccuracyCircle(center, accuracyMeters) {
             'fill-opacity': 0.1
         }
     });
-    
+
     map.addLayer({
         'id': 'accuracy-circle-border',
         'type': 'line',
@@ -474,7 +474,7 @@ function updateAccuracyCircle(center, accuracyMeters) {
 function handleGeolocationError(error) {
     console.error('Geolocation error:', error);
     let errorMessage;
-    
+
     switch(error.code) {
         case error.PERMISSION_DENIED:
             errorMessage = "Location access denied. Please check your browser permissions.";
@@ -488,16 +488,16 @@ function handleGeolocationError(error) {
         default:
             errorMessage = "An unknown error occurred getting your location.";
     }
-    
+
     showLocationError(errorMessage);
-    
+
     const locationStatus = document.getElementById('location-status');
     if (locationStatus) {
         locationStatus.textContent = 'Location tracking failed';
         locationStatus.parentElement.classList.remove('text-success');
         locationStatus.parentElement.classList.add('text-danger');
     }
-    
+
     watchId = null;
 }
 
@@ -513,13 +513,13 @@ function updateLocationDisplay(coords) {
     const coordinates = document.getElementById('coordinates');
     const accuracy = document.getElementById('accuracy');
     const locationStatus = document.getElementById('location-status');
-    
+
     if (locationInfo && coordinates && accuracy) {
         coordinates.textContent = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
         accuracy.textContent = `Accuracy: ${Math.round(coords.accuracy)}m`;
         locationInfo.classList.remove('d-none');
     }
-    
+
     if (locationStatus) {
         locationStatus.textContent = 'Location tracking enabled';
         locationStatus.classList.add('text-success');
@@ -530,7 +530,7 @@ function updateLocationDisplay(coords) {
 function handleMapClick(e) {
     const coords = e.lngLat;
     console.log('Map clicked at:', coords);
-    
+
     // Check if point is within campus bounds
     if (!isWithinCampusBounds([coords.lng, coords.lat])) {
         const errorDisplay = document.getElementById('navigation-error');
@@ -540,25 +540,25 @@ function handleMapClick(e) {
         }
         return;
     }
-    
+
     // Add marker to map
     const marker = new mapboxgl.Marker({
         color: clickedPoints.length === 0 ? "#FF0000" : "#00FF00" // Red for first point, green for second
     })
         .setLngLat(coords)
         .addTo(map);
-    
+
     // Store marker and coordinates
     markers.push(marker);
     clickedPoints.push([coords.lng, coords.lat]);
-    
+
     // Update UI with clicked points
     updateClickedPointsDisplay();
-    
+
     // If we have 2 points, calculate and display distance
     if (clickedPoints.length === 2) {
         calculateDistanceBetweenPoints();
-        
+
         // If navigation is active, calculate route between points
         if (navigationActive) {
             calculateRoute({
@@ -572,13 +572,13 @@ function handleMapClick(e) {
 
 function calculateDistanceBetweenPoints() {
     if (clickedPoints.length !== 2) return;
-    
+
     const point1 = turf.point(clickedPoints[0]);
     const point2 = turf.point(clickedPoints[1]);
-    
+
     // Calculate distance in meters
     const distance = turf.distance(point1, point2, { units: 'meters' });
-    
+
     // Update distance display
     const distancesContainer = document.getElementById('distances-container');
     if (distancesContainer) {
@@ -589,23 +589,23 @@ function calculateDistanceBetweenPoints() {
                 <div>(${(distance/1000).toFixed(2)} kilometers)</div>
             </div>
         `;
-        
+
         document.getElementById('distances').classList.remove('d-none');
     }
-    
+
     // Draw a line between points
     const line = turf.lineString([clickedPoints[0], clickedPoints[1]]);
-    
+
     if (map.getSource('distance-line')) {
         map.removeLayer('distance-line');
         map.removeSource('distance-line');
     }
-    
+
     map.addSource('distance-line', {
         'type': 'geojson',
         'data': line
     });
-    
+
     map.addLayer({
         'id': 'distance-line',
         'type': 'line',
@@ -624,7 +624,7 @@ function updateClickedPointsDisplay() {
         console.warn('Clicked points container not found');
         return;
     }
-    
+
     container.innerHTML = clickedPoints.map((point, index) => `
         <div class="d-flex mb-2">
             <div class="me-3 text-danger fw-bold">${index + 1}</div>
@@ -633,7 +633,7 @@ function updateClickedPointsDisplay() {
             </div>
         </div>
     `).join('');
-    
+
     const clickedPointsElement = document.getElementById('clicked-points');
     if (clickedPointsElement) {
         clickedPointsElement.classList.remove('d-none');
@@ -645,21 +645,21 @@ function clearClickedPoints() {
     markers.forEach(marker => marker.remove());
     markers = [];
     clickedPoints = [];
-    
+
     // Remove distance line
     if (map.getSource('distance-line')) {
         map.removeLayer('distance-line');
         map.removeSource('distance-line');
     }
-    
+
     // Update UI
     const clickedPointsElement = document.getElementById('clicked-points');
     const distancesElement = document.getElementById('distances');
-    
+
     if (clickedPointsElement) {
         clickedPointsElement.classList.add('d-none');
     }
-    
+
     if (distancesElement) {
         distancesElement.classList.add('d-none');
     }
@@ -671,19 +671,19 @@ async function startNavigation() {
     const profileSelect = document.getElementById('travel-mode');
     const errorDisplay = document.getElementById('navigation-error');
     const loadingIndicator = document.getElementById('loading-indicator');
-    
+
     try {
         // Reset state
         if (errorDisplay) errorDisplay.classList.add('d-none');
         if (loadingIndicator) loadingIndicator.classList.remove('d-none');
-        
+
         // First check if we have user location
         if (!userLocation) {
             throw new Error("Your location is not available. Please enable location tracking first.");
         }
-        
+
         let destinationCoords;
-        
+
         // Check if a destination was entered or if we should use last clicked point
         if (destinationInput && destinationInput.value.trim()) {
             // Geocode destination address
@@ -696,12 +696,12 @@ async function startNavigation() {
         } else {
             throw new Error('Please enter a destination address or click a location on the map');
         }
-        
+
         console.log('Origin:', userLocation, 'Destination:', destinationCoords);
-        
+
         // Clear previous route before calculating new one
         clearRoute();
-        
+
         // Calculate route
         const routeData = await calculateRoute({
             origin: userLocation,
@@ -719,10 +719,10 @@ async function startNavigation() {
         // Display results
         displayRoute(routeData);
         showInstructions(routeData.routes[0].legs[0].steps);
-        
+
         // Show navigation UI
         document.getElementById('navigation-ui').classList.remove('d-none');
-        
+
         // Start navigation updates
         startNavigationUpdates();
 
@@ -753,28 +753,28 @@ function updateNavigationUI() {
 
     const steps = currentRoute.legs[0].steps;
     const currentStep = steps[currentStepIndex];
-    
+
     // Calculate progress
     const totalDistance = currentRoute.distance;
     const remainingDistance = calculateRemainingDistance();
     routeProgress = ((totalDistance - remainingDistance) / totalDistance) * 100;
-    
+
     // Update progress bar
     document.getElementById('route-progress').style.width = `${routeProgress}%`;
-    
+
     // Update next maneuver
     const nextManeuver = currentStep.maneuver;
     const nextManeuverIcon = document.getElementById('next-maneuver-icon');
     const nextManeuverText = document.getElementById('next-maneuver-text');
     const nextManeuverDistance = document.getElementById('next-maneuver-distance');
-    
+
     // Set maneuver icon
     nextManeuverIcon.innerHTML = getManeuverIcon(nextManeuver.type);
-    
+
     // Set maneuver text and distance
     nextManeuverText.textContent = nextManeuver.instruction;
     nextManeuverDistance.textContent = `in ${Math.round(currentStep.distance)} meters`;
-    
+
     // Check if we need to move to next step
     if (currentStep.distance < 20) { // Within 20 meters of next maneuver
         if (currentStepIndex < steps.length - 1) {
@@ -802,16 +802,16 @@ function getManeuverIcon(type) {
         'uturn': 'fa-rotate',
         'arrive': 'fa-flag-checkered'
     };
-    
+
     return `<i class="fas ${icons[type] || 'fa-arrow-up'}"></i>`;
 }
 
 function calculateRemainingDistance() {
     if (!currentRoute || !userLocation) return 0;
-    
+
     const steps = currentRoute.legs[0].steps;
     let remainingDistance = 0;
-    
+
     // Add distance from current position to next step
     const currentStep = steps[currentStepIndex];
     const currentStepCoords = currentStep.maneuver.location;
@@ -821,19 +821,19 @@ function calculateRemainingDistance() {
         { units: 'meters' }
     );
     remainingDistance += distanceToNextStep;
-    
+
     // Add remaining step distances
     for (let i = currentStepIndex; i < steps.length; i++) {
         remainingDistance += steps[i].distance;
     }
-    
+
     return remainingDistance;
 }
 
 function displayRoute(routeData) {
     console.log('Displaying route');
     if (!routeData.routes?.length) throw new Error('No route found');
-    
+
     // Clear existing route
     if (map.getSource('route')) {
         map.removeLayer('route');
@@ -867,20 +867,20 @@ function displayRoute(routeData) {
 
     // Add markers for start and end points
     const coordinates = routeData.routes[0].geometry.coordinates;
-    
+
     // Start marker (blue)
     const startMarker = new mapboxgl.Marker({ color: "#3a86ff" })
         .setLngLat(coordinates[0])
         .addTo(map);
-    
+
     // End marker (green)
     const endMarker = new mapboxgl.Marker({ color: "#10b981" })
         .setLngLat(coordinates[coordinates.length - 1])
         .addTo(map);
-    
+
     // Store markers to clear them later
     markers.push(startMarker, endMarker);
-    
+
     // Update route info display
     updateRouteInfo(routeData.routes[0]);
 
@@ -888,7 +888,7 @@ function displayRoute(routeData) {
     const bounds = new mapboxgl.LngLatBounds();
     routeData.routes[0].geometry.coordinates.forEach(coord => bounds.extend(coord));
     map.fitBounds(bounds, { padding: 50 });
-    
+
     console.log('Route displayed successfully');
 }
 
@@ -898,11 +898,11 @@ function updateRouteInfo(route) {
         console.warn('Route info container not found');
         return;
     }
-    
+
     // Calculate total distance and duration
     const distanceKm = route.distance / 1000;
     const durationMin = route.duration / 60;
-    
+
     routeInfoContainer.innerHTML = `
         <div class="alert alert-info">
             <div class="fw-bold mb-2">Route Summary:</div>
@@ -910,7 +910,7 @@ function updateRouteInfo(route) {
             <div>Duration: ${Math.floor(durationMin)} min</div>
         </div>
     `;
-    
+
     routeInfoContainer.classList.remove('d-none');
 }
 
@@ -921,7 +921,7 @@ function showInstructions(steps) {
         console.warn('Steps container not found');
         return;
     }
-    
+
     container.innerHTML = steps.map((step, index) => `
         <div class="d-flex mb-2">
             <div class="me-3 text-primary fw-bold">${index + 1}</div>
@@ -931,7 +931,7 @@ function showInstructions(steps) {
             </div>
         </div>
     `).join('');
-    
+
     const instructionsElement = document.getElementById('navigation-instructions');
     if (instructionsElement) {
         instructionsElement.classList.remove('d-none');
@@ -945,22 +945,22 @@ function clearRoute() {
         map.removeLayer('route');
         map.removeSource('route');
     }
-    
+
     // Remove route markers (but keep clicked point markers)
     const clickedPointsCount = clickedPoints.length;
     if (markers.length > clickedPointsCount) {
         markers.slice(clickedPointsCount).forEach(marker => marker.remove());
         markers = markers.slice(0, clickedPointsCount);
     }
-    
+
     // Hide UI elements
     const instructionsElement = document.getElementById('navigation-instructions');
     const routeInfoElement = document.getElementById('route-info');
-    
+
     if (instructionsElement) {
         instructionsElement.classList.add('d-none');
     }
-    
+
     if (routeInfoElement) {
         routeInfoElement.classList.add('d-none');
     }
@@ -984,14 +984,14 @@ async function geocodeAddress(address) {
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?` +
             `access_token=${mapboxgl.accessToken}&country=ZA`
         );
-        
+
         if (!response.ok) throw new Error('Geocoding failed');
-        
+
         const data = await response.json();
         console.log('Geocoding response:', data);
-        
+
         if (!data.features?.length) throw new Error('Location not found');
-        
+
         return data.features[0].geometry.coordinates;
     } catch (error) {
         console.error('Geocoding error:', error);
@@ -1005,19 +1005,19 @@ async function calculateRoute({ origin, destination, profile }) {
         // Make sure origin and destination are arrays
         const originCoords = Array.isArray(origin) ? origin : origin.split(',').map(Number);
         const destCoords = Array.isArray(destination) ? destination : destination.split(',').map(Number);
-        
+
         const csrfToken = document.querySelector('meta[name="csrf-token"]');
         if (!csrfToken) {
             console.error('CSRF token not found');
             throw new Error('Security token missing. Please refresh the page and try again.');
         }
-        
+
         console.log('Sending route request with params:', {
             origin: `${originCoords[0]},${originCoords[1]}`,
             destination: `${destCoords[0]},${destCoords[1]}`,
             profile: profile
         });
-        
+
         const response = await fetch('/technician/route', {
             method: 'POST',
             headers: {
@@ -1032,17 +1032,17 @@ async function calculateRoute({ origin, destination, profile }) {
         });
 
         const data = await response.json();
-        
+
         if (!response.ok) {
             console.error('Route API error:', response.status, data);
             const errorMessage = data.error || data.message || 'Failed to calculate route';
-            
+
             // Show error in UI
             const errorDisplay = document.getElementById('navigation-error');
             if (errorDisplay) {
                 errorDisplay.textContent = errorMessage;
                 errorDisplay.classList.remove('d-none');
-                
+
                 // Add suggestion for long routes
                 if (errorMessage.includes('too long')) {
                     errorDisplay.innerHTML += `
@@ -1055,18 +1055,18 @@ async function calculateRoute({ origin, destination, profile }) {
                     `;
                 }
             }
-            
+
             throw new Error(errorMessage);
         }
-        
+
         console.log('Route API response:', data);
-        
+
         if (!data.routes || data.routes.length === 0) {
             throw new Error('No route found between these points');
         }
-        
+
         return data;
-        
+
     } catch (error) {
         console.error('Route calculation error:', error);
         const errorDisplay = document.getElementById('navigation-error');
@@ -1086,10 +1086,10 @@ function isWithinCampusBounds(coords) {
         east: 28.0987,
         west: 28.0981
     };
-    
-    return coords[1] >= campusBounds.south && 
-           coords[1] <= campusBounds.north && 
-           coords[0] >= campusBounds.west && 
+
+    return coords[1] >= campusBounds.south &&
+           coords[1] <= campusBounds.north &&
+           coords[0] >= campusBounds.west &&
            coords[0] <= campusBounds.east;
 }
 

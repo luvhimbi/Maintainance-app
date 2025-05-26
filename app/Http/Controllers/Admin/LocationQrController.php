@@ -5,10 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Location;
-use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Admin;
 use Illuminate\Validation\Rule;
 
 class LocationQrController extends Controller
@@ -19,11 +15,11 @@ class LocationQrController extends Controller
         $locations = Location::paginate(5); // Add pagination with 10 items per page
         return view('admin.locations.index', compact('locations'));
     }
-  
+
     /**
      * Store a newly created location
      */
-  
+
 
 public function store(Request $request)
 {
@@ -63,7 +59,7 @@ public function store(Request $request)
      */
     public function update(Request $request, Location $location)
     {
-       
+
         $validated = $request->validate([
             'building_name' => 'required|string|max:100',
             'floor_number' => 'required|string|max:20',
