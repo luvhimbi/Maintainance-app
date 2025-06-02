@@ -14,7 +14,7 @@ use Tests\TestCase;
 
 class LoginTest extends TestCase
 {
-     use RefreshDatabase;
+//     use RefreshDatabase;
 
     // Test valid student login
     public function test_student_can_login_with_valid_credentials()

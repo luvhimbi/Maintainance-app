@@ -361,7 +361,7 @@
     </a>
     <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.reports.*') ? 'show' : '' }}" id="reportsSubmenu">
         <li>
-            <a href="{{ route('admin.reports.students_and_staff') }}" class="sidebar-link {{ request()->routeIs('admin.reports.technicians') ? 'active' : '' }}">
+            <a href="{{ route('admin.reports.students_and_staff') }}" class="sidebar-link {{ request()->routeIs('admin.reports.students_and_staff') ? 'active' : '' }}">
                 <i class="fas fa-user-tie"></i>
                 <span>Students/Staff Reports</span>
             </a>
@@ -379,7 +379,7 @@
             </a>
         </li>
 
-        
+
 
     </ul>
 </li>

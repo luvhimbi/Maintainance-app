@@ -19,25 +19,16 @@
             background-color: #f8f9fa;
         }
 
-        .form-container {
-            max-width: 1000px;
-            margin: 2rem auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-            padding: 2.5rem;
-        }
 
-        .navbar {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+
+
 
         .form-label {
             font-weight: 600;
             color: #495057;
             margin-bottom: 0.5rem;
         }
-
+/*
         .form-control, .form-select {
             border: 1px solid #e0e0e0;
             border-radius: 8px;
@@ -48,7 +39,7 @@
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
-        }
+        } */
 
         .btn {
             border-radius: 8px;
@@ -264,7 +255,7 @@
                     <div class="step-label" style="color:black;">Submission Complete</div>
                 </div>
             </div>
-            <h3 class="text-center mb-4 fw-bold" style="color:#4361ee;">Report a Maintenance Issue</h3>
+            <h3 class="text-center mb-4 fw-bold" >Report a Maintenance Issue</h3>
             @if ($errors->any())
                 <div class="alert alert-danger">
                     <strong style="color:black;">Please fix these issues:</strong>
@@ -283,7 +274,7 @@
                     <div class="col-md-6">
                         <div class="card shadow-sm h-100 border-0">
                             <div class="card-body">
-                                <h5 class="mb-3" ><i class="fas fa-map-marker-alt me-2"></i>Location Details</h5>
+                                <h5 class="mb-3"><i class="fas fa-map-marker-alt me-2"></i>Location Details</h5>
                                 <div class="mb-3">
                                     <label class="form-label" style="color:black;">Select Location *</label>
                                     <select class="form-select border-primary" name="location_id" id="location_id" required>
@@ -310,7 +301,7 @@
                                         <input type="text" class="form-control bg-light border-primary" id="room" value="{{ $formData['room'] ?? '' }}" readonly>
                                     </div>
                                 </div>
-                                <h5 class="mb-3" ><i class="fas fa-exclamation-circle me-2"></i>Issue Classification</h5>
+                                <h5 class="mb-3"><i class="fas fa-exclamation-circle me-2"></i>Issue Classification</h5>
                                 <label class="form-label" style="color:black;">Issue Type *</label>
                                 <div class="d-flex flex-wrap gap-2 mb-3" id="issueTypeGroup">
                                     @php
@@ -328,9 +319,9 @@
                                     @endphp
                                     @foreach($types as $type)
                                         <button type="button"
-                                            class="btn btn-outline-primary{{ $selectedType == $type ? ' active' : '' }}"
-                                            data-value="{{ $type }}"
-                                            style="border-color:#4361ee; color:black;">
+                                                class="btn btn-outline-primary{{ $selectedType == $type ? ' active' : '' }}"
+                                                data-value="{{ $type }}"
+                                                style="border-color:#4361ee; color:black;">
                                             <i class="fas fa-{{ $icons[$type] }} me-1"></i> <span style="color:black;">{{ $type }}</span>
                                         </button>
                                     @endforeach
@@ -339,24 +330,34 @@
                                 <div id="pcFields" class="dynamic-section row g-3 mt-2" style="display: none;">
                                     <div class="col-12">
                                         <label class="form-label" style="color:black;">PC Number <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control border-primary" name="pc_number" min="1" max="100" value="{{ old('pc_number') }}">
+                                        <input type="number"
+                                               class="form-control border-primary"
+                                               name="pc_number"
+                                               min="1"
+                                               max="100"
+                                               value="{{ old('pc_number', $formData['pc_number'] ?? '') }}">
                                         <small class="text-muted" style="color:#4361ee;">PC number must be between 1 and 100.</small>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label" style="color:black;">PC Issue Type</label>
                                         <select class="form-select border-primary" name="pc_issue_type">
                                             <option value="">-- Select type --</option>
-                                            <option value="hardware" {{ old('pc_issue_type') == 'hardware' ? 'selected' : '' }}>Hardware</option>
-                                            <option value="software" {{ old('pc_issue_type') == 'software' ? 'selected' : '' }}>Software</option>
-                                            <option value="network" {{ old('pc_issue_type') == 'network' ? 'selected' : '' }}>Network</option>
-                                            <option value="peripheral" {{ old('pc_issue_type') == 'peripheral' ? 'selected' : '' }}>Peripheral</option>
-                                            <option value="other" {{ old('pc_issue_type') == 'other' ? 'selected' : '' }}>Other</option>
+                                            <option value="hardware" {{ (old('pc_issue_type', $formData['pc_issue_type'] ?? '') == 'hardware') ? 'selected' : '' }}>Hardware</option>
+                                            <option value="software" {{ (old('pc_issue_type', $formData['pc_issue_type'] ?? '') == 'software') ? 'selected' : '' }}>Software</option>
+                                            <option value="network" {{ (old('pc_issue_type', $formData['pc_issue_type'] ?? '') == 'network') ? 'selected' : '' }}>Network</option>
+                                            <option value="peripheral" {{ (old('pc_issue_type', $formData['pc_issue_type'] ?? '') == 'peripheral') ? 'selected' : '' }}>Peripheral</option>
+                                            <option value="other" {{ (old('pc_issue_type', $formData['pc_issue_type'] ?? '') == 'other') ? 'selected' : '' }}>Other</option>
                                         </select>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="critical_work_affected" id="critical_work"
-                                                {{ old('critical_work_affected') ? 'checked' : '' }}>
+                                            <input type="hidden" name="critical_work_affected" value="0">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   name="critical_work_affected"
+                                                   id="critical_work"
+                                                   value="1"
+                                                {{ old('critical_work_affected', $formData['critical_work_affected'] ?? 0) ? 'checked' : '' }}>
                                             <label class="form-check-label" for="critical_work" style="color:black;">
                                                 Affects critical work
                                             </label>
@@ -364,16 +365,7 @@
                                     </div>
                                 </div>
                                 <div class="row g-3 mt-3">
-                                    <div class="col-6">
-                                        <label class="form-label" style="color:black;">Urgency Level *</label>
-                                        <select class="form-select border-primary" name="urgency_level" id="urgencyLevel" required>
-                                            <option value="">Select Urgency Level</option>
-                                            <option value="High" {{ (old('urgency_level') ?? ($formData['urgency_level'] ?? '')) == 'High' ? 'selected' : '' }}>High</option>
-                                            <option value="Medium" {{ (old('urgency_level') ?? ($formData['urgency_level'] ?? '')) == 'Medium' ? 'selected' : '' }}>Medium</option>
-                                            <option value="Low" {{ (old('urgency_level') ?? ($formData['urgency_level'] ?? '')) == 'Low' ? 'selected' : '' }}>Low</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-6">
+                                    <div class="col-12">
                                         <label class="form-label" style="color:black;">Safety Hazard</label>
                                         <select class="form-select border-primary" name="safety_hazard">
                                             <option value="0">No</option>
@@ -392,7 +384,7 @@
                     <div class="col-md-6">
                         <div class="card shadow-sm h-100 border-0">
                             <div class="card-body d-flex flex-column">
-                                <h5 class="mb-3" ><i class="fas fa-align-left me-2"></i>Issue Details</h5>
+                                <h5 class="mb-3"><i class="fas fa-align-left me-2"></i>Issue Details</h5>
                                 <div class="mb-3 flex-grow-1">
                                     <label class="form-label" style="color:black;">Description *</label>
                                     <textarea class="form-control border-primary" name="issue_description" rows="7" required>{{ old('issue_description') ?? ($formData['issue_description'] ?? '') }}</textarea>
@@ -419,7 +411,7 @@
                                                 <div class="file-item">
                                                     <i class="fas {{ $icon }}"></i>
                                                     <span>{{ $file['original_name'] }}</span>
-                                                    <span class="text-muted ms-2">({{ number_format($file['file_size'] / 1024, 2) }} KB)</span>
+                                                    <span class="text-muted ms-2">({{ number_format($file['size'] / 1024, 2) }} KB)</span>
                                                 </div>
                                             @endforeach
                                         @endif
@@ -435,7 +427,6 @@
                     </div>
                 </div> <!-- row -->
             </form>
-        </div>
     </div>
 </div>
 @endsection

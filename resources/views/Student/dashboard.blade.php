@@ -3,144 +3,145 @@
 @section('title', ' Dashboard')
 
 @section('content')
-    <div class="container py-4">
-        <!-- Header Section -->
+    <div class="container py-4 bg-body-tertiary"> {{-- Added bg-body-tertiary for a subtle page background --}}
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5">
-            <div class="mb-3 mb-md-0">
-                <h1 class="fw-bold mb-2 h3">Hi , {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h1>
+            <div>
+                <h1 class="fw-bold mb-1 h3">Hi, {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h1>
                 <p class="lead text-muted mb-0">Track and manage your reported maintenance issues</p>
             </div>
-{{--            <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">--}}
-{{--                <i class="fas fa-plus me-2"></i> Report An Issue--}}
-{{--            </a>--}}
+            {{-- <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
+                <i class="fas fa-plus me-2"></i> Report An Issue
+            </a> --}}
         </div>
 
-        <!-- Search Bar Section -->
         <div class="card mb-4 border-0 shadow-sm">
-            <div class="card-body p-3">
-                <div class="input-group">
-                    <input type="text"
-                           id="searchInput"
-                           class="form-control form-control-lg"
-                           placeholder="Search issues by type, location, or description..."
-                           aria-label="Search issues">
-                    <button class="btn btn-primary" id="searchButton">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                    <button class="btn btn-outline-secondary" id="clearButton">
-                        <i class="fas fa-times"></i> Clear
-                    </button>
-                </div>
-                <div class="mt-3">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input status-filter" type="checkbox" value="Open" id="openCheck" checked>
-                        <label class="form-check-label" for="openCheck">Open</label>
+            <div class="card-body p-3 p-md-4">
+                <div class="row g-3 align-items-center"> {{-- Increased gap slightly with g-3 --}}
+                    <div class="col-12 col-md-7">
+                        <div class="input-group input-group-lg">
+                            <input type="text"
+                                   id="searchInput"
+                                   class="form-control"
+                                   placeholder="Search by type, location, or description..."
+                                   aria-label="Search issues">
+                            <button class="btn btn-primary" id="searchButton" title="Search">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" id="clearButton" title="Clear">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input status-filter" type="checkbox" value="In Progress" id="progressCheck" checked>
-                        <label class="form-check-label" for="progressCheck">In Progress</label>
+                    <div class="col-12 col-md-5 mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">
+                        <div class="form-check form-check-inline px-2">
+                            <input class="form-check-input status-filter" type="checkbox" value="open" id="openCheck" checked> {{-- Changed value to lowercase --}}
+                            <label class="form-check-label badge rounded-pill bg-primary-subtle text-primary fw-normal py-2 px-3" for="openCheck" style="cursor:pointer;">Open</label> {{-- Adjusted padding for filter labels --}}
+                        </div>
+                        <div class="form-check form-check-inline px-2">
+                            <input class="form-check-input status-filter" type="checkbox" value="in progress" id="progressCheck" checked> {{-- Changed value to lowercase --}}
+                            <label class="form-check-label badge rounded-pill bg-warning-subtle text-warning fw-normal py-2 px-3" for="progressCheck" style="cursor:pointer;">In Progress</label> {{-- Adjusted padding for filter labels --}}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Enhanced Issues Section -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <h3 class="mb-0 fw-bold">Your Active Reported Issues</h3>
-                <span class="text-muted" id="issueCount">{{ $issues->count() }} issues found</span>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center"> {{-- Added px-4 for consistency --}}
+                <h3 class="mb-0 fw-bold h5">Your Active Reported Issues</h3> {{-- Adjusted to h5 for better hierarchy if h1 is h3 visual --}}
+                <span class="text-muted small" id="issueCount">{{ $issues->count() }} issues found</span>
             </div>
             <div class="card-body p-0" id="issuesContainer">
-                @foreach ($issues as $issue)
-                    <div class="border-bottom p-4 issue-item hover-bg-light transition position-relative"
-                         data-issue-type="{{ strtolower($issue->issue_type) }}"
-                         data-location="{{ strtolower($issue->location->building_name ?? '') }} {{ strtolower($issue->location->room_number ?? '') }}"
-                         data-description="{{ strtolower($issue->issue_description) }}"
-                         data-status="{{ $issue->issue_status }}">
-                        <div class="row align-items-center">
-                            <!-- Left Column - Issue Identity -->
-                            <div class="col-md-6 mb-3 mb-md-0">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        @php
-                                            $icon = match($issue->issue_type) {
-                                                'Plumbing' => 'fa-faucet-drip',
-                                                'Electrical' => 'fa-bolt-lightning',
-                                                'Furniture' => 'fa-couch',
-                                                'HVAC' => 'fa-fan',
-                                                'Internet' => 'fa-network-wired',
-                                                'Cleaning' => 'fa-broom',
-                                                default => 'fa-circle-exclamation'
-                                            };
-                                            $urgencyColor = match($issue->urgency_level) {
-                                                'High' => 'danger',
-                                                'Medium' => 'warning',
-                                                default => 'secondary'
-                                            };
-                                        @endphp
-                                        <span class="badge bg-{{ $urgencyColor }} rounded-circle p-3 shadow-sm">
-                                            <i class="fas {{ $icon }} fa-lg text-white"></i>
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-1 fw-semibold">{{ $issue->issue_type }} Issue</h5>
-                                        <div class="text-muted">
-                                            <span class="d-inline-block me-3">
-                                                <i class="fas fa-map-marker-alt me-1"></i>
-                                                {{ $issue->location->building_name ?? 'N/A'}}, Room {{ $issue->location->room_number ?? 'N/A'}}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                @forelse ($issues as $issue) {{-- Changed to forelse for easier empty state handling if JS is disabled, though JS handles it primarily --}}
+                @php
+                    $icon = match($issue->issue_type) {
+                        'Plumbing' => 'fa-faucet-drip',
+                        'Electrical' => 'fa-bolt-lightning',
+                        'Furniture' => 'fa-couch',
+                        'HVAC' => 'fa-fan',
+                        'Internet' => 'fa-network-wired',
+                        'Cleaning' => 'fa-broom',
+                        default => 'fa-circle-exclamation'
+                    };
+                    $urgencyColor = match($issue->urgency_level) {
+                        'High' => 'danger',
+                        'Medium' => 'warning',
+                        default => 'secondary'
+                    };
+                    $statusColor = match($issue->issue_status) {
+                        'Open' => 'primary',
+                        'In Progress' => 'warning',
+                        default => 'secondary'
+                    };
+                @endphp
+                <div class="issue-card d-flex flex-column flex-md-row align-items-stretch border-bottom p-3 p-md-4 issue-item position-relative" {{-- Removed mb-0 as .issue-card style handles margin --}}
+                data-issue-type="{{ strtolower(trim($issue->issue_type)) }}"
+                     data-location="{{ strtolower(trim($issue->location->building_name ?? '') . ' ' . trim($issue->location->room_number ?? '')) }}"
+                     data-description="{{ strtolower(trim($issue->issue_description)) }}"
+                     data-status="{{ strtolower(trim($issue->issue_status)) }}"> {{-- Converted to lowercase and trimmed status here --}}
+                    <div class="issue-card-bar bg-{{ $urgencyColor }}"></div>
+                    <div class="d-flex align-items-center flex-grow-1 me-md-3">
+                        <span class="badge bg-{{ $urgencyColor }}-subtle text-{{ $urgencyColor }} rounded-circle p-3 shadow-sm me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"> {{-- Subtle icon background --}}
+                            <i class="fas {{ $icon }} fa-lg"></i> {{-- Removed text-white, color comes from parent or specific class --}}
+                        </span>
+                        <div>
+                            <h5 class="mb-1 fw-semibold">{{ $issue->issue_type }} Issue</h5>
+                            <div class="text-muted small">
+                                <i class="fas fa-map-marker-alt me-1 text-secondary"></i>
+                                {{ $issue->location->building_name ?? 'N/A'}}, Room {{ $issue->location->room_number ?? 'N/A'}}
                             </div>
-
-                            <!-- Middle Column - Priority -->
-                            <div class="col-md-3">
-                                <div>
-                                    <span class="badge bg-{{ $urgencyColor }} text-white px-3 py-1 rounded-pill">
-                                        {{ $issue->urgency_level }} Priority
-                                    </span>
-                                </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fas fa-align-left me-1 text-secondary"></i>
+                                {{ \Illuminate\Support\Str::limit($issue->issue_description, 50) }}
                             </div>
-
-                            <!-- Right Column - Actions -->
-                            <div class="col-md-3 text-md-end mt-3 mt-md-0">
-                                <div class="d-flex flex-column flex-md-row justify-content-md-end gap-2">
-                                    @if($issue->issue_status === 'Open')
-                                        <a href="{{ route('Student.editissue', $issue->issue_id) }}"
-                                           class="btn btn-outline-secondary px-3 py-2 btn-action">
-                                            <i class="fas fa-pencil-alt me-1"></i> Edit
-                                        </a>
-                                    @endif
-
-                                    <a href="{{ route('Student.issue_details', $issue->issue_id) }}"
-                                       class="btn btn-outline-primary px-4 py-2 btn-action">
-                                        Details <i class="fas fa-chevron-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Status Indicator -->
-                        <div class="position-absolute top-0 end-0 mt-3 me-3">
-                            <span class="badge
-                                @if($issue->issue_status == 'Open') bg-primary
-                                @elseif($issue->issue_status == 'In Progress') bg-warning text-dark
-                                @endif px-3 py-1 rounded-pill">
-                                <i class="fas fa-circle me-1 small-status"></i>
-                                {{ $issue->issue_status }}
-                            </span>
                         </div>
                     </div>
-                @endforeach
+                    <div class="d-flex flex-column align-items-start align-items-md-end justify-content-center ms-md-auto mt-3 mt-md-0 text-md-end" style="min-width: 120px;"> {{-- Adjusted alignment and min-width --}}
+                        <span class="badge bg-{{ $urgencyColor }}-subtle text-{{ $urgencyColor }} px-3 py-1 rounded-pill mb-2 fw-medium"> {{-- Subtle badge --}}
+                            {{ $issue->urgency_level }} Priority
+                        </span>
+                        <span class="badge bg-{{ $statusColor }}-subtle text-{{ $statusColor }} px-3 py-1 rounded-pill fw-medium"> {{-- Subtle badge --}}
+                            <i class="fas fa-circle me-1 small-status"></i>
+                            {{ $issue->issue_status }}
+                        </span>
+                    </div>
+                    <div class="d-flex flex-column flex-sm-row gap-2 align-items-stretch align-items-md-center ms-md-4 mt-3 mt-md-0">
+                        @if($issue->issue_status === 'Open')
+                            <a href="{{ route('Student.editissue', $issue->issue_id) }}"
+                               class="btn btn-sm btn-outline-secondary btn-action px-3 py-2"> {{-- Standardized padding, btn-sm --}}
+                                <i class="fas fa-pencil-alt me-1"></i> Edit
+                            </a>
+                        @endif
+                        <a href="{{ route('Student.issue_details', $issue->issue_id) }}"
+                           class="btn btn-sm btn-primary btn-action px-3 py-2"> {{-- Standardized padding, btn-sm, changed to primary fill --}}
+                            Details <i class="fas fa-chevron-right ms-1 small"></i>
+                        </a>
+                    </div>
+                </div>
+                @empty {{-- Handles case where $issues is empty initially --}}
+                {{-- This part is primarily for non-JS scenarios or initial render. JS will show #emptyState --}}
+                {{-- If JS is enabled, #emptyState below will be shown instead by the script. --}}
+                @if($issues->isEmpty()) {{-- Explicit check for initial load --}}
+                <div class="text-center py-5 px-3">
+                    <i class="fas fa-clipboard-list fa-4x text-muted mb-4"></i>
+                    <h4 class="fw-semibold mb-2">No issues reported yet.</h4>
+                    <p class="text-muted mb-3">Ready to report your first maintenance issue?</p>
+                    <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
+                        <i class="fas fa-plus me-2"></i> Report An Issue
+                    </a>
+                </div>
+                @endif
+                @endforelse
             </div>
         </div>
 
-        <!-- Empty State (hidden by default) -->
         <div class="text-center py-5 d-none" id="emptyState">
             <i class="fas fa-clipboard-list fa-4x text-muted mb-4"></i>
-            <h4 class="fw-semibold">No issues found</h4>
-            <p class="text-muted">Try adjusting your search</p>
+            <h4 class="fw-semibold mb-2">No issues found</h4>
+            <p class="text-muted mb-3">Try adjusting your search or filters, or report a new one.</p>
+            <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
+                <i class="fas fa-plus me-2"></i> Report An Issue
+            </a>
         </div>
     </div>
 
@@ -157,18 +158,23 @@
                 const issueCount = document.getElementById('issueCount');
 
                 function filterIssues() {
-                    const searchTerm = searchInput.value.toLowerCase();
+                    const searchTerm = searchInput.value.toLowerCase().trim();
                     const selectedStatuses = Array.from(statusFilters)
                         .filter(checkbox => checkbox.checked)
-                        .map(checkbox => checkbox.value);
+                        .map(checkbox => checkbox.value.trim()); // Trim checkbox values
+
+                    // console.log('Search Term:', searchTerm);
+                    // console.log('Selected Statuses (from checkboxes):', selectedStatuses);
 
                     let visibleCount = 0;
 
                     issueItems.forEach(item => {
-                        const issueType = item.dataset.issueType;
-                        const location = item.dataset.location;
-                        const description = item.dataset.description;
-                        const status = item.dataset.status;
+                        const issueType = item.dataset.issueType.toLowerCase();
+                        const location = item.dataset.location.toLowerCase();
+                        const description = item.dataset.description.toLowerCase();
+                        const status = item.dataset.status.trim(); // Trim status from dataset
+
+                        // console.log('  Processing item. Original data-status:', item.dataset.status, 'Trimmed & Lowercased status:', status);
 
                         const matchesSearch = searchTerm === '' ||
                             issueType.includes(searchTerm) ||
@@ -178,8 +184,11 @@
                         const matchesStatus = selectedStatuses.length === 0 ||
                             selectedStatuses.includes(status);
 
+                        // console.log('  Matches Search:', matchesSearch, 'Matches Status:', matchesStatus, 'Comparison result (selectedStatuses.includes(status)):', selectedStatuses.includes(status));
+
+
                         if (matchesSearch && matchesStatus) {
-                            item.style.display = '';
+                            item.style.display = ''; // Reverts to default (flex for these items)
                             visibleCount++;
                         } else {
                             item.style.display = 'none';
@@ -187,12 +196,19 @@
                     });
 
                     // Update count
-                    issueCount.textContent = `${visibleCount} issues found`;
+                    issueCount.textContent = `${visibleCount} issue${visibleCount !== 1 ? 's' : ''} found`;
 
-                    // Show/hide empty state
+                    // Handle empty state display
                     if (visibleCount === 0) {
                         issuesContainer.classList.add('d-none');
                         emptyState.classList.remove('d-none');
+                        if (issueItems.length === 0) { // No issues rendered by PHP at all
+                            emptyState.querySelector('h4').textContent = 'No issues reported yet.';
+                            emptyState.querySelector('p').textContent = 'Ready to report your first maintenance issue?';
+                        } else { // Issues were rendered, but none match the filter
+                            emptyState.querySelector('h4').textContent = 'No issues found';
+                            emptyState.querySelector('p').textContent = 'Try adjusting your search or filters, or report a new one.';
+                        }
                     } else {
                         issuesContainer.classList.remove('d-none');
                         emptyState.classList.add('d-none');
@@ -201,20 +217,37 @@
 
                 // Event listeners
                 searchInput.addEventListener('input', filterIssues);
-                searchButton.addEventListener('click', filterIssues);
+
                 clearButton.addEventListener('click', function() {
                     searchInput.value = '';
-                    Array.from(statusFilters).forEach(checkbox => {
-                        checkbox.checked = true;
-                    });
+                    // Reset filters to their default checked state (as defined in HTML)
+                    document.getElementById('openCheck').checked = true;
+                    document.getElementById('progressCheck').checked = true;
                     filterIssues();
                 });
 
                 statusFilters.forEach(filter => {
-                    filter.addEventListener('change', filterIssues);
+                    filter.addEventListener('change', function() {
+                        // If this checkbox is checked, uncheck all other status filters
+                        if (this.checked) {
+                            statusFilters.forEach(otherFilter => {
+                                if (otherFilter !== this) {
+                                    otherFilter.checked = false;
+                                }
+                            });
+                        } else {
+                            // If the user tries to uncheck the LAST active filter, prevent it
+                            // This ensures at least one filter is always active, preventing an empty display
+                            const currentlyChecked = Array.from(statusFilters).filter(cb => cb.checked).length;
+                            if (currentlyChecked === 0) {
+                                this.checked = true; // Keep it checked if it's the only one left
+                            }
+                        }
+                        filterIssues(); // Then run the filter with the updated selections
+                    });
                 });
 
-                // Initial filter
+                // Initial filter call to apply default filters and set initial state
                 filterIssues();
             });
         </script>
@@ -222,33 +255,83 @@
 
     @push('styles')
         <style>
-            .hover-bg-light:hover {
-                background-color: #f8f9fa;
-                transform: translateY(-2px);
+            body {
+                /* Assuming StudentNavbar might not set this, or to override */
+                background-color: #f8f9fa; /* Bootstrap's $gray-100 or bg-light equivalent */
+                min-height: 100vh; /* Ensure body takes full viewport height */
+                display: flex; /* Enable flexbox */
+                flex-direction: column; /* Arrange content in a column */
             }
-            .transition {
-                transition: all 0.2s ease;
+            .issue-card {
+                background: #fff;
+                border-radius: 0.75rem; /* 12px */
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Softer shadow */
+                position: relative;
+                overflow: hidden;
+                transition: box-shadow 0.25s ease-out, transform 0.25s ease-out;
+                /* cursor: pointer; /* Add if the whole card is a link to details */
             }
-            .small-status {
-                font-size: 0.6em;
-                vertical-align: middle;
+            .issue-card:hover {
+                box-shadow: 0 7px 22px rgba(13,110,253,0.12); /* More pronounced, themed shadow */
+                transform: translateY(-4px); /* Slightly more lift, no scale to avoid blur */
+            }
+            .issue-card-bar {
+                width: 6px;
+                min-width: 6px; /* Ensure it's visible */
+                height: 100%;
+                border-radius: 6px 0 0 6px; /* Match card radius if card is rounded on left */
+                position: absolute;
+                left: 0;
+                top: 0;
             }
             .btn-action {
-                transition: all 0.2s ease;
+                transition: all 0.2s ease-in-out;
             }
-            .btn-action:hover {
-                transform: translateY(-1px);
+            .btn-action:hover, .btn-action:focus {
+                transform: translateY(-2px) scale(1.03); /* Keep button micro-interaction */
+                box-shadow: 0 3px 10px rgba(0,0,0,0.08);
             }
-            .issue-item {
-                cursor: pointer;
-                border-left: 3px solid transparent;
-            }
-            .issue-item:hover {
-                border-left-color: var(--bs-primary);
+            .small-status {
+                font-size: 0.65em; /* Slightly smaller dot */
+                vertical-align: middle;
             }
             #searchInput:focus {
                 border-color: var(--bs-primary);
-                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+                box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.15); /* Use BS variables */
+            }
+            .form-check-label.badge:hover {
+                opacity: 0.85;
+            }
+
+            /* Responsive tweaks for issue card layout */
+            @media (max-width: 767.98px) { /* Using Bootstrap's md breakpoint */
+                .issue-card {
+                    /* flex-direction: column !important; Is already default for the main div due to flex-column class */
+                    /* align-items: flex-start !important; */
+                    padding: 1rem !important; /* Consistent padding */
+                }
+                .issue-card-bar {
+                    height: 6px;
+                    width: 100%;
+                    border-radius: 6px 6px 0 0; /* Top bar on mobile */
+                    left: 0;
+                    top: 0;
+                }
+                /* Adjust spacing for stacked elements on mobile */
+                .issue-card > div:not(:first-child):not(.issue-card-bar) {
+                    margin-top: 0.75rem;
+                    margin-left: 0 !important; /* Resetting ms-md-auto etc. */
+                }
+                .issue-card .ms-md-auto { /* Target specific spacing classes if needed */
+                    margin-left: 0 !important;
+                }
+                .issue-card .text-md-end { /* Reset text alignment if needed */
+                    text-align: left !important;
+                }
+                .issue-card .align-items-md-end {
+                    align-items: flex-start !important;
+                }
             }
         </style>
     @endpush

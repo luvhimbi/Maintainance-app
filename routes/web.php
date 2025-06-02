@@ -18,7 +18,31 @@ use App\Http\Controllers\Admin\TaskAssignmentController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StaffController;
 
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('admin.reports.index');
 
+
+    Route::get('/admin/reports/students', [\App\Http\Controllers\Admin\ReportController::class, 'StudentsAndStaffReport'])->name('admin.reports.students_and_staff');
+    Route::get('/admin/reports/students-staff/export-pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.export_pdf');
+    Route::get('/admin/reports/students-staff/export-excel', [ReportController::class, 'exportExcel'])->name('admin.reports.export_excel');
+    Route::get('/admin/reports/students-staff/export-word', [ReportController::class, 'exportWord'])->name('admin.reports.export_word');
+
+    Route::get('/admin/reports/tasks', [ReportController::class, 'MaintenanceTaskReport'])->name('admin.reports.tasks');
+    Route::get('/tasks/export-pdf', [ReportController::class, 'exportTaskPdf'])->name('tasks.export.pdf');
+    Route::get('/tasks/export-excel', [ReportController::class, 'exportTaskExcel'])->name('tasks.export.excel');
+    Route::get('/tasks/export-word', [ReportController::class, 'exportTaskWord'])->name('tasks.export.word');
+
+
+    Route::get('/admin/reports/technicians', [\App\Http\Controllers\Admin\ReportController::class, 'generateTechnicianReport'])->name('admin.reports.technicians');
+    Route::get('/technicians/export-pdf', [ReportController::class, 'exportTechnicianPdf'])->name('technicians.export.pdf');
+    Route::get('/technicians/export-excel', [ReportController::class, 'exportTechnicianExcel'])->name('technicians.export.excel');
+    Route::get('/technicians/export-word', [ReportController::class, 'exportTechnicianWord'])->name('technicians.export.word');
+
+    Route::get('/admin/reports/technician-performance/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.report.export.pdf');
+    Route::get('/admin/reports/technician-performance/export/excel', [ReportController::class, 'exportExcel'])->name('admin.report.export.excel');
+
+
+});
 // Show login form and handle submissions
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
@@ -34,7 +58,7 @@ Route::post('/reset-password/{token}', [AuthController::class, 'resetPassword'])
 Route::middleware('auth','prevent-back')->group(function () {
     Route::get('/student/dashboard', [StudentController::class, 'dashboard'])->name('Student.dashboard');
     // Route::get('/technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
-   
+
 });
 Route::middleware(['auth', 'admin','prevent-back'])->group(function () {
     Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
@@ -61,8 +85,8 @@ Route::middleware('auth','prevent-back','technician')->group(function () {
         ->name('notification.index');
      Route::get('/Technician/notifications/{notification}', [NotificationController::class, 'showTechnician'])
         ->name('notifications.Techshow');
-    
 
+    Route::get('/technician/tasks/{task_id}', [TechnicianController::class, 'viewTaskDetails'])->name('technician.task_details');
     // Route to display the update form
     Route::get('/tasks/update/{task_id}', [TaskController::class, 'showUpdateForm'])->name('tasks.update.form');
     Route::put('/tasks/update/{task_id}', [TaskController::class, 'updateTask'])->name('tasks.update');
@@ -90,7 +114,7 @@ Route::delete('locations/{location}', [LocationQrController::class, 'destroy'])-
 Route::put('locations/{location}', [LocationQrController::class, 'update'])->name('admin.locations.update');
 
 
-    
+
 });
 
 
@@ -98,7 +122,7 @@ Route::get('/home', function () {
     return redirect()->route('Student.dashboard');
 })->name('home');
 
- 
+
 
 Route::middleware('auth','prevent-back','campus_member')->group(function () {
    Route::get('/student/dashboard', [StudentController::class, 'dashboard'])->name('Student.dashboard');
@@ -125,10 +149,10 @@ Route::get('/notification/{notification}', [NotificationController::class, 'show
 
 // Notification routes grouped under 'auth' middleware
 Route::middleware('auth')->group(function () {
-    
+
           Route::get('/notifications/admin', [NotificationController::class, 'indexAdmin'])
         ->name('notify.index');
-  
+
 
     // Mark all as read (optional)
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
@@ -163,10 +187,10 @@ Route::middleware('auth')->group(function () {
 
     // Route to view task progress
     Route::get('/tasks/{task}/progress', [TaskAssignmentController::class, 'show'])->name('tasks.progress.show');
-  
-    Route::get('/technician/tasks/{task_id}', [TechnicianController::class, 'viewTaskDetails'])->name('technician.task_details');
+
+
     Route::get('/technician/directions', [TechnicianController::class, 'directions'])->name('technician.directions');
-    
+
     // Add the route for handling navigation API requests
     Route::post('/technician/route', [TechnicianController::class, 'getRoute'])->name('technician.route');
 
@@ -185,8 +209,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('students', \App\Http\Controllers\Admin\StudentController::class)
             ->names([
                 'index' => 'admin.students.index',
-    
-              
+
+
             ]);
 });
 
@@ -198,54 +222,22 @@ Route::middleware('auth')->group(function () {
                 'edit' => 'admin.technicians.edit',
                 'update' => 'admin.technicians.update',
                 'destroy' => 'admin.technicians.destroy'
+
         ]);
 
-  
 
+Route::get('admin/technicians/show/{id}', [TechnicianControllers::class, 'showTech'])->name('admin.technicians.show');
 Route::post('/issues/{issue}/feedback', [FeedbackController::class, 'store'])
     ->name('feedback.submit')
     ->middleware('auth');
 
 
   Route::post('/logout', function () {
-    Auth::logout();         
-    Session::invalidate();  
-    Session::regenerateToken(); 
+    Auth::logout();
+    Session::invalidate();
+    Session::regenerateToken();
     return redirect()->route('login');
 })->name('logout');
 
 // Reports Routes
-Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/admin/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('admin.reports.index');
-    Route::get('/admin/reports/tasks', [\App\Http\Controllers\Admin\ReportController::class, 'generateTaskReport'])->name('admin.reports.tasks');
-      Route::get('/reports', [ReportController::class, 'technicianPerformance'])
-        ->name('admin.reports.technician-performance');
 
-        Route::get('/admin/reports/technician-performance/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.report.export.pdf');
-    Route::get('/admin/reports/technician-performance/export/excel', [ReportController::class, 'exportExcel'])->name('admin.report.export.excel');
-
-    Route::get('/admin/reports/technicians', [\App\Http\Controllers\Admin\ReportController::class, 'generateTechnicianReport'])->name('admin.reports.technicians');
-    Route::get('/admin/reports/performance', [\App\Http\Controllers\Admin\ReportController::class, 'generatePerformanceReport'])->name('admin.reports.performance');
-    Route::get('/admin/reports/tasks', [\App\Http\Controllers\Admin\ReportController::class, 'taskReport'])->name('admin.reports.tasks');
-    Route::get('/admin/reports/students', [\App\Http\Controllers\Admin\ReportController::class, 'StudentsAndStaffReport'])->name('admin.reports.students_and_staff');
-    Route::get('/admin/reports/technicians', [\App\Http\Controllers\Admin\ReportController::class, 'technicianReport'])->name('admin.reports.technicians');
-    Route::get('/admin/reports/performance', [\App\Http\Controllers\Admin\ReportController::class, 'performanceReport'])->name('admin.reports.performance');
-
-    // Export Routes
-    Route::get('/admin/reports/technician-performance/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.report.export.pdf');
-    Route::post('/admin/reports/technician-performance/export/excel', [ReportController::class, 'exportExcel'])->name('admin.report.export.excel');
-
-    // Task Report Export Routes
-    Route::get('/admin/reports/tasks/export/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportTaskPdf'])->name('admin.reports.tasks.export.pdf');
-    Route::get('/admin/reports/tasks/export/excel', [\App\Http\Controllers\Admin\ReportController::class, 'exportTaskExcel'])->name('admin.reports.tasks.export.excel');
-
-    // Technician Report Export Routes
-    Route::get('/admin/reports/technicians/export/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportTechnicianPdf'])->name('admin.reports.technicians.export.pdf');
-    Route::get('/admin/reports/technicians/export/excel', [\App\Http\Controllers\Admin\ReportController::class, 'exportTechnicianExcel'])->name('admin.reports.technicians.export.excel');
-
-    // Performance Report Export Routes
-    Route::get('/admin/reports/performance/export/pdf', [\App\Http\Controllers\Admin\ReportController::class, 'exportPerformancePdf'])->name('admin.reports.performance.export.pdf');
-    Route::get('/admin/reports/performance/export/excel', [\App\Http\Controllers\Admin\ReportController::class, 'exportPerformanceExcel'])->name('admin.reports.performance.export.excel');
-    Route::post('/admin/reports/technician-performance/export/pdf', [ReportController::class, 'exportPdf'])->name('admin.report.export.pdf');
-    Route::post('/admin/reports/technician-performance/export/excel', [ReportController::class, 'exportExcel'])->name('admin.report.export.excel');
-});

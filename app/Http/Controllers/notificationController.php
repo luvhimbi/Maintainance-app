@@ -156,14 +156,13 @@ public function destroy($id)
     $notifications = $user->notifications;
     // Determine redirect route based on the user's role
 
-    if ($user->user_role === 'Campus_Member') {
+    if ($user->user_role === 'Student' || $user->user_role === 'Staff_Member') {
         return view('student.notifications', compact('notifications'))
             ->with('success', 'Notification deleted successfully');
     } elseif ($user->user_role === 'Technician') {
         return view('technician.notifications', compact('notifications'))
             ->with('success', 'Notification deleted successfully');
-    }
-    elseif ($user->user_role === 'Admin') {
+    } elseif ($user->user_role === 'Admin') {
         return view('admin.notifications', compact('notifications'))
             ->with('success', 'Notification deleted successfully');
     }

@@ -24,6 +24,8 @@ class Location extends Model
         'floor_number',
         'room_number',
         'description',
+        'latitude',
+        'longitude'
     ];
 
     // Define relationship with the Issue model

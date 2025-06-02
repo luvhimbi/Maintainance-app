@@ -17,7 +17,7 @@ class CampusMemberMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::check() || !in_array(Auth::user()->user_role, ['Student', 'Staff_Member'])) {
-            abort(401, 'Only users with campus_member or admin role are allowed here.');
+            abort(401, 'Only Students or Staff Member can access this page.');
         }
 
         return $next($request);

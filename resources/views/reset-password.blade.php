@@ -78,7 +78,7 @@
         </div>
     @endif
 
-    @if ($errors->any()))
+    @if ($errors->any())
     <div class="alert alert-danger alert-dismissible fade show">
         <ul class="mb-0">
             @foreach ($errors->all() as $error)

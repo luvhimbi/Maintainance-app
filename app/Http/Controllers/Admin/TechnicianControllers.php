@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Specialization;
 use App\Http\Controllers\Controller;
 use App\Models\Technician;
 use App\Models\User;
@@ -34,64 +35,79 @@ class TechnicianControllers extends Controller
 
     public function create()
     {
-        $specializations = ['Electrical', 'Structural', 'Plumbing'];
+        $specializations = array_column(Specialization::cases(), 'value');
         return view('admin.technicians.create', compact('specializations'));
     }
+    public function showTech($id)
+    {
+        // Find the user by user_id and ensure they have the 'Technician' role.
+        // Eager load the maintenanceStaff relationship for technician-specific details.
+        $technician = User::where('user_id', $id)
+            ->where('user_role', 'Technician')
+            ->with('maintenanceStaff') // Eager load the relationship
+            ->firstOrFail(); // Throws 404 if not found or not a technician
 
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'first_name' => 'required|string|max:50',
-        'last_name' => 'required|string|max:50',
-        'address' => 'required|string|max:255', // Updated max length
-        'email' => 'required|string|email|max:200|unique:users',
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        'phone_number' => 'nullable|string|max:20|unique:users',
-        'specialization' => 'required|string|max:100',
-    ]);
-
-    // Check if a technician with the same email or phone number already exists
-    $existingTechnician = User::where('email', $validated['email'])
-        ->orWhere('phone_number', $validated['phone_number'])
-        ->where('user_role', 'Technician')
-        ->first();
-
-    if ($existingTechnician) {
-        return redirect()->back()
-            ->withErrors(['email' => 'A technician with this email or phone number already exists.'])
-            ->withInput();
+        return view('admin.technicians.show_technician', compact('technician'));
     }
 
-    $user = User::create([
-        'first_name' => $validated['first_name'],
-        'last_name' => $validated['last_name'],
-        'email' => $validated['email'],
-        'password_hash' => Hash::make($validated['password']), // Fixed key name
-        'phone_number' => $validated['phone_number'],
-        'user_role' => 'Technician',
-        'address' => $validated['address'],
-    ]);
 
-    MaintenanceStaff::create([
-        'user_id' => $user->user_id,
-        'specialization' => $validated['specialization'],
-        'availability_status' => 'Available',
-        'current_workload' => 0
-    ]);
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:50',
+            'last_name' => 'required|string|max:50',
+            'address' => 'required|string|max:255',
+            'email' => 'required|string|email|max:200|unique:users,email', // <-- Ensure email is unique
+            'password' => ['required', 'confirmed', Rules\Password::defaults()], // <-- CORRECTED: Use 'password' for validation
+            'phone_number' => [
+                'nullable',
+                'string',
+                'max:20',
+                // Make phone number unique only if provided (not null)
+                // Assuming 'phone_number' is the column name in the 'users' table
+                Rule::unique('users', 'phone_number')->where(function ($query) {
+                    return $query->whereNotNull('phone_number');
+                }),
+            ],
+            'specialization' => [
+                'required',
+                'string',
+                'max:100',
+                // Validate that the specialization is one of the allowed enum values-
+                Rule::in(array_column(Specialization::cases(), 'value')),
+            ],
+        ]);
 
-    // Notify all admins
-    $admins = User::where('user_role', 'Admin')->get();
-    $message = "New technician registered: {$user->first_name} {$user->last_name}";
-    $actionUrl = route('admin.technicians.show', $user->user_id);
+        // Create the User record
+        $user = User::create([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'email' => $validated['email'],
+            'password_hash' => Hash::make($validated['password']),
+            'phone_number' => $validated['phone_number'],
+            'user_role' => 'Technician',
+            'address' => $validated['address'],
+        ]);
 
-    Notification::send($admins, new DatabaseNotification($message, $actionUrl));
+        // Create the associated MaintenanceStaff record
+        MaintenanceStaff::create([
+            'user_id' => $user->user_id, // Assuming 'user_id' is the primary key on User model
+            'specialization' => $validated['specialization'],
+            'availability_status' => 'Available', // Default status for new technicians
+            'current_workload' => 0 // Default workload for new technicians
+        ]);
 
-    return redirect()->route('admin.technicians.index')
-        ->with('success', 'Technician created successfully.');
-}
+        // Notify all admins about the new technician
+        $admins = User::where('user_role', 'Admin')->get();
+        $message = "New technician registered: {$user->first_name} {$user->last_name}";
+        // Ensure 'admin.technicians.show' route exists and expects 'user_id'
+        $actionUrl = route('admin.technicians.show', $user->user_id);
 
+        Notification::send($admins, new DatabaseNotification($message, $actionUrl));
 
-
+        return redirect()->route('admin.technicians.index')
+            ->with('success', 'Technician created successfully.');
+    }
 
    public function show($id)
 {
@@ -102,28 +118,45 @@ public function store(Request $request)
     public function edit($id)
     {
         $technician = User::with('maintenanceStaff')->findOrFail($id);
-        $specializations = ['General', 'Electrical', 'Plumbing', 'Structural']; // Ensure this matches the store method
+        $specializations = array_column(Specialization::cases(), 'value');
        return view('admin.technicians.edit', compact('technician', 'specializations'));
     }
 
     public function update(Request $request, $id)
     {
+        // Find the technician user, including their maintenanceStaff relationship
         $technician = User::with('maintenanceStaff')->findOrFail($id);
 
+        // Validate the incoming request data
         $request->validate([
-        'first_name' => 'required|string|max:50',
-        'last_name' => 'required|string|max:50',
-        'address' => 'required|string|max:255',
-        'email' => 'required|string|email|max:200',
-        'phone_number' => 'nullable|string|max:20',
-        'specialization' => 'required|string|max:100',
+            'first_name' => 'required|string|max:50',
+            'last_name' => 'required|string|max:50',
+            'address' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:200',
+                // Ensure email is unique across users, but ignore the current technician's email.
+                // Assuming 'user_id' is the primary key column name on the 'users' table,
+                // and 'email' is the column to check uniqueness against.
+                Rule::unique('users', 'email')->ignore($technician->user_id, 'user_id'),
+            ],
+            'phone_number' => 'nullable|string|max:20',
+            'specialization' => [
+                'required',
+                'string',
+                'max:100',
+
+                Rule::in(array_column(Specialization::cases(), 'value')),
+            ],
         ]);
 
-        // Capture the original data for comparison
-        $originalData = $technician->only(['first_name', 'last_name', 'address', 'email', 'phone_number']);
-        $originalSpecialization = $technician->maintenanceStaff ? $technician->maintenanceStaff->Specialization : null;
+        // Capture the original data for comparison BEFORE updating
+        $originalUserData = $technician->only(['first_name', 'last_name', 'address', 'email', 'phone_number']);
+        $originalSpecialization = $technician->maintenanceStaff ? $technician->maintenanceStaff->specialization : null;
 
-        // Update user data
+        // --- Update User Data ---
         $technician->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -132,35 +165,54 @@ public function store(Request $request)
             'phone_number' => $request->phone_number,
         ]);
 
-        // Update maintenance staff data
+        // --- Update Maintenance Staff Data ---
+        // Ensure the maintenanceStaff record exists or create it if it doesn't
         if ($technician->maintenanceStaff) {
             $technician->maintenanceStaff->update([
-                'Specialization' => $request->Specialization,
+                'specialization' => $request->specialization, // Correctly use lowercase 's' for request input
+            ]);
+        } else {
+            // If a technician somehow doesn't have a maintenanceStaff record, create it.
+            // This might happen if user roles change or data was manually inserted.
+            $technician->maintenanceStaff()->create([
+                'specialization' => $request->specialization,
+                // You might need to add other default fields for maintenanceStaff if they are non-nullable
+                // e.g., 'availability_status' => 'Available', 'current_workload' => 0,
             ]);
         }
 
-        // Prepare details of changes
+        // --- Prepare details of changes for notification ---
         $changes = [];
-        foreach ($originalData as $key => $value) {
+        // Reload the technician and its relation AFTER update to get the latest values for comparison
+        $technician->refresh();
+        $technician->load('maintenanceStaff'); // Ensure maintenanceStaff is reloaded
+
+        foreach ($originalUserData as $key => $value) {
             if ($value !== $technician->$key) {
-                $changes[] = ucfirst($key) . " was changed from '{$value}' to '{$technician->$key}'.";
+                // Convert snake_case key to readable format for the message
+                $changes[] = ucfirst(str_replace('_', ' ', $key)) . " was changed from '{$value}' to '{$technician->$key}'.";
             }
         }
-        if ($originalSpecialization !== $request->Specialization) {
-            $changes[] = "Specialization was changed from '{$originalSpecialization}' to '{$request->Specialization}'.";
+
+        // Compare original specialization with the new one
+        if ($originalSpecialization !== ($technician->maintenanceStaff->specialization ?? null)) {
+            $changes[] = "Specialization was changed from '" . ($originalSpecialization ?? 'N/A') . "' to '" . ($technician->maintenanceStaff->specialization ?? 'N/A') . "'.";
         }
 
-        // Notify the technician about the update
+        // --- Notify the technician about the update ---
         if (!empty($changes)) {
             $message = "Your profile data has been updated by an admin. Changes: " . implode(' ', $changes);
+            // Ensure 'techProfile' route exists and expects 'user_id'
             $actionUrl = route('techProfile', $technician->user_id);
 
             Notification::send($technician, new DatabaseNotification($message, $actionUrl));
         }
 
+        // Redirect with success message
         return redirect()->route('admin.technicians.index')
             ->with('success', 'Technician updated successfully.');
     }
+
 
     public function destroy($id)
 {

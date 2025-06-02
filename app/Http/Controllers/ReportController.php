@@ -12,10 +12,10 @@ use Excel;
 
 class ReportController extends Controller
 {
-    public function index()
-    {
-        return view('admin.reports.index');
-    }
+
+
+
+
 
     public function generateTaskReport(Request $request)
     {
@@ -68,7 +68,7 @@ class ReportController extends Controller
                     'name' => $technician->first_name . ' ' . $technician->last_name,
                     'total_tasks' => $technician->tasks->count(),
                     'completed_tasks' => $technician->tasks->where('issue_status', 'Completed')->count(),
-                    'completion_rate' => $technician->tasks->count() > 0 
+                    'completion_rate' => $technician->tasks->count() > 0
                         ? round(($technician->tasks->where('issue_status', 'Completed')->count() / $technician->tasks->count()) * 100, 2)
                         : 0,
                     'avg_completion_time' => $technician->tasks->where('issue_status', 'Completed')
@@ -116,7 +116,7 @@ class ReportController extends Controller
                     return [
                         'name' => $technician->first_name . ' ' . $technician->last_name,
                         'total_tasks' => $technician->tasks->count(),
-                        'completion_rate' => $technician->tasks->count() > 0 
+                        'completion_rate' => $technician->tasks->count() > 0
                             ? round(($technician->tasks->where('issue_status', 'Completed')->count() / $technician->tasks->count()) * 100, 2)
                             : 0
                     ];
@@ -136,4 +136,4 @@ class ReportController extends Controller
             return Excel::download(new PerformanceReportExport($data), 'performance-report.xlsx');
         }
     }
-} 
+}

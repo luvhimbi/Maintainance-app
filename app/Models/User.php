@@ -125,4 +125,9 @@ public function maintenanceStaff()
     {
         return $this->hasOne(CampusMember::class);
     }
+    public function issues()
+    {
+        return $this->hasMany(Issue::class, 'reporter_id'); // Assuming 'user_id' is the foreign key in the 'issues' table
+    }
+
 }
