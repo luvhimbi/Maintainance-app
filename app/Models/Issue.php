@@ -40,12 +40,6 @@ class Issue extends Model
         return $this->belongsTo(Location::class, 'location_id', 'location_id');
     }
 
-    // Define the comments relationship
-    public function comments()
-    {
-        return $this->hasMany(Comment::class, 'issue_id');
-    }
-    // app/Models/Issue.php
 
 public function feedback()
 {

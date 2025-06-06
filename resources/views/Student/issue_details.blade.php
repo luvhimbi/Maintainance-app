@@ -384,140 +384,152 @@
             @endif
         </div>
 
+        {{-- Feedback Modal (Bootstrap) --}}
+        <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4">
+                    <div class="modal-header border-bottom-0">
+                        <h5 class="modal-title fw-bold text-dark" id="feedbackModalLabel">
+                            <i class="fas fa-comment-dots me-2 text-primary"></i>Provide Feedback
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="feedbackFormBootstrap">
+                        <div class="modal-body">
+                            <div class="mb-4 text-center">
+                                <h6 class="fw-bold text-dark">How would you rate the resolution of this issue?</h6>
+                                <div class="rating-stars mt-3 d-flex justify-content-center flex-row-reverse">
+                                    @for($i = 5; $i >= 1; $i--)
+                                        <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" class="d-none" {{ $i == 5 ? 'checked' : '' }}>
+                                        <label for="star{{ $i }}" title="{{ $i }} star" class="star-label" style="font-size:2rem; color:#ddd; cursor:pointer;">
+                                            <i class="fas fa-star"></i>
+                                        </label>
+                                    @endfor
+                                </div>
+                                <p class="mt-2 fw-bold text-primary" id="ratingValue">5 Stars</p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="comments" class="form-label fw-bold text-dark">Additional Comments (Optional)</label>
+                                <textarea class="form-control rounded-3" id="comments" name="comments" rows="4" placeholder="Share your thoughts..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top-0">
+                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                <i class="fas fa-paper-plane me-1"></i> Submit Feedback
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         @push('scripts')
             <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
             <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Function to show the feedback modal using SweetAlert2
-                    function showFeedbackModal() {
-                        let currentRating = 5; // Default rating
+document.addEventListener('DOMContentLoaded', function() {
+    // Show Bootstrap modal if feedback is needed
+    @if($issue->issue_status == 'Resolved' && !$issue->hasFeedbackFrom(auth()->user()))
+        var feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+        feedbackModal.show();
+    @endif
 
-                        Swal.fire({
-                            title: '<h5 class="modal-title fw-bold text-dark"><i class="fas fa-comment-dots me-2 text-primary"></i>Provide Feedback</h5>',
-                            html: `
-                    <form id="feedbackFormSwal">
-                        <div class="mb-4 text-center">
-                            <h6 class="fw-bold text-dark">How would you rate the resolution of this issue?</h6>
-                            <div class="rating-stars mt-3 d-flex justify-content-center">
-                                @for($i = 5; $i >= 1; $i--)
-                            <input type="radio" id="swal_star{{ $i }}" name="rating" value="{{ $i }}" ${{$i == 5 ? 'checked' : ''}} class="d-none">
-                                    <label for="swal_star{{ $i }}" title="{{ $i }} star" class="star-label">
-                                        <i class="fas fa-star"></i>
-                                    </label>
-                                @endfor
-                            </div>
-                            <p class="mt-2 fw-bold text-primary" id="swal_ratingValue">5 Stars</p>
-                        </div>
+    // Star rating logic for Bootstrap modal
+    function updateStars(rating) {
+        document.querySelectorAll('.rating-stars label').forEach(function(label) {
+            var starValue = parseInt(label.getAttribute('for').replace('star', ''));
+            label.querySelector('i').style.color = (starValue <= rating) ? '#ffc107' : '#ddd';
+        });
+        document.getElementById('ratingValue').textContent = rating + (rating == 1 ? ' Star' : ' Stars');
+    }
 
-                        <div class="mb-3">
-                            <label for="swal_comments" class="form-label fw-bold text-dark">Additional Comments (Optional)</label>
-                            <textarea class="form-control rounded-3" id="swal_comments" name="comments" rows="4" placeholder="Share your thoughts..."></textarea>
-                        </div>
-                    </form>
-                `,
-                            showCancelButton: true,
-                            confirmButtonText: '<i class="fas fa-paper-plane me-1"></i> Submit Feedback',
-                            cancelButtonText: '<i class="fas fa-times me-1"></i> Close',
-                            reverseButtons: true,
-                            customClass: {
-                                container: 'feedback-swal-container',
-                                popup: 'feedback-swal-popup rounded-4 shadow-lg',
-                                header: 'feedback-swal-header border-bottom',
-                                title: 'feedback-swal-title',
-                                content: 'feedback-swal-content p-4',
-                                confirmButton: 'btn btn-primary px-4 py-2 rounded-pill mx-2',
-                                cancelButton: 'btn btn-secondary px-4 py-2 rounded-pill mx-2'
-                            },
-                            buttonsStyling: false,
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            didOpen: (modalElement) => {
-                                // Initialize star rating logic within the SweetAlert2 modal
-                                const swalLabels = modalElement.querySelectorAll('.rating-stars label');
-                                const swalRatingValue = modalElement.getElementById('swal_ratingValue');
+    // Set initial stars
+    updateStars(5);
 
-                                swalLabels.forEach(label => {
-                                    label.addEventListener('click', function () {
-                                        const inputId = this.getAttribute('for');
-                                        const targetInput = modalElement.querySelector(`#${inputId}`);
-                                        if (targetInput) {
-                                            targetInput.checked = true;
-                                            currentRating = targetInput.value;
-                                            swalRatingValue.textContent = `${currentRating} Star${currentRating > 1 ? 's' : ''}`;
-                                        }
-                                    });
-                                });
+    // Listen for star click
+    document.querySelectorAll('.rating-stars input').forEach(function(input) {
+        input.addEventListener('change', function() {
+            updateStars(parseInt(this.value));
+        });
+    });
 
-                                // Set initial rating display based on default checked star
-                                const initialCheckedStar = modalElement.querySelector('.rating-stars input:checked');
-                                if (initialCheckedStar) {
-                                    currentRating = initialCheckedStar.value;
-                                    swalRatingValue.textContent = `${currentRating} Star${currentRating > 1 ? 's' : ''}`;
-                                }
-                            },
-                            preConfirm: async () => {
-                                const comments = Swal.getPopup().querySelector('#swal_comments').value;
-                                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    // Feedback form submission
+    var feedbackForm = document.getElementById('feedbackFormBootstrap');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var checkedInput = document.querySelector('.rating-stars input:checked');
+            var rating = checkedInput ? checkedInput.value : 5;
+            var comments = document.getElementById('comments') ? document.getElementById('comments').value : '';
+            // Get CSRF token from hidden input if available
+            var csrfToken = '';
+            var csrfInput = document.querySelector('input[name="_token"]');
+            if (csrfInput) {
+                csrfToken = csrfInput.value;
+            } else {
+                // fallback to meta tag
+                var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+            }
+            var submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
 
-                                try {
-                                    const response = await fetch("{{ route('feedback.submit', $issue->issue_id) }}", {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'X-CSRF-TOKEN': csrfToken
-                                        },
-                                        body: JSON.stringify({
-                                            rating: currentRating,
-                                            comments: comments
-                                        })
-                                    });
-
-                                    if (!response.ok) {
-                                        const errorData = await response.json();
-                                        throw new Error(errorData.message || 'Failed to submit feedback.');
-                                    }
-
-                                    // If successful, show success message and reload page
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Feedback Submitted!',
-                                        text: 'Thank you for your valuable feedback.',
-                                        confirmButtonText: 'OK',
-                                        customClass: {
-                                            confirmButton: 'btn btn-primary px-4 py-2 rounded-pill'
-                                        },
-                                        buttonsStyling: false
-                                    }).then(() => {
-                                        window.location.reload(); // Reload to reflect hasFeedbackFrom change
-                                    });
-
-                                } catch (error) {
-                                    Swal.showValidationMessage(`Request failed: ${error.message}`);
-                                    return false; // Keep modal open on error
-                                }
-                            }
-                        });
-                    }
-
-                    // Auto-show modal if conditions are met
-                    @if($issue->issue_status == 'Resolved' && !$issue->hasFeedbackFrom(auth()->user()))
-                    showFeedbackModal();
-                    @endif
-
-                    // Display SweetAlert2 error message if session has 'swal_error'
-                    @if(session('swal_error'))
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: '{{ session('swal_error') }}',
-                        confirmButtonColor: '#0d6efd', // Primary color for confirm button
-                        customClass: {
-                            confirmButton: 'btn btn-primary px-4 py-2 rounded-pill'
-                        },
-                        buttonsStyling: false
-                    });
-                    @endif
+            fetch("{{ route('feedback.submit', $issue->issue_id) }}", {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    rating: rating,
+                    comments: comments
+                })
+            })
+            .then(async response => {
+                if (submitBtn) submitBtn.disabled = false;
+                // Try to parse JSON, but if not valid JSON, show a generic error
+                let data = null;
+                let text = await response.text();
+                try {
+                    data = JSON.parse(text);
+                } catch (err) {
+                    throw new Error('Server returned an invalid response. Please contact support.');
+                }
+                if (!response.ok) {
+                    throw new Error((data && data.message) ? data.message : 'Failed to submit feedback.');
+                }
+                return data;
+            })
+            .then(data => {
+                var modalEl = document.getElementById('feedbackModal');
+                if (modalEl) {
+                    var modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                }
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Feedback Submitted!',
+                    text: 'Thank you for your valuable feedback.',
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                    buttonsStyling: false
+                }).then(() => { window.location.reload(); });
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message,
+                    confirmButtonText: 'OK',
+                    customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                    buttonsStyling: false
                 });
+            });
+        });
+    }
+});
             </script>
         @endpush
 

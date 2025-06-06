@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\MissingIssueFormDataException;
 use App\Mail\TechnicianAssignmentEmail;
 use Illuminate\Http\Request;
 use App\Models\Location;
@@ -60,15 +61,19 @@ class IssueController extends Controller
             'affected_areas' => 'required|integer|min:1',
             'pc_number' => 'nullable|required_if:issue_type,PC|integer|min:1|max:100',
             'pc_issue_type' => 'nullable|required_if:issue_type,PC|string|max:50',
-            'critical_work_affected' => 'required|boolean',
+            'critical_work_affected' => 'nullable|boolean',
+            'affects_operations' => 'required|boolean', // Added affects_operations validation
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,pdf,doc,docx|max:2048',
         ]);
 
-        // Ensure critical_work_affected is always a boolean
+
+        $validated['safety_hazard'] = filter_var($validated['safety_hazard'], FILTER_VALIDATE_BOOLEAN);
         $validated['critical_work_affected'] = filter_var(
             $validated['critical_work_affected'] ?? false,
             FILTER_VALIDATE_BOOLEAN
         );
+        $validated['affects_operations'] = filter_var($validated['affects_operations'], FILTER_VALIDATE_BOOLEAN);
+
 
         // Fetch the authenticated user's ID
         $reporterId = auth()->id();
@@ -87,6 +92,7 @@ class IssueController extends Controller
             'building' => $location->building_name,
             'floor' => $location->floor_number,
             'room' => $location->room_number,
+            'affects_operations' => $validated['affects_operations'],
             'urgency_level' => $this->determineUrgencyLevel($this->calculateUrgencyScore($validated)),
             'urgency_score' => $this->calculateUrgencyScore($validated)
         ];
@@ -181,10 +187,10 @@ class IssueController extends Controller
         $formData = session()->get('formData', []);
         $attachments = session()->get('attachments', []);
 
-        // If no form data exists, redirect back to the form
-        if (empty($formData)) {
-            return redirect()->route('issue.create')->with('error', 'Please fill out the form first.');
+        if (empty($formData) || empty($attachments)) {
+            throw new MissingIssueFormDataException('Form data or attachments are missing. Please return to the Create Issue page and fill out the form.');
         }
+
 
         // Fetch location details for display
         $location = Location::find($formData['location_id']);
@@ -236,6 +242,7 @@ class IssueController extends Controller
                 'urgency_level' => $formData['urgency_level'],
                 'urgency_score' => $formData['urgency_score'] ?? null, // Add score if available
                 'safety_hazard' => $formData['safety_hazard'] ?? false,
+                'affects_operations'=>$formData['affects_operations'] ?? false,
                 'affected_areas' => $formData['affected_areas'] ?? 1,
                 'pc_number' => $formData['pc_number'] ?? null,
                 'pc_issue_type' => $formData['pc_issue_type'] ?? null,
@@ -243,7 +250,7 @@ class IssueController extends Controller
                 'issue_status' => 'Open',
                 'created_at' => now()
             ]);
-
+Log::error("$issue->issue_id");
             session()->put('reported_issue_id', $issue->issue_id);
 
             // Create the task
@@ -605,21 +612,19 @@ public function update(Request $request, Issue $issue)
         'issue_description' => 'required|string',
         'safety_hazard' => 'required|boolean',
         'affected_areas' => 'required|integer|min:1',
+        'affects_operations' => 'required|boolean',
         'pc_number' => 'nullable|integer|min:1|max:100',
         'pc_issue_type' => 'nullable|string|max:255',
         'critical_work_affected' => 'nullable|boolean',
         'attachments.*' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,mp4',
     ]);
-
+    Log::info('Validation passed', $validated);
     // Authorization checks
     if (Auth::id() !== $issue->reporter_id) {
+        Log::warning('Unauthorized update attempt by user ID: ' . Auth::id());
         abort(403, 'Unauthorized action.');
     }
 
-    if ($issue->issue_status !== 'Open') {
-        return redirect()->route('Student.issue_details', $issue->issue_id)
-            ->with('error', 'Only Open issues can be updated.');
-    }
 
     // Store old values for comparison and notification logic
     $oldIssueType = $issue->issue_type;
@@ -684,13 +689,14 @@ public function update(Request $request, Issue $issue)
         'issue_description' => $validated['issue_description'],
         'safety_hazard' => $validated['safety_hazard'],
         'affected_areas' => $validated['affected_areas'],
-        'urgency_level' => $newUrgencyLevel, // Use derived urgency level
+        'affects_operations'=>$validated['affects_operations'],
+        'urgency_level' => $newUrgencyLevel,
         'updated_at' => now()
-    ], $pcData)); // Merge PC-specific data
+    ], $pcData));
+Log::info('Issue updated', $validated);
+    $reporter = Auth::user();
 
-    $reporter = Auth::user(); // The student who is reporting/updating
-
-    $assignedTechnician = null; // To hold the technician who will receive notification
+    $assignedTechnician = null;
 
     // Reassign if needed after issue update, or update existing task details
     if ($needsReassignment) {

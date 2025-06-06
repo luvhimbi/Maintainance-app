@@ -121,7 +121,7 @@ Route::put('locations/{location}', [LocationQrController::class, 'update'])->nam
 Route::get('/home', function () {
     return redirect()->route('Student.dashboard');
 })->name('home');
-
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 
 Route::middleware('auth','prevent-back','campus_member')->group(function () {

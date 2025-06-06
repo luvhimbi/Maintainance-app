@@ -3,522 +3,574 @@
 @section('title', 'Edit Issue')
 
 @section('content')
-<div class="container py-5">
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card shadow-lg border-0 rounded-4">
-                {{-- Main Card Header --}}
-                <div class="card-header bg-white text-dark text-center py-4 rounded-top-4 border-bottom">
-                    <h2 class="mb-0 fw-bold">Edit Issue #{{ $issue->issue_id }}</h2>
-                    <p class="text-muted mb-0">Update the details for your reported issue.</p>
-                </div>
+        <div class="col-lg-9">
+            <h3 class="text-center mb-4 fw-bold" style="color:black;">Edit Maintenance Issue</h3>
 
-                {{-- Error Messages --}}
-                @if ($errors->any())
-                <div class="alert alert-danger mx-4 mt-4 rounded-3" role="alert">
-                    <ul class="mb-0">
+            <div id="error-messages" class="alert alert-danger d-none">
+                <strong style="color:black;">Please fix these issues:</strong>
+                <ul class="mb-0" style="color:black;"></ul>
+            </div>
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <strong style="color:black;">Please fix these issues:</strong>
+                    <ul class="mb-0" style="color:black;">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
                     </ul>
                 </div>
-                @endif
+            @endif
+            @if(session('swal_success_update'))
+                <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Issue Updated!',
+                            text: 'Issue #{{ session('swal_success_update') }} was updated successfully.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Stay Here',
+                            cancelButtonText: 'View Issue details',
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.dismiss === Swal.DismissReason.cancel) {
+                                // Redirect to view issue page
+                                window.location.href = "{{ route('Student.issue_details', session('swal_success_update')) }}";
+                            }
+                        });
+                    });
+                </script>
+            @endif
 
-                <form action="{{ route('Student.updateissue', $issue->issue_id) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    @method('PUT')
 
-                    <div class="card-body p-4 p-md-5">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                {{-- Location Section --}}
-                                <div class="card mb-4 border shadow-sm rounded-3">
-                                    <div class="card-header bg-light text-dark pt-4 pb-3 px-4 rounded-top-3 border-bottom">
-                                        <h5 class="mb-0 fw-bold"><i class="fas fa-map-marker-alt me-2 text-secondary"></i>Location Information</h5>
+            <form id="editIssueForm" action="{{ route('Student.updateissue', $issue->issue_id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <div class="row g-4 split-section">
+                    <!-- Left Column: Location & Classification -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100 border-0">
+                            <div class="card-body">
+                                <h5 class="mb-3 section-title" style="color:black;"><i class="fas fa-map-marker-alt me-2"></i>Location Details</h5>
+                                <div class="mb-3">
+                                    <label for="location_id" class="form-label" style="color:black;">Select Location *</label>
+                                    <select class="form-select border-primary" name="location_id" id="location_id" required>
+                                        <option value="">-- Select location --</option>
+                                        @foreach($locations as $location)
+                                            <option value="{{ $location->location_id }}"
+                                                {{ ($issue->location_id ?? '') == $location->location_id ? 'selected' : '' }}
+                                                data-building="{{ $location->building_name }}"
+                                                data-floor="{{ $location->floor_number }}"
+                                                data-room="{{ $location->room_number }}">
+                                                {{ $location->building_name }} - Floor {{ $location->floor_number }}, Room {{ $location->room_number }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="row g-2 mb-4">
+                                    <div class="col-4">
+                                        <label for="building" class="form-label" style="color:black;">Building</label>
+                                        <input type="text" class="form-control bg-light border-primary" id="building" value="{{ $issue->location->building_name ?? '' }}" readonly>
                                     </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-3">
-                                            <label for="location" class="form-label fw-bold">Select Location</label>
-                                            <select class="form-select form-select-lg" id="location" name="location_id" onchange="autoFillDetails()" required>
-                                                <option value="">Select a location</option>
-                                                @foreach($locations as $location)
-                                                    <option value="{{ $location->location_id }}"
-                                                        {{ $issue->location_id == $location->location_id ? 'selected' : '' }}>
-                                                        {{ $location->building_name }} - Floor {{ $location->floor_number }}, Room {{ $location->room_number }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                    <div class="col-4">
+                                        <label for="floor" class="form-label" style="color:black;">Floor</label>
+                                        <input type="text" class="form-control bg-light border-primary" id="floor" value="{{ $issue->location->floor_number ?? '' }}" readonly>
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="room" class="form-label" style="color:black;">Room</label>
+                                        <input type="text" class="form-control bg-light border-primary" id="room" value="{{ $issue->location->room_number ?? '' }}" readonly>
+                                    </div>
+                                </div>
 
-                                        <div class="row g-3 mt-3">
-                                            <div class="col-md-4">
-                                                <label class="form-label small text-muted">Building</label>
-                                                <input type="text" class="form-control form-control-sm bg-light" id="building" name="building" value="{{ $issue->location->building_name ?? '' }}" readonly>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label small text-muted">Floor</label>
-                                                <input type="text" class="form-control form-control-sm bg-light" id="floor" name="floor" value="{{ $issue->location->floor_number ?? '' }}" readonly>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label small text-muted">Room</label>
-                                                <input type="text" class="form-control form-control-sm bg-light" id="room" name="room" value="{{ $issue->location->room_number ?? '' }}" readonly>
-                                            </div>
+                                <h5 class="mb-3 section-title" style="color:black;"><i class="fas fa-exclamation-circle me-2"></i>Issue Classification</h5>
+                                <label class="form-label" style="color:black;">Issue Type *</label>
+                                <small class="text-danger d-block mb-2">
+                                    ⚠️ Changing the issue type will reassign the issue to a new technician.
+                                </small>
+
+                                <div class="d-flex flex-wrap gap-2 mb-3" id="issueTypeGroup">
+                                    @php
+                                        $types = ['Electrical', 'Plumbing', 'Structural', 'HVAC', 'Furniture', 'PC', 'General'];
+                                        $icons = [
+                                            'Electrical' => 'bolt',
+                                            'Plumbing' => 'faucet',
+                                            'Structural' => 'home',
+                                            'HVAC' => 'fan',
+                                            'Furniture' => 'couch',
+                                            'PC' => 'desktop',
+                                            'General' => 'tools'
+                                        ];
+                                        $selectedType = $issue->issue_type ?? '';
+                                    @endphp
+
+                                    @foreach($types as $type)
+                                        <button type="button"
+                                                class="btn btn-outline-primary {{ $selectedType == $type ? 'active' : '' }}"
+                                                data-value="{{ $type }}">
+                                            <i class="fas fa-{{ $icons[$type] }} me-1"></i>
+                                            <span style="color:black;">{{ $type }}</span>
+                                        </button>
+                                    @endforeach
+                                </div>
+
+                                <input type="hidden" id="issueType" name="issue_type" value="{{ $selectedType }}" required>
+
+                                <!-- PC-specific fields - conditionally displayed -->
+                                <div id="pcFields" class="dynamic-section row g-3 mt-2" style="display: none;">
+                                    <div class="col-12">
+                                        <label for="pc_number" class="form-label" style="color:black;">PC Number <span class="text-danger">*</span></label>
+                                        <input type="number"
+                                               class="form-control border-primary"
+                                               name="pc_number"
+                                               id="pc_number"
+                                               min="1"
+                                               max="100"
+                                               value="{{ $issue->pc_number ?? '' }}">
+                                        <small class="text-muted" style="color:#4361ee;">PC number must be between 1 and 100.</small>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="pc_issue_type" class="form-label" style="color:black;">PC Issue Type</label>
+                                        <select class="form-select border-primary" name="pc_issue_type" id="pc_issue_type">
+                                            <option value="">-- Select type --</option>
+                                            <option value="hardware" {{ ($issue->pc_issue_type ?? '') == 'hardware' ? 'selected' : '' }}>Hardware</option>
+                                            <option value="software" {{ ($issue->pc_issue_type ?? '') == 'software' ? 'selected' : '' }}>Software</option>
+                                            <option value="network" {{ ($issue->pc_issue_type ?? '') == 'network' ? 'selected' : '' }}>Network</option>
+                                            <option value="peripheral" {{ ($issue->pc_issue_type ?? '') == 'peripheral' ? 'selected' : '' }}>Peripheral</option>
+                                            <option value="other" {{ ($issue->pc_issue_type ?? '') == 'other' ? 'selected' : '' }}>Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input type="hidden" name="critical_work_affected" value="0">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   name="critical_work_affected"
+                                                   id="critical_work"
+                                                   value="1"
+                                                {{ ($issue->critical_work_affected ?? 0) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="critical_work" style="color:black;">
+                                                Affects critical work
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
 
-                                {{-- Issue Classification --}}
-                                <div class="card mb-4 border shadow-sm rounded-3">
-                                    <div class="card-header bg-light text-dark pt-4 pb-3 px-4 rounded-top-3 border-bottom">
-                                        <h5 class="mb-0 fw-bold"><i class="fas fa-tags me-2 text-secondary"></i>Issue Classification</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Issue Type</label>
-                                            <div class="d-flex flex-wrap gap-2" id="issueTypeGroup">
-                                                <button type="button" class="btn btn-outline-secondary issue-type-btn {{ $issue->issue_type == 'Electrical' ? 'active' : '' }}" data-value="Electrical">
-                                                    <i class="fas fa-bolt me-1"></i> Electrical
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary issue-type-btn {{ $issue->issue_type == 'Structural' ? 'active' : '' }}" data-value="Structural">
-                                                    <i class="fas fa-home me-1"></i> Structural
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary issue-type-btn {{ $issue->issue_type == 'HVAC' ? 'active' : '' }}" data-value="HVAC">
-                                                    <i class="fas fa-wind me-1"></i> HVAC
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary issue-type-btn {{ $issue->issue_type == 'Plumbing' ? 'active' : '' }}" data-value="Plumbing">
-                                                    <i class="fas fa-faucet me-1"></i> Plumbing
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary issue-type-btn {{ $issue->issue_type == 'Furniture' ? 'active' : '' }}" data-value="Furniture">
-                                                    <i class="fas fa-couch me-1"></i> Furniture
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary issue-type-btn {{ $issue->issue_type == 'PC' ? 'active' : '' }}" data-value="PC">
-                                                    <i class="fas fa-desktop me-1"></i> PC
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary issue-type-btn {{ $issue->issue_type == 'General' ? 'active' : '' }}" data-value="General">
-                                                    <i class="fas fa-ellipsis-h me-1"></i> General
-                                                </button>
-                                            </div>
-                                            <input type="hidden" id="issueType" name="issue_type" value="{{ $issue->issue_type }}" required>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="affected_areas" class="form-label fw-bold">Affected Areas / Quantity</label>
-                                            <input type="number" class="form-control" id="affected_areas" name="affected_areas" min="1" value="{{ $issue->affected_areas }}" placeholder="e.g., 1, 2, or number of items" required>
-                                        </div>
+                                <div class="row g-3 mt-3">
+                                    <div class="col-12">
+                                        <label for="safety_hazard" class="form-label" style="color:black;">Safety Hazard</label>
+                                        <select class="form-select border-primary" name="safety_hazard" id="safety_hazard">
+                                            <option value="0" {{ ($issue->safety_hazard ?? 0) == '0' ? 'selected' : '' }}>No</option>
+                                            <option value="1" {{ ($issue->safety_hazard ?? 0) == '1' ? 'selected' : '' }}>Yes</option>
+                                        </select>
                                     </div>
                                 </div>
 
-                                {{-- Issue Characteristics --}}
-                                <div class="card mb-4 border shadow-sm rounded-3">
-                                    <div class="card-header bg-light text-dark pt-4 pb-3 px-4 rounded-top-3 border-bottom">
-                                        <h5 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2 text-secondary"></i>Issue Characteristics</h5>
+                                <div class="mt-3">
+                                    <div class="form-check">
+                                        <input type="hidden" name="affects_operations" value="0">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               name="affects_operations"
+                                               id="affects_operations"
+                                               value="1"
+                                            {{ ($issue->affects_operations ?? 0) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="affects_operations" style="color:black;">
+                                            Affects operations
+                                        </label>
                                     </div>
-                                    <div class="card-body p-4">
-                                        <div class="form-check form-switch mb-3">
-                                            {{-- Hidden input to ensure '0' is sent if checkbox is unchecked --}}
-                                            <input type="hidden" name="safety_hazard" value="0">
-                                            <input class="form-check-input" type="checkbox" id="safetyHazard" name="safety_hazard" value="1" {{ $issue->safety_hazard ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="safetyHazard">This is a safety hazard</label>
-                                        </div>
-                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <label for="affected_areas" class="form-label" style="color:black;">Affected Areas</label>
+                                    <input type="number" class="form-control border-primary" name="affected_areas" id="affected_areas" value="{{ $issue->affected_areas ?? 1 }}" min="1">
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div class="col-md-6">
-                                {{-- PC-Specific Fields (Conditionally displayed) --}}
-                                <div class="card mb-4 border shadow-sm rounded-3" id="pcFields" style="display: {{ $issue->issue_type == 'PC' ? 'block' : 'none' }};">
-                                    <div class="card-header bg-light text-dark pt-4 pb-3 px-4 rounded-top-3 border-bottom">
-                                        <h5 class="mb-0 fw-bold"><i class="fas fa-desktop me-2 text-secondary"></i>PC-Specific Information</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-3">
-                                            <label for="pc_number" class="form-label fw-bold">PC Number</label>
-                                            <input type="text" class="form-control" id="pc_number" name="pc_number" value="{{ $issue->pc_number }}" placeholder="e.g., PC-001, Lab-PC-A">
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="pc_issue_type" class="form-label fw-bold">PC Issue Type</label>
-                                            <select class="form-select" id="pc_issue_type" name="pc_issue_type">
-                                                <option value="">Select type</option>
-                                                <option value="hardware" {{ $issue->pc_issue_type == 'hardware' ? 'selected' : '' }}>Hardware</option>
-                                                <option value="software" {{ $issue->pc_issue_type == 'software' ? 'selected' : '' }}>Software</option>
-                                                <option value="network" {{ $issue->pc_issue_type == 'network' ? 'selected' : '' }}>Network</option>
-                                                <option value="peripheral" {{ $issue->pc_issue_type == 'peripheral' ? 'selected' : '' }}>Peripheral</option>
-                                                <option value="other" {{ $issue->pc_issue_type == 'other' ? 'selected' : '' }}>Other</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="criticalWorkAffected" name="critical_work_affected" value="1" {{ $issue->critical_work_affected ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="criticalWorkAffected">Critical work is affected</label>
-                                        </div>
-                                    </div>
+                    <!-- Right Column: Details & Attachments -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100 border-0">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="mb-3 section-title" style="color:black;"><i class="fas fa-align-left me-2"></i>Issue Details</h5>
+                                <div class="mb-3 flex-grow-1">
+                                    <label for="issue_description" class="form-label" style="color:black;">Description *</label>
+                                    <textarea class="form-control border-primary" name="issue_description" id="issue_description" rows="7" required>{{ $issue->issue_description }}</textarea>
                                 </div>
-
-                                {{-- Issue Details --}}
-                                <div class="card mb-4 border shadow-sm rounded-3">
-                                    <div class="card-header bg-light text-dark pt-4 pb-3 px-4 rounded-top-3 border-bottom">
-                                        <h5 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2 text-secondary"></i>Issue Details</h5>
+                                <!-- Assignee Details Section -->
+                                <div class="card shadow-sm border-0 mt-4">
+                                    <div class="card-header bg-light text-dark d-flex align-items-center">
+                                        <i class="fas fa-user-cog me-2"></i>
+                                        <h6 class="mb-0">Current Assigned Technician</h6>
                                     </div>
-                                    <div class="card-body p-4">
-                                        <div class="mb-3">
-                                            <label for="issue_description" class="form-label fw-bold">Description</label>
-                                            <textarea class="form-control" id="issue_description" name="issue_description" rows="7" placeholder="Please provide detailed information about the issue, including steps to reproduce it if applicable." required>{{ $issue->issue_description }}</textarea>
-                                        </div>
-                                    </div>
-                                </div>
+                                    <div class="card-body">
+                                        @if($issue->task && $issue->task->assignee)
+                                            <div class="d-flex align-items-center">
+                                                <img
+                                                    src="https://ui-avatars.com/api/?name={{ urlencode($issue->task->assignee->first_name . ' ' . $issue->task->assignee->last_name) }}&background=dddddd&color=000000&bold=true&size=128"
+                                                    alt="Technician Avatar"
+                                                    class="rounded-circle me-3"
+                                                    style="width: 50px; height: 50px; object-fit: cover;">
 
-                                {{-- Attachments --}}
-                                <div class="card border shadow-sm rounded-3">
-                                    <div class="card-header bg-light text-dark pt-4 pb-3 px-4 rounded-top-3 border-bottom">
-                                        <h5 class="mb-0 fw-bold"><i class="fas fa-paperclip me-2 text-secondary"></i>Attachments</h5>
-                                    </div>
-                                    <div class="card-body p-4">
-                                        <div class="file-upload-area text-center p-4 border-dashed rounded-3 bg-white mb-4">
-                                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                            <p class="mb-3 text-muted">Drag & drop files here or click to browse</p>
-                                            <input type="file" id="mediaUpload" name="attachments[]" hidden accept="image/*, video/*, .pdf, .doc, .docx" multiple>
-                                            <label for="mediaUpload" class="btn btn-outline-secondary btn-sm">
-                                                <i class="fas fa-plus-circle me-2"></i>Add Files
-                                            </label>
-                                            <p class="small text-muted mt-2 mb-0">Max file size: 10MB per file. Supported formats: JPG, PNG, PDF, DOC, DOCX, MP4</p>
-                                            <div id="fileList" class="text-start mt-3"></div>
-                                        </div>
-
-                                        @if($issue->attachments->count() > 0)
-                                            <div class="mt-4">
-                                                <h6 class="fw-bold mb-3 text-secondary">Current Attachments:</h6>
-                                                <div class="list-group">
-                                                    @foreach($issue->attachments as $attachment)
-                                                        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2">
-                                                            <div>
-                                                                <i class="fas fa-file-alt me-2 text-info"></i>
-                                                                <a href="{{ Storage::url($attachment->file_path) }}"
-                                                                    target="_blank" class="text-decoration-none text-dark fw-medium">
-                                                                    {{ $attachment->original_name }}
-                                                                </a>
-                                                            </div>
-                                                            <span class="badge bg-light text-dark">{{ round($attachment->file_size / 1024, 1) }} KB</span>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                                <div class="alert alert-info mt-3 p-2 small rounded-3" role="alert">
-                                                    <i class="fas fa-info-circle me-1"></i>
-                                                    Note: Uploading new files will replace all existing attachments.
+                                                <div>
+                                                    <h6 class="mb-1" style="color:#333;">
+                                                        {{ $issue->task->assignee->first_name }} {{ $issue->task->assignee->last_name }}
+                                                    </h6>
+                                                    <p class="mb-0 text-muted" style="font-size: 0.9rem;">
+                                                        {{ $issue->task->assignee->email }}
+                                                    </p>
                                                 </div>
                                             </div>
+                                        @else
+                                            <p class="text-muted mb-0">No technician assigned yet.</p>
                                         @endif
                                     </div>
                                 </div>
+
+                                <div class="mb-3">
+                                    <label for="mediaUpload" class="form-label" style="color:black;">Attachments</label>
+                                    <input type="file" class="form-control border-primary" id="mediaUpload" name="attachments[]" multiple accept="image/*,.pdf,.doc,.docx">
+                                    <div class="form-text" style="color:#4361ee;">
+                                        Upload images (jpg, jpeg, png, gif), videos (mp4), or documents (pdf, doc, docx). Max 5 files.
+                                    </div>
+                                    <div id="fileList" class="text-start mt-3">
+                                        @if($issue->attachments && $issue->attachments->count())
+                                            @foreach($issue->attachments as $file)
+                                                @php
+                                                    $ext = strtolower(pathinfo($file->original_name, PATHINFO_EXTENSION));
+                                                    $icon = match($ext) {
+                                                        'jpg', 'jpeg', 'png', 'gif' => 'fa-file-image',
+                                                        'mp4' => 'fa-file-video',
+                                                        'pdf' => 'fa-file-pdf',
+                                                        'doc', 'docx' => 'fa-file-word',
+                                                        default => 'fa-file'
+                                                    };
+                                                @endphp
+                                                <div class="file-item">
+                                                    <i class="fas {{ $icon }}"></i>
+                                                    <span>{{ $file->original_name }}</span>
+                                                    <span class="text-muted ms-2">({{ number_format($file->file_size / 1024, 2) }} KB)</span>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="d-grid mt-auto">
+                                    <button type="submit" class="btn btn-primary submit-btn">
+                                        <i class="fas fa-save me-2"></i> Save Changes
+                                    </button>
+                                </div>
                             </div>
                         </div>
-
-                        {{-- Form Actions --}}
-                        <div class="d-flex justify-content-end gap-3 mt-5">
-                            <a href="{{ route('home') }}" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
-                                <i class="fas fa-times-circle me-2"></i>Cancel
-                            </a>
-                            <button type="submit" class="btn btn-dark px-4 py-2 rounded-pill">
-                                <i class="fas fa-save me-2"></i>Save Changes
-                            </button>
-                        </div>
                     </div>
-                </form>
-            </div>
+                </div> <!-- End row -->
+            </form>
         </div>
     </div>
 </div>
+@endsection
 
+@push('styles')
 <style>
-    /* Custom Styles for a modern and simplistic look with white theme */
-    body {
-        background-color: #f8f9fa; /* Light grey background */
-        min-height: 100vh; /* Ensure body takes full viewport height */
-        display: flex; /* Enable flexbox */
-        flex-direction: column; /* Arrange content in a column */
+    :root {
+        --primary-color: #4361ee;
+        --primary-light: #e0e6ff;
+        --primary-hover: #3a56d4;
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --text-dark: #2d3748;
+        --text-medium: #4a5568;
+        --text-light: #718096;
+        --border-color: #e2e8f0;
+        --bg-light: #f8fafc;
+        --bg-white: #ffffff;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+        --radius-lg: 12px;
+        --radius-md: 8px;
+        --radius-sm: 4px;
     }
-
-    .card {
-        border: 1px solid #e0e0e0; /* Subtle border for cards */
-        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05); /* Lighter shadow */
-    }
-
-    .card-header {
-        background-color: #ffffff; /* White background for headers */
-        color: #343a40; /* Dark text */
-        border-bottom: 1px solid #e9ecef; /* Light border at the bottom */
-    }
-
-    .card-header h2, .card-header p {
-        color: #343a40 !important; /* Ensure text is dark */
-    }
-
-    .card-header.bg-light {
-        background-color: #f8f9fa !important; /* Very light grey for section headers */
-        color: #343a40; /* Darker text for section headers */
-        border-bottom: 1px solid #dee2e6;
-    }
-
     .form-label {
         font-weight: 600;
-        color: #495057;
-    }
-
-    .form-control, .form-select {
-        border-radius: 0.5rem; /* Slightly more rounded inputs */
-        border-color: #ced4da;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: #b0b0b0; /* Grey focus border */
-        box-shadow: 0 0 0 0.25rem rgba(128, 128, 128, 0.25); /* Grey shadow on focus */
-    }
-
-    .issue-type-btn {
-        flex: 1 0 calc(33.333% - 0.5rem);
-        min-width: 120px;
-        border-radius: 0.5rem;
-        transition: all 0.2s ease-in-out;
-        font-weight: 500;
-        color: #6c757d; /* Secondary color for outline buttons */
-        border-color: #6c757d;
-        background-color: #ffffff; /* White background */
-    }
-
-    .issue-type-btn:hover {
-        background-color: #e9ecef; /* Light grey hover effect */
-        color: #495057;
-        border-color: #5a6268;
-    }
-
-    .issue-type-btn.active {
-        background-color: #343a40; /* Dark grey for active state */
-        color: white;
-        border-color: #343a40;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
-    }
-
-    .file-upload-area {
-        border: 2px dashed #d1d1d1; /* Lighter dashed border */
-        background-color: #ffffff;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .file-upload-area:hover {
-        border-color: #a0a0a0; /* Darker grey on hover */
-        background-color: #f0f0f0; /* Lighter grey background on hover */
-    }
-
-    .file-upload-area .fa-cloud-upload-alt {
-        color: #adb5bd; /* Muted icon color */
-    }
-
-    .list-group-item {
-        border-radius: 0.4rem;
+        color: black;
         margin-bottom: 0.5rem;
-        border: 1px solid #e9ecef;
-        background-color: #fdfdfd;
+        font-size: 0.925rem;
+        display: block;
     }
-
-    .list-group-item:last-child {
-        margin-bottom: 0;
+    .form-control, .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+        background-color: var(--bg-white);
     }
-
-    .btn-dark {
-        background-color: #343a40;
-        border-color: #343a40;
-        transition: background-color 0.2s ease, border-color 0.2s ease;
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-light);
     }
-
-    .btn-dark:hover {
-        background-color: #23272b;
-        border-color: #1d2124;
+    .btn {
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
     }
-
-    .btn-outline-secondary {
-        color: #6c757d;
-        border-color: #6c757d;
-        background-color: #ffffff;
-        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    .btn i {
+        font-size: 1.1em;
     }
-
-    .btn-outline-secondary:hover {
-        background-color: #6c757d;
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        border: none;
         color: white;
-        border-color: #6c757d;
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    .btn-outline-primary {
+        color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        background: #fff;
+    }
+    .btn-outline-primary.active, .btn-outline-primary:active, .btn-outline-primary:focus, .btn-outline-primary:hover {
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+        border-color: var(--primary-color) !important;
+    }
+    .split-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    @media (max-width: 768px) {
+        .split-section {
+            grid-template-columns: 1fr;
+        }
+        .form-container {
+            padding: 1.5rem;
+            margin: 1rem;
+            border-radius: 0;
+        }
+    }
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: black;
+        display: flex;
+        align-items: center;
+        position: relative;
+        padding-bottom: 0.75rem;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 40px;
+        height: 3px;
+        background: var(--primary-color);
+        border-radius: 3px;
+    }
+    .section-title i {
+        margin-right: 0.75rem;
+        color: var(--primary-color);
+        font-size: 1.4em;
+    }
+    .file-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: var(--bg-white);
+        border-radius: var(--radius-md);
+        margin-bottom: 0.75rem;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+    .file-item:hover {
+        transform: translateX(2px);
+        box-shadow: var(--shadow-sm);
+    }
+    .file-item i {
+        color: var(--primary-color);
+        margin-right: 0.75rem;
+        font-size: 1.2em;
+    }
+    .file-name {
+        flex: 1;
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+    .submit-btn {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        font-weight: 600;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: var(--radius-md);
+        margin-top: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+        transition: all 0.2s ease;
+    }
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(67, 97, 238, 0.25);
+    }
+    .alert {
+        border-radius: var(--radius-md);
+        padding: 1rem 1.5rem;
+        border-left: 4px solid var(--primary-color);
+        background-color: var(--bg-white);
+        box-shadow: var(--shadow-sm);
     }
 </style>
+@endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Auto-fill location details on page load if a location is already selected
-        if (document.getElementById('location').value) {
-            autoFillDetails();
-        }
+document.addEventListener('DOMContentLoaded', function () {
+    // Issue type button group logic
+    const issueTypeGroup = document.getElementById('issueTypeGroup');
+    const issueTypeInput = document.getElementById('issueType');
+    const pcFields = document.getElementById('pcFields');
+    const pcNumberInput = document.getElementById('pc_number');
+    const pcIssueTypeSelect = document.getElementById('pc_issue_type');
 
-        // Handle issue type selection
-        const issueTypeGroup = document.getElementById('issueTypeGroup');
-        const issueTypeInput = document.getElementById('issueType');
-        const pcFields = document.getElementById('pcFields');
-
-        // Initialize issueTypeInput value and PC fields display on page load
-        const initialActiveButton = issueTypeGroup.querySelector('.issue-type-btn.active');
-        if (initialActiveButton) {
-            issueTypeInput.value = initialActiveButton.getAttribute('data-value');
-            togglePcFields(); // Call to set initial visibility of PC fields
-        }
-
-        issueTypeGroup.querySelectorAll('.issue-type-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                // Remove 'active' from all buttons
-                issueTypeGroup.querySelectorAll('.issue-type-btn').forEach(btn => btn.classList.remove('active'));
-                // Add 'active' to the clicked button
-                this.classList.add('active');
-                // Set the hidden input's value
-                const selectedValue = this.getAttribute('data-value');
-                issueTypeInput.value = selectedValue;
-
-                // Show/hide PC-specific fields based on selection
-                togglePcFields(); // Call to update visibility after click
-            });
-        });
-
-        // Function to show/hide PC-specific fields
-        function togglePcFields() {
-            const selectedIssueType = issueTypeInput.value;
-            pcFields.style.display = selectedIssueType === 'PC' ? 'block' : 'none';
-
-            // Set required attribute for PC fields based on visibility
-            pcFields.querySelectorAll('[name="pc_number"], [name="pc_issue_type"], [name="critical_work_affected"]').forEach(field => {
-                if (selectedIssueType === 'PC') {
-                    // Only pc_number and pc_issue_type are required by validation in controller
-                    // critical_work_affected is boolean and handled by hidden input
-                    if (field.name === 'pc_number' || field.name === 'pc_issue_type') {
-                        field.required = true;
-                    }
-                } else {
-                    field.required = false;
-                }
-            });
-        }
-
-
-        // Handle file upload display and drag & drop
-        const mediaUpload = document.getElementById('mediaUpload');
-        const fileList = document.getElementById('fileList');
-        const fileUploadArea = document.querySelector('.file-upload-area');
-
-        function updateFileList(files) {
-            fileList.innerHTML = ''; // Clear existing list
-            if (files.length > 0) {
-                fileUploadArea.classList.add('border-secondary'); // Highlight border when files are present
-                Array.from(files).forEach(file => {
-                    fileList.innerHTML += `
-                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded-3 shadow-sm-sm">
-                            <span class="text-truncate me-2"><i class="fas fa-file me-2 text-muted"></i>${file.name}</span>
-                            <span class="badge bg-light text-dark">${(file.size / 1024).toFixed(2)} KB</span>
-                        </div>`;
-                });
-            } else {
-                fileUploadArea.classList.remove('border-secondary'); // Remove highlight if no files
-            }
-        }
-
-        mediaUpload.addEventListener('change', function () {
-            updateFileList(this.files);
-        });
-
-        // Drag and drop events
-        fileUploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault(); // Prevent default to allow drop
-            fileUploadArea.classList.add('border-secondary', 'bg-light'); // Visual feedback
-        });
-
-        fileUploadArea.addEventListener('dragleave', () => {
-            fileUploadArea.classList.remove('border-secondary', 'bg-light'); // Remove visual feedback
-        });
-
-        fileUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault(); // Prevent default file open behavior
-            fileUploadArea.classList.remove('border-secondary', 'bg-light'); // Remove visual feedback
-
-            // Assign dropped files to the file input
-            mediaUpload.files = e.dataTransfer.files;
-
-            // Manually trigger a change event on the file input to update the displayed list
-            const event = new Event('change');
-            mediaUpload.dispatchEvent(event);
-        });
-
-        // SweetAlert for success message with navigation options
-        @if(session('swal_success_update'))
-            Swal.fire({
-                title: 'Success!',
-                text: 'Issue updated successfully!',
-                icon: 'success',
-                showCancelButton: true,
-                confirmButtonText: 'Go to Issue Details',
-                cancelButtonText: 'Stay on this page',
-                reverseButtons: true, // Puts confirm button on the right
-                customClass: {
-                    confirmButton: 'btn btn-dark px-4 py-2 rounded-pill mx-2',
-                    cancelButton: 'btn btn-outline-secondary px-4 py-2 rounded-pill mx-2'
-                },
-                buttonsStyling: false, // Disable default SweetAlert styling for buttons
-                allowOutsideClick: false, // Prevent closing by clicking outside
-                allowEscapeKey: false // Prevent closing by escape key
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = "{{ route('Student.issue_details', session('swal_success_update')) }}";
-                } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    // User clicked 'Stay on this page' or dismissed the modal
-                    // No action needed, user stays on the current page
-                }
-            });
-        @endif
-
-        // SweetAlert for general error messages (if any)
-        @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#343a40' // Dark button for error
-            });
-        @endif
-    });
-
-    // Function to auto-fill location details based on dropdown selection
-    function autoFillDetails() {
-        const locationSelect = document.getElementById('location');
-        const selectedOption = locationSelect.options[locationSelect.selectedIndex];
-
-        // Ensure an option is selected before attempting to split
-        if (selectedOption && selectedOption.value) {
-            const fullText = selectedOption.text;
-            // Expected format: "Building Name - Floor X, Room Y"
-            const parts = fullText.match(/(.*) - Floor (\d+), Room (.*)/);
-
-            if (parts && parts.length === 4) {
-                document.getElementById('building').value = parts[1].trim();
-                document.getElementById('floor').value = parts[2].trim();
-                document.getElementById('room').value = parts[3].trim();
-            } else {
-                // Fallback or clear if format doesn't match
-                document.getElementById('building').value = '';
-                document.getElementById('floor').value = '';
-                document.getElementById('room').value = '';
-            }
+    function togglePcFields() {
+        if (issueTypeInput.value === 'PC') {
+            pcFields.style.display = 'flex';
+            pcNumberInput.setAttribute('required', 'true');
+            pcIssueTypeSelect.setAttribute('required', 'true');
         } else {
-            // Clear fields if "Select location" is chosen
-            document.getElementById('building').value = '';
-            document.getElementById('floor').value = '';
-            document.getElementById('room').value = '';
+            pcFields.style.display = 'none';
+            pcNumberInput.removeAttribute('required');
+            pcIssueTypeSelect.removeAttribute('required');
+            pcNumberInput.value = '';
+            pcIssueTypeSelect.value = '';
+            document.getElementById('critical_work').checked = false;
         }
     }
+
+    // Set initial state
+    const initialIssueType = issueTypeInput.value;
+    if (initialIssueType) {
+        const activeButton = issueTypeGroup.querySelector(`[data-value="${initialIssueType}"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
+    togglePcFields();
+
+    // Add event listeners to issue type buttons
+    issueTypeGroup.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', function () {
+            issueTypeGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            issueTypeInput.value = this.getAttribute('data-value');
+            togglePcFields();
+        });
+    });
+
+    // Location details autofill logic
+    const locationSelect = document.getElementById('location_id');
+    const buildingInput = document.getElementById('building');
+    const floorInput = document.getElementById('floor');
+    const roomInput = document.getElementById('room');
+
+    function updateLocationDetails() {
+        const selectedOption = locationSelect.options[locationSelect.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+            buildingInput.value = selectedOption.getAttribute('data-building') || '';
+            floorInput.value = selectedOption.getAttribute('data-floor') || '';
+            roomInput.value = selectedOption.getAttribute('data-room') || '';
+        } else {
+            buildingInput.value = '';
+            floorInput.value = '';
+            roomInput.value = '';
+        }
+    }
+    locationSelect.addEventListener('change', updateLocationDetails);
+    updateLocationDetails();
+
+    // File upload display with icon
+    const mediaUpload = document.getElementById('mediaUpload');
+    const fileList = document.getElementById('fileList');
+    if (mediaUpload) {
+        mediaUpload.addEventListener('change', function () {
+            fileList.innerHTML = '';
+            Array.from(this.files).forEach(file => {
+                let ext = file.name.split('.').pop().toLowerCase();
+                let icon = 'fa-file';
+                if(['jpg','jpeg','png','gif'].includes(ext)) icon = 'fa-file-image';
+                else if(ext === 'mp4') icon = 'fa-file-video';
+                else if(ext === 'pdf') icon = 'fa-file-pdf';
+                else if(['doc','docx'].includes(ext)) icon = 'fa-file-word';
+                fileList.innerHTML += `
+                    <div class="file-item">
+                        <i class="fas ${icon}"></i>
+                        <span>${file.name}</span>
+                        <span class="text-muted ms-2">(${(file.size / 1024).toFixed(2)} KB)</span>
+                    </div>
+                `;
+            });
+        });
+    }
+
+    // Client-side validation
+    const editIssueForm = document.getElementById('editIssueForm');
+    editIssueForm.addEventListener('submit', function(event) {
+        let errors = [];
+        if (!locationSelect.value) {
+            errors.push('Please select a location.');
+        }
+        if (!issueTypeInput.value) {
+            errors.push('Please select an issue type.');
+        }
+        if (!document.getElementById('issue_description').value.trim()) {
+            errors.push('Please provide a description for the issue.');
+        }
+        if (issueTypeInput.value === 'PC') {
+            if (!pcNumberInput.value) {
+                errors.push('PC Number is required for PC issues.');
+            }
+            if (!pcIssueTypeSelect.value) {
+                errors.push('PC Issue Type is required for PC issues.');
+            }
+        }
+
+        const errorMessagesDiv = document.getElementById('error-messages');
+        const errorList = errorMessagesDiv.querySelector('ul');
+        errorList.innerHTML = '';
+
+        if (errors.length > 0) {
+            event.preventDefault();
+            errors.forEach(error => {
+                const li = document.createElement('li');
+                li.textContent = error;
+                errorList.appendChild(li);
+            });
+            errorMessagesDiv.classList.remove('d-none');
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error!',
+                html: 'Please correct the following:<br>' + errors.map(e => `&bull; ${e}`).join('<br>'),
+                confirmButtonColor: '#4361ee'
+            });
+        } else {
+            errorMessagesDiv.classList.add('d-none');
+        }
+    });
+});
 </script>
 @endpush
-@endSection

@@ -47,12 +47,12 @@
         </div>
 
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center"> {{-- Added px-4 for consistency --}}
-                <h3 class="mb-0 fw-bold h5">Your Active Reported Issues</h3> {{-- Adjusted to h5 for better hierarchy if h1 is h3 visual --}}
-                <span class="text-muted small" id="issueCount">{{ $issues->count() }} issues found</span>
+            <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                <h3 class="mb-0 fw-bold h5">Your Active Reported Issues</h3>
+                <span class="text-muted small" id="issueCount">{{ $issues->total() }} issues found</span>
             </div>
             <div class="card-body p-0" id="issuesContainer">
-                @forelse ($issues as $issue) {{-- Changed to forelse for easier empty state handling if JS is disabled, though JS handles it primarily --}}
+                @forelse ($issues as $issue)
                 @php
                     $icon = match($issue->issue_type) {
                         'Plumbing' => 'fa-faucet-drip',
@@ -74,15 +74,15 @@
                         default => 'secondary'
                     };
                 @endphp
-                <div class="issue-card d-flex flex-column flex-md-row align-items-stretch border-bottom p-3 p-md-4 issue-item position-relative" {{-- Removed mb-0 as .issue-card style handles margin --}}
-                data-issue-type="{{ strtolower(trim($issue->issue_type)) }}"
-                     data-location="{{ strtolower(trim($issue->location->building_name ?? '') . ' ' . trim($issue->location->room_number ?? '')) }}"
-                     data-description="{{ strtolower(trim($issue->issue_description)) }}"
-                     data-status="{{ strtolower(trim($issue->issue_status)) }}"> {{-- Converted to lowercase and trimmed status here --}}
+                <div class="issue-card d-flex flex-column flex-md-row align-items-stretch border-bottom p-3 p-md-4 issue-item position-relative"
+                    data-issue-type="{{ strtolower(trim($issue->issue_type)) }}"
+                    data-location="{{ strtolower(trim($issue->location->building_name ?? '') . ' ' . trim($issue->location->room_number ?? '')) }}"
+                    data-description="{{ strtolower(trim($issue->issue_description)) }}"
+                    data-status="{{ strtolower(trim($issue->issue_status)) }}">
                     <div class="issue-card-bar bg-{{ $urgencyColor }}"></div>
                     <div class="d-flex align-items-center flex-grow-1 me-md-3">
-                        <span class="badge bg-{{ $urgencyColor }}-subtle text-{{ $urgencyColor }} rounded-circle p-3 shadow-sm me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;"> {{-- Subtle icon background --}}
-                            <i class="fas {{ $icon }} fa-lg"></i> {{-- Removed text-white, color comes from parent or specific class --}}
+                        <span class="badge bg-{{ $urgencyColor }}-subtle text-{{ $urgencyColor }} rounded-circle p-3 shadow-sm me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="fas {{ $icon }} fa-lg"></i>
                         </span>
                         <div>
                             <h5 class="mb-1 fw-semibold">{{ $issue->issue_type }} Issue</h5>
@@ -118,7 +118,7 @@
                         </a>
                     </div>
                 </div>
-                @empty {{-- Handles case where $issues is empty initially --}}
+                @empty
                 {{-- This part is primarily for non-JS scenarios or initial render. JS will show #emptyState --}}
                 {{-- If JS is enabled, #emptyState below will be shown instead by the script. --}}
                 @if($issues->isEmpty()) {{-- Explicit check for initial load --}}
@@ -133,6 +133,13 @@
                 @endif
                 @endforelse
             </div>
+            @if($issues->hasPages())
+                <div class="card-footer bg-white border-top-0 py-3">
+                    <div class="d-flex justify-content-center">
+                        {{ $issues->withQueryString()->links('pagination::bootstrap-5') }}
+                    </div>
+                </div>
+            @endif
         </div>
 
         <div class="text-center py-5 d-none" id="emptyState">
@@ -147,109 +154,96 @@
 
     @push('scripts')
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const searchInput = document.getElementById('searchInput');
-                const searchButton = document.getElementById('searchButton');
-                const clearButton = document.getElementById('clearButton');
-                const statusFilters = document.querySelectorAll('.status-filter');
-                const issueItems = document.querySelectorAll('.issue-item');
-                const issuesContainer = document.getElementById('issuesContainer');
-                const emptyState = document.getElementById('emptyState');
-                const issueCount = document.getElementById('issueCount');
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const clearButton = document.getElementById('clearButton');
+    const statusFilters = document.querySelectorAll('.status-filter');
+    const issuesContainer = document.getElementById('issuesContainer');
+    const emptyState = document.getElementById('emptyState');
+    const issueCount = document.getElementById('issueCount');
 
-                function filterIssues() {
-                    const searchTerm = searchInput.value.toLowerCase().trim();
-                    const selectedStatuses = Array.from(statusFilters)
-                        .filter(checkbox => checkbox.checked)
-                        .map(checkbox => checkbox.value.trim()); // Trim checkbox values
+    // Always get the latest list of issue items (for pagination)
+    function getIssueRows() {
+        return Array.from(issuesContainer.querySelectorAll('.issue-item'));
+    }
 
-                    // console.log('Search Term:', searchTerm);
-                    // console.log('Selected Statuses (from checkboxes):', selectedStatuses);
+    function filterIssues() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedStatuses = Array.from(statusFilters)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => checkbox.value.trim());
 
-                    let visibleCount = 0;
+        let visibleCount = 0;
+        let anyVisible = false;
 
-                    issueItems.forEach(item => {
-                        const issueType = item.dataset.issueType.toLowerCase();
-                        const location = item.dataset.location.toLowerCase();
-                        const description = item.dataset.description.toLowerCase();
-                        const status = item.dataset.status.trim(); // Trim status from dataset
+        getIssueRows().forEach(item => {
+            // Use textContent for all text in the card for robust search
+            const text = item.textContent.toLowerCase();
+            const status = item.dataset.status.trim();
 
-                        // console.log('  Processing item. Original data-status:', item.dataset.status, 'Trimmed & Lowercased status:', status);
+            const matchesSearch = searchTerm === '' || text.includes(searchTerm);
+            const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(status);
 
-                        const matchesSearch = searchTerm === '' ||
-                            issueType.includes(searchTerm) ||
-                            location.includes(searchTerm) ||
-                            description.includes(searchTerm);
+            if (matchesSearch && matchesStatus) {
+                item.style.display = '';
+                visibleCount++;
+                anyVisible = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
 
-                        const matchesStatus = selectedStatuses.length === 0 ||
-                            selectedStatuses.includes(status);
+        issueCount.textContent = `${visibleCount} issue${visibleCount !== 1 ? 's' : ''} found`;
 
-                        // console.log('  Matches Search:', matchesSearch, 'Matches Status:', matchesStatus, 'Comparison result (selectedStatuses.includes(status)):', selectedStatuses.includes(status));
+        if (!anyVisible) {
+            issuesContainer.classList.add('d-none');
+            emptyState.classList.remove('d-none');
+        } else {
+            issuesContainer.classList.remove('d-none');
+            emptyState.classList.add('d-none');
+        }
+    }
 
+    // Search on input
+    searchInput.addEventListener('input', filterIssues);
 
-                        if (matchesSearch && matchesStatus) {
-                            item.style.display = ''; // Reverts to default (flex for these items)
-                            visibleCount++;
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
+    // Search on button click
+    searchButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        filterIssues();
+    });
 
-                    // Update count
-                    issueCount.textContent = `${visibleCount} issue${visibleCount !== 1 ? 's' : ''} found`;
+    // Clear search and filters
+    clearButton.addEventListener('click', function() {
+        searchInput.value = '';
+        document.getElementById('openCheck').checked = true;
+        document.getElementById('progressCheck').checked = true;
+        filterIssues();
+    });
 
-                    // Handle empty state display
-                    if (visibleCount === 0) {
-                        issuesContainer.classList.add('d-none');
-                        emptyState.classList.remove('d-none');
-                        if (issueItems.length === 0) { // No issues rendered by PHP at all
-                            emptyState.querySelector('h4').textContent = 'No issues reported yet.';
-                            emptyState.querySelector('p').textContent = 'Ready to report your first maintenance issue?';
-                        } else { // Issues were rendered, but none match the filter
-                            emptyState.querySelector('h4').textContent = 'No issues found';
-                            emptyState.querySelector('p').textContent = 'Try adjusting your search or filters, or report a new one.';
-                        }
-                    } else {
-                        issuesContainer.classList.remove('d-none');
-                        emptyState.classList.add('d-none');
+    // Status filter logic
+    statusFilters.forEach(filter => {
+        filter.addEventListener('change', function() {
+            if (this.checked) {
+                statusFilters.forEach(otherFilter => {
+                    if (otherFilter !== this) {
+                        otherFilter.checked = false;
                     }
+                });
+            } else {
+                const currentlyChecked = Array.from(statusFilters).filter(cb => cb.checked).length;
+                if (currentlyChecked === 0) {
+                    this.checked = true;
                 }
+            }
+            filterIssues();
+        });
+    });
 
-                // Event listeners
-                searchInput.addEventListener('input', filterIssues);
-
-                clearButton.addEventListener('click', function() {
-                    searchInput.value = '';
-                    // Reset filters to their default checked state (as defined in HTML)
-                    document.getElementById('openCheck').checked = true;
-                    document.getElementById('progressCheck').checked = true;
-                    filterIssues();
-                });
-
-                statusFilters.forEach(filter => {
-                    filter.addEventListener('change', function() {
-                        // If this checkbox is checked, uncheck all other status filters
-                        if (this.checked) {
-                            statusFilters.forEach(otherFilter => {
-                                if (otherFilter !== this) {
-                                    otherFilter.checked = false;
-                                }
-                            });
-                        } else {
-                            // If the user tries to uncheck the LAST active filter, prevent it
-                            // This ensures at least one filter is always active, preventing an empty display
-                            const currentlyChecked = Array.from(statusFilters).filter(cb => cb.checked).length;
-                            if (currentlyChecked === 0) {
-                                this.checked = true; // Keep it checked if it's the only one left
-                            }
-                        }
-                        filterIssues(); // Then run the filter with the updated selections
-                    });
-                });
-
-                // Initial filter call to apply default filters and set initial state
-                filterIssues();
-            });
+    // Initial filter
+    filterIssues();
+});
         </script>
     @endpush
 
