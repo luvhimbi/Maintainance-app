@@ -142,15 +142,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('completed.tasks') }}">
-                            <i class="fas fa-history"></i>Task History
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="{{ route('technician.directions') }}">
                             <i class="fa-solid fa-map-pin "></i>SmartNav
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('completed.tasks') }}">
+                            <i class="fas fa-history"></i>Task History
+                        </a>
+                    </li>
+
                     <li class="nav-item position-relative">
                         <a class="nav-link {{ Request::routeIs('notification.index') ? 'active' : '' }}"
                            href="{{ route('notification.index') }}">

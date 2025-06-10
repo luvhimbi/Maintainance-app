@@ -3,22 +3,22 @@
 
 @section('content')
     <div class="container-fluid py-4">
-        <div class="card border-0 shadow-sm rounded-4"> {{-- Added rounded-4 for consistent styling --}}
-            <div class="card-header bg-white border-bottom py-3 px-4 rounded-top-4"> {{-- Added px-4 and rounded-top-4 --}}
-                <div class="row align-items-center g-3"> {{-- Using Bootstrap row for better column control --}}
-                    <div class="col-12 col-md-6"> {{-- Column for title --}}
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom py-3 px-4 rounded-top-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-12 col-md-6">
                         <h2 class="h5 mb-1 fw-bold text-dark">Staff Management</h2>
                         <p class="text-muted small mb-0">Manage all staff member accounts and information</p>
                     </div>
-                    <div class="col-12 col-md-6 col-lg-4 offset-lg-2"> {{-- Column for search, offset to push right --}}
-                        <div class="input-group rounded-pill overflow-hidden shadow-sm-sm"> {{-- Styled search input --}}
+                    <div class="col-12 col-md-6 col-lg-4 offset-lg-2">
+                        <div class="input-group rounded-pill overflow-hidden shadow-sm-sm">
                             <span class="input-group-text bg-light border-0 ps-3">
                                 <i class="fas fa-search text-muted"></i>
                             </span>
                             <input type="text"
                                    id="staffSearch"
                                    class="form-control border-0 pe-3"
-                                   placeholder="Search staff by name, ID, department, email, phone..." {{-- Expanded placeholder --}}
+                                   placeholder="Search staff by name, ID, department, email, phone..."
                                    aria-label="Search staff">
                             <button class="btn btn-outline-secondary border-0"
                                     type="button"

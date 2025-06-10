@@ -12,6 +12,7 @@
         "chillerlan/php-qrcode": "^5.0",
         "laravel/framework": "^12.0",
         "laravel/reverb": "^1.0",
+        "laravel/scout": "^10.15",
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^3.6",
         "maatwebsite/excel": "^3.1",

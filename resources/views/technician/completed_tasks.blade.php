@@ -9,9 +9,7 @@
                 <h1 class="h2 fw-bold mb-1">Completed Tasks</h1>
                 <p class="text-muted mb-0">View All Completed Maintenance Tasks</p>
             </div>
-            <div class="bg-light p-3 rounded">
-                <span class="fw-bold" id="completedTaskCount">{{ $completedTasks->count() }}</span> completed tasks
-            </div>
+
         </div>
 
         <div class="card shadow-sm border-0 rounded-3 mb-4 hover-lift">

@@ -21,16 +21,16 @@ class MaintenanceStaffSeeder extends Seeder
         $technicians = [
             // Electrical Technicians
             [
-            'email' => 'electrician1@example.com',
-            'first_name' => 'Mike',
-            'last_name' => 'Johnson',
+            'email' => '222118050@tut4life.ac.za',
+            'first_name' => 'Lindiwe',
+            'last_name' => 'Sekgala',
             'specialization' => Specialization::ELECTRICAL,
             'phone' => '0998877611'
             ],
             [
-            'email' => 'electrician2@example.com',
-            'first_name' => 'John',
-            'last_name' => 'Doe',
+            'email' => '231312137@tut4life.ac.za',
+            'first_name' => 'Kgothatso',
+            'last_name' => 'Moyo',
             'specialization' => Specialization::ELECTRICAL,
             'phone' => '0998877612'
             ],
@@ -170,8 +170,8 @@ class MaintenanceStaffSeeder extends Seeder
                     'first_name' => $tech['first_name'],
                     'last_name' => $tech['last_name'],
                     'address' => rand(1, 100) . ' Maintenance Block, Main Campus'
-                    ,'created_at' => Carbon::now(), 
-                    'updated_at' => Carbon::now(), 
+                    ,'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
                     ]
             );
 

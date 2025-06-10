@@ -6,12 +6,7 @@
     <div class="container py-4">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
             <div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('technician.dashboard') }}" class="text-decoration-none text-muted">Dashboard</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Task #{{ $task->task_id }}</li>
-                    </ol>
-                </nav>
+
                 <h1 class="h2 fw-bold mb-0 text-dark">Task Details</h1>
             </div>
             <div class="d-flex gap-2">

@@ -26,6 +26,7 @@ class Issue extends Model
         'report_date',
         'issue_status',
         'urgency_level',
+        'urgency_score',
         'safety_hazard',
         'affects_operations',
         'affected_areas',

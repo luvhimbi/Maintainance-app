@@ -305,8 +305,8 @@
                                class="btn btn-primary">
                                 <i class="fas fa-search me-2"></i> View Issue Details
                             </a>
-                            <a href="{{ route('home') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-home me-2"></i> Return to Home
+                            <a href="{{ route('Student.dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-2"></i> Return to dashboard
                             </a>
                         </div>
                     </div>
@@ -321,7 +321,4 @@
     </div>
 @endsection
 
-@push('scripts')
-    <!-- Bootstrap 5 JavaScript Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-@endpush
+

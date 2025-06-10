@@ -305,7 +305,7 @@
             <li class="sidebar-item">
                 <a href="#maintenanceSubmenu" class="sidebar-link" data-bs-toggle="collapse" role="button">
                     <i class="fas fa-tools"></i>
-                    <span>Maintenance</span>
+                    <span>Maintenance </span>
                     <i class="fas fa-chevron-down ms-auto"></i>
                 </a>
                 <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.tasks.*') || request()->routeIs('admin.locations.*') ? 'show' : '' }}" id="maintenanceSubmenu">
@@ -328,7 +328,7 @@
             <li class="sidebar-item">
                 <a href="#usersSubmenu" class="sidebar-link" data-bs-toggle="collapse" role="button">
                     <i class="fas fa-users-cog"></i>
-                    <span>Users</span>
+                    <span>Manage Users</span>
                     <i class="fas fa-chevron-down ms-auto"></i>
                 </a>
                 <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.students.*') || request()->routeIs('admin.technicians.*') || request()->routeIs('staff.*') ? 'show' : '' }}" id="usersSubmenu">

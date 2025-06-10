@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Password Reset - OCM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
             background: #f4f6fa;
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Poppins', Arial, sans-serif;
             margin: 0;
             padding: 0;
             color: #22223b;
@@ -80,7 +83,7 @@
             <div class="email-title">Password Reset Request</div>
         </div>
         <div class="email-content">
-            <p>Hello,</p>
+            <p>Hello,{{$first_name}} {{$last_name}}</p>
             <p>We received a request to reset your password for your <strong>OCM</strong> account.</p>
             <p>Click the button below to set a new password:</p>
             <p style="text-align:center;">

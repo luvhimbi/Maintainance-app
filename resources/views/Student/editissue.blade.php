@@ -438,6 +438,26 @@
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const updateForm = document.getElementById('editIssueForm');
+    if (updateForm) {
+        updateForm.addEventListener('submit', function() {
+            Swal.fire({
+                title: 'Updating Issue...',
+                html: '<div class="spinner-border text-primary" role="status"></div><br>Please wait while we process your update and notify the technician(s).',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        });
+    }
+});
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Issue type button group logic

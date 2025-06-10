@@ -1,39 +1,42 @@
 
-## 📋 Project Tasks
+** STUDENT ACCOUNTS(refer to the studentseeder file)
+Olerato Moeko
+224551100@tut4life.ac.za
 
-### ✅TASKS TO COMPLETE
+Brilliant Matlala
+221857887@tut4life.ac.za
 
-- [x] **Edit Issue Functionality**
-    - Allow users to edit their submitted issues.
-    - Backend supports PATCH/PUT requests.
-    - Validation and permissions applied.
-    - Frontend form for editing existing issues.
+** STAFF MEMBER ACCOUNTS(refer to the staff member seeder file)
+Siyamthanda Khumalo
+230747598@tut4life.ac.za
 
-- [ ] **Error Handling**
-    - Display custom 404, 500, and other error pages.
-    - Turn off Spring Boot debug mode in production.
+Samkelo Mavuso
+224688350@tut4life.ac.za
 
-- [ ] **Home Page**
-    - Create a clean and user-friendly landing page.
-    - Display issue stats and quick access buttons.
+** TECHNICIAN ACCOUNTS(refer to the maintainanceStaff Seeder file)
+Lindiwe Sekgala
+222118050@tut4life.ac.za
 
-- [ ] **Campus Selection**
-    - Users must select the campus from where the issue is reported.
-    - Campus data should influence technician assignment or filtering.
+Kgothatso Moyo
+231312137@tut4life.ac.za
 
-- [ ] **Email Notifications**
-    - Notify users via email when issue status is updated.
-    - Use SMTP or external service (Mailgun, SendGrid).
+** ADMIN ACCOUNTS (refer to the admin seeder file )
+Munzhedzi Munyadziwa 
+223579752@tut4life.ac.za
 
-- [ ] **Location Mapping**
-    - Redo location logic to use latitude and longitude.
-    - Admin can create locations via a map interface.
-    - Save location markers in DB.
+Boitumelo Mahlangu
+224545657@tut4life.ac.za
 
-- [ ] **Technician Map Navigation**
-    - Enable technician to view issue locations on a campus map.
-    - Filter or route by campus/issue type.
-    - (Optional) Integration with Google Maps or Leaflet.js.
+
+COMMANDS to use *
+** php artisan migrate:fresh --seed - Clears the db and  migrates the tables again and also seeds the tables in the db
+** php artisan cache:clear   - clears application cache
+** php artisan config:clear - clears config cache 
+**  php artisan view:clear - clears view cache 
+** php artisan route:clear - clears route cache 
+** php artisan serve -  runs the application 
+
+ 
 
 
 

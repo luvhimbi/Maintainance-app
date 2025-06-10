@@ -7,13 +7,7 @@
         <!-- Header Section -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
             <div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('technician.dashboard') }}" class="text-decoration-none">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('technician.task_details', ['task_id' => $task->task_id]) }}" class="text-decoration-none">Task #{{ $task->task_id }}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Update</li>
-                    </ol>
-                </nav>
+
                 <h1 class="h2 fw-bold mb-0">Update Task #{{ $task->task_id }}</h1>
             </div>
             <a href="{{ route('technician.task_details', ['task_id' => $task->task_id]) }}" class="btn btn-outline-secondary">
@@ -59,7 +53,7 @@
             </div>
 
             <div class="card-body">
-                <form action="{{ route('tasks.update', $task->task_id) }}" method="POST">
+                <form id="updateTaskForm" action="{{ route('tasks.update', $task->task_id) }}" method="POST">
                     @csrf
                     @method('PUT')
 
@@ -133,4 +127,26 @@
         }
     </style>
 
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const updateForm = document.getElementById('updateTaskForm');
+        if (updateForm) {
+            updateForm.addEventListener('submit', function() {
+                Swal.fire({
+                    title: 'Updating Task...',
+                    html: '<div class="spinner-border text-primary" role="status"></div><br>Please wait while we notify the reporter.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            });
+        }
+    });
+    </script>
+    @endpush
 @endsection

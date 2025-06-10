@@ -16,16 +16,16 @@ class AdminSeeder extends Seeder
     {
         $admins = [
             [
-            'email' => 'admin@university.edu',
-            'first_name' => 'System',
-            'last_name' => 'Admin',
+            'email' => '223579752@tut4life.ac.za',
+            'first_name' => 'Munzhedzi',
+            'last_name' => 'Munyadziwa',
             'phone' => '01122334455',
             'department' => 'Administration',
             ],
             [
-            'email' => 'dean@university.edu',
-            'first_name' => 'Faculty',
-            'last_name' => 'Dean',
+            'email' => '224545657@tut4life.ac.za',
+            'first_name' => 'Boitumelo',
+            'last_name' => 'Mahlangu',
             'phone' => '01122334466',
             'department' => 'Faculty Affairs',
             ],
@@ -71,7 +71,7 @@ class AdminSeeder extends Seeder
                 ['user_id' => $user->user_id],
                 [
                     'department' => $admin['department'],
-                   
+
                 ]
             );
     }

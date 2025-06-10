@@ -22,11 +22,11 @@ class AuthController extends Controller
 {
     // Check if user is already logged in
     if (Auth::check()) {
-        
+
         switch (Auth::user()->user_role) {
             case 'Student':
             case 'Staff_Member':
-                return redirect()->route('Student.dashboard'); // Combined dashboard
+                return redirect()->route('Student.dashboard');
             case 'Technician':
                 return redirect()->route('technician.dashboard');
             case 'Admin':
@@ -50,7 +50,7 @@ public function login(Request $request)
     $request->validate([
         'email' => 'required|email',
         'password' => 'required',
-        'role' => 'required|in:Student,Staff_Member,Technician,Admin', // Updated role options
+        'role' => 'required|in:Student,Staff_Member,Technician,Admin',
     ]);
 
     // Find the user by email
@@ -66,7 +66,7 @@ public function login(Request $request)
         return back()->withErrors(['password' => 'Incorrect password.']);
     }
 
-   
+
     if ($request->role !== $user->user_role) {
         return back()->withErrors(['role' => 'Invalid role for this user.']);
     }
@@ -78,7 +78,7 @@ public function login(Request $request)
     switch ($request->role) {
         case 'Student':
         case 'Staff_Member':
-            return redirect()->route('Student.dashboard'); 
+            return redirect()->route('Student.dashboard');
         case 'Technician':
             return redirect()->route('technician.dashboard');
         case 'Admin':
@@ -94,37 +94,36 @@ public function login(Request $request)
 
    public function sendResetLink(Request $request)
 {
-    // Validate the email
     $request->validate(['email' => 'required|email']);
 
-    // Check if the email exists in the database
     $user = User::where('email', $request->email)->first();
 
     if (!$user) {
-        return back()->withErrors(['email' => 'Email not found.']);
+        // Return JSON for AJAX
+        return response()->json(['errors' => ['email' => ['Email not found.']]], 422);
     }
 
-    // Generate a token
     $token = Str::random(60);
     $hashedToken = Hash::make($token);
 
-
-    // Store the token in the password_reset_tokens table
     DB::table('password_reset_tokens')->updateOrInsert(
         ['email' => $user->email],
         [
-            'token' => $hashedToken, // Hashed token for security
+            'token' => $hashedToken,
             'created_at' => Carbon::now()
         ]
     );
 
-   // Generate the reset URL using plain token
     $resetUrl = url('/reset-password/' . $token . '?email=' . urlencode($user->email));
 
-    // Send the reset email
-    Mail::to($user->email)->send(new PasswordResetMail($resetUrl));
+    Mail::to($user->email)->send(new PasswordResetMail(
+        $resetUrl,
+        $user->first_name,
+        $user->last_name
+    ));
 
-    return back()->with('status', 'Reset password link sent. Please check your email!');
+    // Return JSON for AJAX
+    return response()->json(['status' => 'Reset password link sent. Please check your email!']);
 }
 
 public function showResetPasswordForm($token)

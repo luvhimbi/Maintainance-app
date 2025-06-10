@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
+
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Searchable;
 
     /**
      * The primary key for the model.
@@ -128,6 +130,20 @@ public function maintenanceStaff()
     public function issues()
     {
         return $this->hasMany(Issue::class, 'reporter_id'); // Assuming 'user_id' is the foreign key in the 'issues' table
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'first_name' => strtolower($this->first_name ?? ''),
+            'last_name' => strtolower($this->last_name ?? ''),
+            'email' => strtolower($this->email ?? ''),
+            'phone_number' => strtolower($this->phone_number ?? ''),
+            'address' => strtolower($this->address ?? ''),
+            // Add student number and course if relationship loaded
+            'student_number' => strtolower(optional($this->studentDetail)->student_number ?? ''),
+            'course' => strtolower(optional($this->studentDetail)->course ?? ''),
+        ];
     }
 
 }

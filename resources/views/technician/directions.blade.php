@@ -11,7 +11,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">
                             <i class="fas fa-map-marked-alt me-2"></i>
-                            Campus Navigation
+                           Smart Nav
                         </h4>
                         <a href="{{ route('technician.dashboard') }}" class="btn btn-light btn-sm">
                             <i class="fas fa-arrow-left me-1"></i> Dashboard
@@ -21,8 +21,8 @@
                 <div class="card-body p-0">
                     <div class="row g-0">
                         <!-- Map Column -->
-                        <div class="col-lg-8 position-relative">
-                            <div id="map" style="height: 75vh; width: 100%;"></div>
+                        <div class="col-lg-9 position-relative">
+                            <div id="map" style="height: 85vh; width: 100%;"></div>
                             <div id="location-info" class="position-absolute top-0 end-0 m-3 p-2 bg-white rounded shadow-sm d-none">
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-circle text-success me-2"></i>
@@ -55,6 +55,17 @@
                                 <div class="progress mt-2" style="height: 4px;">
                                     <div id="route-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
                                 </div>
+                                <!-- Add route summary -->
+                                <div class="mt-2 d-flex justify-content-between align-items-center">
+                                    <div class="text-primary">
+                                        <i class="fas fa-road me-1"></i>
+                                        <span id="total-distance">0 km</span>
+                                    </div>
+                                    <div class="text-primary">
+                                        <i class="fas fa-clock me-1"></i>
+                                        <span id="total-duration">0 min</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Location Permission Alert -->
@@ -63,7 +74,7 @@
                                     <i class="fas fa-map-marker-alt text-primary fa-3x"></i>
                                 </div>
                                 <h5 class="text-center mb-3">Location Access Required</h5>
-                                <p class="text-center mb-3">Please enable location access to use navigation features.</p>
+                                <p class="text-center mb-3">Please enable location access to use your current location.</p>
                                 <div class="d-grid">
                                     <button id="request-location" class="btn btn-primary">
                                         <i class="fas fa-location-arrow me-2"></i>Enable Location
@@ -73,8 +84,8 @@
                         </div>
 
                         <!-- Controls Panel -->
-                        <div class="col-lg-4">
-                            <div class="p-3" style="height: 75vh; overflow-y: auto;">
+                        <div class="col-lg-3">
+                            <div class="p-3" style="height: 85vh; overflow-y: auto;">
                                 <div class="navigation-controls">
                                     <div class="mb-4">
                                         <h5 class="text-primary mb-3">
@@ -84,12 +95,46 @@
 
                                         <div class="input-group mb-3">
                                             <span class="input-group-text bg-primary text-white">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                            </span>
+                                            <input type="text"
+                                                   class="form-control"
+                                                   id="start-location-input"
+                                                   placeholder="Enter start location">
+                                        </div>
+                                        <div id="start-location-results" class="list-group mb-3 d-none" style="max-height: 200px; overflow-y: auto;">
+                                        </div>
+
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text bg-primary text-white">
                                                 <i class="fas fa-flag-checkered"></i>
                                             </span>
                                             <input type="text"
                                                    class="form-control"
                                                    id="destination-input"
-                                                   placeholder="Enter destination address">
+                                                   placeholder="Enter destination">
+                                        </div>
+                                        <div id="destination-results" class="list-group mb-3 d-none" style="max-height: 200px; overflow-y: auto;">
+                                        </div>
+
+                                        <!-- All Locations List -->
+                                        <div class="mb-3">
+                                            <h6 class="text-primary mb-2">
+                                                <i class="fas fa-list me-2"></i>
+                                               Campus Locations
+                                            </h6>
+                                            <div id="all-locations-list" class="list-group" style="max-height: 300px; overflow-y: auto;">
+                                                <!-- Locations will be loaded here -->
+                                            </div>
+                                        </div>
+
+                                        <!-- Location Buttons -->
+                                        <div class="mb-3">
+                                            <div class="d-grid gap-2">
+                                                <button id="get-user-location" class="btn btn-outline-primary">
+                                                    <i class="fas fa-location-arrow me-2"></i>Use My Location
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <select id="travel-mode" class="form-select mb-3">
@@ -165,14 +210,33 @@ let speechSynthesis = window.speechSynthesis;
 let userLocationMarker = null;
 let geolocateControl = null;
 
+// Add variables for location markers
+let locationMarkers = [];
+let startLocationMarker = null;
+let endLocationMarker = null;
+
 // Initialize Mapbox map
 function initMap() {
     try {
+        // Get location parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const building = urlParams.get('building');
+        const room = urlParams.get('room');
+        const lat = urlParams.get('lat');
+        const lng = urlParams.get('lng');
+
+        // Set initial center based on URL parameters or default
+        const initialCenter = lat && lng ? 
+            [parseFloat(lng), parseFloat(lat)] : 
+            [28.098271679102634, -25.53978422415537];
+
         map = new mapboxgl.Map({
             container: 'map',
-            style: '{{ $mapboxStyle }}',
-            center: [28.098271679102634, -25.53978422415537],
-            zoom: 16 // Closer zoom for campus view
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: initialCenter,
+            zoom: 17,
+            pitch: 45,
+            bearing: 0
         });
 
         // Add navigation controls
@@ -192,24 +256,56 @@ function initMap() {
         // Add click event listener for selecting points
         map.on('click', handleMapClick);
 
-        // Wait for map to load before adding event listeners
+        // Wait for map to load before adding event listeners and custom layers
         map.on('load', () => {
             console.log('Map loaded successfully');
-
-            // Check if geolocation is supported
-            if (!navigator.geolocation) {
-                showLocationError('Geolocation is not supported by your browser');
-                return;
-            }
-
-            // Request location permission
-            requestLocationPermission();
-
-            // Setup event listeners
             setupEventListeners();
+            enhanceMapVisibility();
 
-            // Add campus boundaries
-            addCampusBoundaries();
+            // If location parameters exist, create destination marker
+            if (building && lat && lng) {
+                // Create destination marker
+                const el = document.createElement('div');
+                el.className = 'location-marker';
+                el.innerHTML = `
+                    <div class="location-marker-content">
+                        <i class="fas fa-flag"></i>
+                        <div class="location-marker-tooltip">${building}${room ? `, Room ${room}` : ''}</div>
+                    </div>
+                `;
+
+                // Remove existing end marker if any
+                if (endLocationMarker) {
+                    endLocationMarker.remove();
+                }
+
+                // Add new marker
+                endLocationMarker = new mapboxgl.Marker(el)
+                    .setLngLat([parseFloat(lng), parseFloat(lat)])
+                    .addTo(map);
+
+                // Update destination input
+                document.getElementById('destination-input').value = `${building}${room ? `, Room ${room}` : ''}`;
+
+                // Add a popup with location information
+                const popup = new mapboxgl.Popup({ offset: 25 })
+                    .setHTML(`
+                        <div class="p-2">
+                            <h6 class="mb-1">${building}</h6>
+                            ${room ? `<p class="mb-0 text-muted">Room ${room}</p>` : ''}
+                        </div>
+                    `);
+
+                endLocationMarker.setPopup(popup);
+
+                // Center map on destination with animation
+                map.flyTo({
+                    center: [parseFloat(lng), parseFloat(lat)],
+                    zoom: 17,
+                    essential: true,
+                    duration: 2000
+                });
+            }
         });
 
     } catch (error) {
@@ -218,49 +314,111 @@ function initMap() {
     }
 }
 
-// Add campus boundaries
-function addCampusBoundaries() {
-    // TUT Soshanguve campus boundary coordinates
-    const campusBoundary = {
-        'type': 'Feature',
-        'properties': {},
-        'geometry': {
-            'type': 'Polygon',
-            'coordinates': [[
-                [28.098271679102634, -25.53978422415537], // Main entrance
-                [28.0985, -25.5399], // North boundary
-                [28.0987, -25.5397], // East boundary
-                [28.0983, -25.5395], // South boundary
-                [28.0981, -25.5396], // West boundary
-                [28.098271679102634, -25.53978422415537]  // Back to start
-            ]]
-        }
-    };
-
-    // Add the boundary to the map
-    map.addSource('campus-boundary', {
-        'type': 'geojson',
-        'data': campusBoundary
-    });
-
-    // Add the boundary layer
+// Function to enhance map visibility
+function enhanceMapVisibility() {
+    // Add 3D buildings layer
     map.addLayer({
-        'id': 'campus-boundary-fill',
-        'type': 'fill',
-        'source': 'campus-boundary',
+        'id': '3d-buildings',
+        'source': 'composite',
+        'source-layer': 'building',
+        'filter': ['==', 'extrude', 'true'],
+        'type': 'fill-extrusion',
+        'minzoom': 15,
         'paint': {
-            'fill-color': '#0080ff',
-            'fill-opacity': 0.1
+            'fill-extrusion-color': '#aaa',
+            'fill-extrusion-height': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                15,
+                0,
+                15.05,
+                ['get', 'height']
+            ],
+            'fill-extrusion-base': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                15,
+                0,
+                15.05,
+                ['get', 'min_height']
+            ],
+            'fill-extrusion-opacity': 0.6
         }
     });
 
+    // Enhance roads visibility
     map.addLayer({
-        'id': 'campus-boundary-line',
+        'id': 'road-labels',
+        'type': 'symbol',
+        'source': 'composite',
+        'source-layer': 'road',
+        'layout': {
+            'text-field': ['get', 'name'],
+            'text-size': 12,
+            'text-anchor': 'top',
+            'text-offset': [0, 1]
+        },
+        'paint': {
+            'text-color': '#000',
+            'text-halo-color': '#fff',
+            'text-halo-width': 1
+        }
+    });
+
+    // Add custom style for pathways
+    map.addLayer({
+        'id': 'pathways',
         'type': 'line',
-        'source': 'campus-boundary',
+        'source': 'composite',
+        'source-layer': 'road',
+        'filter': ['==', ['get', 'class'], 'path'],
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
         'paint': {
-            'line-color': '#0080ff',
-            'line-width': 2
+            'line-color': '#ff0000',
+            'line-width': 2,
+            'line-opacity': 0.8
+        }
+    });
+
+    // Add custom style for roads
+    map.addLayer({
+        'id': 'roads',
+        'type': 'line',
+        'source': 'composite',
+        'source-layer': 'road',
+        'filter': ['!=', ['get', 'class'], 'path'],
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        'paint': {
+            'line-color': '#000',
+            'line-width': 3,
+            'line-opacity': 0.8
+        }
+    });
+
+    // Add building labels
+    map.addLayer({
+        'id': 'building-labels',
+        'type': 'symbol',
+        'source': 'composite',
+        'source-layer': 'building',
+        'layout': {
+            'text-field': ['get', 'name'],
+            'text-size': 12,
+            'text-anchor': 'center',
+            'text-offset': [0, 0]
+        },
+        'paint': {
+            'text-color': '#000',
+            'text-halo-color': '#fff',
+            'text-halo-width': 1
         }
     });
 }
@@ -531,16 +689,6 @@ function handleMapClick(e) {
     const coords = e.lngLat;
     console.log('Map clicked at:', coords);
 
-    // Check if point is within campus bounds
-    if (!isWithinCampusBounds([coords.lng, coords.lat])) {
-        const errorDisplay = document.getElementById('navigation-error');
-        if (errorDisplay) {
-            errorDisplay.textContent = 'Selected point is outside campus boundaries. Please select a point within the campus.';
-            errorDisplay.classList.remove('d-none');
-        }
-        return;
-    }
-
     // Add marker to map
     const marker = new mapboxgl.Marker({
         color: clickedPoints.length === 0 ? "#FF0000" : "#00FF00" // Red for first point, green for second
@@ -665,51 +813,49 @@ function clearClickedPoints() {
     }
 }
 
+// Function to start navigation
 async function startNavigation() {
     console.log('Starting navigation');
+    const startInput = document.getElementById('start-location-input');
     const destinationInput = document.getElementById('destination-input');
     const profileSelect = document.getElementById('travel-mode');
     const errorDisplay = document.getElementById('navigation-error');
     const loadingIndicator = document.getElementById('loading-indicator');
 
     try {
-        // Reset state
         if (errorDisplay) errorDisplay.classList.add('d-none');
         if (loadingIndicator) loadingIndicator.classList.remove('d-none');
 
-        // First check if we have user location
-        if (!userLocation) {
-            throw new Error("Your location is not available. Please enable location tracking first.");
-        }
+        let originCoords, destinationCoords;
 
-        let destinationCoords;
-
-        // Check if a destination was entered or if we should use last clicked point
-        if (destinationInput && destinationInput.value.trim()) {
-            // Geocode destination address
-            console.log('Using address:', destinationInput.value);
-            destinationCoords = await geocodeAddress(destinationInput.value);
-        } else if (clickedPoints.length > 0) {
-            // Use the last clicked point as destination
-            console.log('Using last clicked point as destination');
-            destinationCoords = clickedPoints[clickedPoints.length - 1];
+        // Get origin coordinates
+        if (startLocationMarker) {
+            originCoords = startLocationMarker.getLngLat().toArray();
+        } else if (userLocation) {
+            originCoords = userLocation;
         } else {
-            throw new Error('Please enter a destination address or click a location on the map');
+            throw new Error('Please set a start location or use your current location');
         }
 
-        console.log('Origin:', userLocation, 'Destination:', destinationCoords);
+        // Get destination coordinates
+        if (endLocationMarker) {
+            destinationCoords = endLocationMarker.getLngLat().toArray();
+        } else {
+            throw new Error('Please set a destination location');
+        }
 
-        // Clear previous route before calculating new one
-        clearRoute();
+        // Only remove the route layer, not the markers
+        if (map.getSource('route')) {
+            map.removeLayer('route');
+            map.removeSource('route');
+        }
 
         // Calculate route
         const routeData = await calculateRoute({
-            origin: userLocation,
+            origin: originCoords,
             destination: destinationCoords,
             profile: profileSelect ? profileSelect.value : 'walking'
         });
-
-        console.log('Route data received:', routeData);
 
         // Store current route
         currentRoute = routeData.routes[0];
@@ -774,6 +920,13 @@ function updateNavigationUI() {
     // Set maneuver text and distance
     nextManeuverText.textContent = nextManeuver.instruction;
     nextManeuverDistance.textContent = `in ${Math.round(currentStep.distance)} meters`;
+
+    // Update total distance and duration
+    const remainingKm = (remainingDistance / 1000).toFixed(1);
+    const remainingMin = Math.ceil(remainingDistance / (totalDistance / (currentRoute.duration / 60)));
+
+    document.getElementById('total-distance').textContent = `${remainingKm} km remaining`;
+    document.getElementById('total-duration').textContent = `${remainingMin} min remaining`;
 
     // Check if we need to move to next step
     if (currentStep.distance < 20) { // Within 20 meters of next maneuver
@@ -840,13 +993,19 @@ function displayRoute(routeData) {
         map.removeSource('route');
     }
 
+    // Get the route coordinates
+    const routeCoordinates = routeData.routes[0].geometry.coordinates;
+
     // Add new route layer
     map.addSource('route', {
         type: 'geojson',
         data: {
             type: 'Feature',
             properties: {},
-            geometry: routeData.routes[0].geometry
+            geometry: {
+                type: 'LineString',
+                coordinates: routeCoordinates
+            }
         }
     });
 
@@ -865,53 +1024,54 @@ function displayRoute(routeData) {
         }
     });
 
-    // Add markers for start and end points
-    const coordinates = routeData.routes[0].geometry.coordinates;
+    // Update route summary
+    const route = routeData.routes[0];
+    const distanceKm = (route.distance / 1000).toFixed(1);
+    const durationMin = Math.ceil(route.duration / 60);
 
-    // Start marker (blue)
-    const startMarker = new mapboxgl.Marker({ color: "#3a86ff" })
-        .setLngLat(coordinates[0])
-        .addTo(map);
-
-    // End marker (green)
-    const endMarker = new mapboxgl.Marker({ color: "#10b981" })
-        .setLngLat(coordinates[coordinates.length - 1])
-        .addTo(map);
-
-    // Store markers to clear them later
-    markers.push(startMarker, endMarker);
+    // Update the route summary display
+    document.getElementById('total-distance').textContent = `${distanceKm} km`;
+    document.getElementById('total-duration').textContent = `${durationMin} min`;
 
     // Update route info display
-    updateRouteInfo(routeData.routes[0]);
-
-    // Fit map to route
-    const bounds = new mapboxgl.LngLatBounds();
-    routeData.routes[0].geometry.coordinates.forEach(coord => bounds.extend(coord));
-    map.fitBounds(bounds, { padding: 50 });
-
-    console.log('Route displayed successfully');
-}
-
-function updateRouteInfo(route) {
     const routeInfoContainer = document.getElementById('route-info');
-    if (!routeInfoContainer) {
-        console.warn('Route info container not found');
-        return;
+    if (routeInfoContainer) {
+        routeInfoContainer.innerHTML = `
+            <div class="alert alert-info">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="fw-bold">Route Summary</div>
+                    <div class="text-primary">
+                        <i class="fas fa-route"></i>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-road me-2"></i>
+                        <span class="fw-bold">${distanceKm} km</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-clock me-2"></i>
+                        <span class="fw-bold">${durationMin} min</span>
+                    </div>
+                </div>
+                <div class="mt-2 small text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Estimated time based on ${document.getElementById('travel-mode').value} speed
+                </div>
+            </div>
+        `;
+        routeInfoContainer.classList.remove('d-none');
     }
 
-    // Calculate total distance and duration
-    const distanceKm = route.distance / 1000;
-    const durationMin = route.duration / 60;
+    // Fit map to route with padding
+    const bounds = new mapboxgl.LngLatBounds();
+    routeCoordinates.forEach(coord => bounds.extend(coord));
+    map.fitBounds(bounds, {
+        padding: { top: 50, bottom: 50, left: 50, right: 50 },
+        maxZoom: 17
+    });
 
-    routeInfoContainer.innerHTML = `
-        <div class="alert alert-info">
-            <div class="fw-bold mb-2">Route Summary:</div>
-            <div>Distance: ${distanceKm.toFixed(2)} km</div>
-            <div>Duration: ${Math.floor(durationMin)} min</div>
-        </div>
-    `;
-
-    routeInfoContainer.classList.remove('d-none');
+    console.log('Route displayed successfully');
 }
 
 function showInstructions(steps) {
@@ -953,9 +1113,24 @@ function clearRoute() {
         markers = markers.slice(0, clickedPointsCount);
     }
 
+    // Clear start and destination markers
+    if (startLocationMarker) {
+        startLocationMarker.remove();
+        startLocationMarker = null;
+    }
+    if (endLocationMarker) {
+        endLocationMarker.remove();
+        endLocationMarker = null;
+    }
+
+    // Clear input fields
+    document.getElementById('start-location-input').value = '';
+    document.getElementById('destination-input').value = '';
+
     // Hide UI elements
     const instructionsElement = document.getElementById('navigation-instructions');
     const routeInfoElement = document.getElementById('route-info');
+    const navigationUI = document.getElementById('navigation-ui');
 
     if (instructionsElement) {
         instructionsElement.classList.add('d-none');
@@ -964,6 +1139,16 @@ function clearRoute() {
     if (routeInfoElement) {
         routeInfoElement.classList.add('d-none');
     }
+
+    if (navigationUI) {
+        navigationUI.classList.add('d-none');
+    }
+
+    // Reset navigation state
+    navigationActive = false;
+    currentRoute = null;
+    currentStepIndex = 0;
+    routeProgress = 0;
 }
 
 function handleNavigationError(error, displayElement) {
@@ -1078,30 +1263,415 @@ async function calculateRoute({ origin, destination, profile }) {
     }
 }
 
-// Add a function to check if points are within campus bounds
-function isWithinCampusBounds(coords) {
-    const campusBounds = {
-        north: -25.5395,
-        south: -25.5399,
-        east: 28.0987,
-        west: 28.0981
-    };
-
-    return coords[1] >= campusBounds.south &&
-           coords[1] <= campusBounds.north &&
-           coords[0] >= campusBounds.west &&
-           coords[0] <= campusBounds.east;
-}
-
 // Initialize map when DOM is ready
 document.addEventListener('DOMContentLoaded', initMap);
+
+// Function to handle location selection
+function handleLocationSelection(lat, lng, name, isStartLocation) {
+    console.log('Handling location selection:', { lat, lng, name, isStartLocation });
+
+    // Validate coordinates
+    if (isNaN(lat) || isNaN(lng)) {
+        console.error('Invalid coordinates:', { lat, lng });
+        return;
+    }
+
+    // Create marker element with label
+    const el = document.createElement('div');
+    el.className = 'location-marker';
+    el.innerHTML = `
+        <div class="location-marker-content">
+            <i class="fas ${isStartLocation ? 'fa-map-marker-alt' : 'fa-flag'}"></i>
+            <div class="location-marker-tooltip">${name}</div>
+        </div>
+    `;
+
+    // Remove existing marker
+    if (isStartLocation) {
+        if (startLocationMarker) {
+            startLocationMarker.remove();
+        }
+        startLocationMarker = new mapboxgl.Marker(el)
+            .setLngLat([parseFloat(lng), parseFloat(lat)])
+            .addTo(map);
+
+        // Update start location input
+        document.getElementById('start-location-input').value = name;
+        document.getElementById('start-location-results').classList.add('d-none');
+    } else {
+        if (endLocationMarker) {
+            endLocationMarker.remove();
+        }
+        endLocationMarker = new mapboxgl.Marker(el)
+            .setLngLat([parseFloat(lng), parseFloat(lat)])
+            .addTo(map);
+
+        // Update destination input
+        document.getElementById('destination-input').value = name;
+        document.getElementById('destination-results').classList.add('d-none');
+    }
+
+    // Center map on selected location
+    map.flyTo({
+        center: [parseFloat(lng), parseFloat(lat)],
+        zoom: 17,
+        essential: true
+    });
+
+    // Calculate route if both points are set
+    if (startLocationMarker && endLocationMarker) {
+        calculateRoute({
+            origin: startLocationMarker.getLngLat().toArray(),
+            destination: endLocationMarker.getLngLat().toArray(),
+            profile: document.getElementById('travel-mode').value
+        });
+    }
+}
+
+// Function to handle location search
+async function searchLocations(query, resultsContainer, isStartLocation) {
+    console.log('Searching locations:', { query, isStartLocation });
+
+    if (query.length < 2) {
+        resultsContainer.classList.add('d-none');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/technician/search-locations?query=${encodeURIComponent(query)}`);
+        const locations = await response.json();
+
+        resultsContainer.innerHTML = '';
+
+        if (locations.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="list-group-item text-muted">
+                    No locations found
+                </div>
+            `;
+        } else {
+            locations.forEach(location => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${location.building_name}</h6>
+                            <small class="text-muted">
+                                ${location.floor_number ? `Floor ${location.floor_number}` : ''}
+                                ${location.room_number ? `• Room ${location.room_number}` : ''}
+                            </small>
+                        </div>
+                        <button class="btn btn-sm btn-primary select-location"
+                                data-lat="${location.latitude}"
+                                data-lng="${location.longitude}"
+                                data-name="${location.building_name}">
+                            Select
+                        </button>
+                    </div>
+                `;
+
+                // Add click handler for the select button
+                const selectButton = item.querySelector('.select-location');
+                selectButton.addEventListener('click', () => {
+                    const lat = parseFloat(selectButton.dataset.lat);
+                    const lng = parseFloat(selectButton.dataset.lng);
+                    const name = selectButton.dataset.name;
+                    handleLocationSelection(lat, lng, name, isStartLocation);
+                });
+
+                resultsContainer.appendChild(item);
+            });
+        }
+
+        resultsContainer.classList.remove('d-none');
+    } catch (error) {
+        console.error('Error searching locations:', error);
+        resultsContainer.innerHTML = `
+            <div class="list-group-item text-danger">
+                Error searching locations
+            </div>
+        `;
+        resultsContainer.classList.remove('d-none');
+    }
+}
+
+// Function to load all locations
+async function loadAllLocations() {
+    console.log('Loading all locations');
+    try {
+        const response = await fetch('/technician/search-locations?query=');
+        const locations = await response.json();
+
+        const allLocationsList = document.getElementById('all-locations-list');
+        allLocationsList.innerHTML = '';
+
+        if (locations.length === 0) {
+            allLocationsList.innerHTML = `
+                <div class="list-group-item text-muted">
+                    No locations found
+                </div>
+            `;
+            return;
+        }
+
+        locations.forEach(location => {
+            // Validate coordinates before creating the item
+            if (!location.latitude || !location.longitude) {
+                console.error('Location missing coordinates:', location);
+                return;
+            }
+
+            const item = document.createElement('div');
+            item.className = 'list-group-item';
+            item.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">${location.building_name}</h6>
+                        <small class="text-muted">
+                            ${location.floor_number ? `Floor ${location.floor_number}` : ''}
+                            ${location.room_number ? `• Room ${location.room_number}` : ''}
+                        </small>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary set-start-location"
+                                data-lat="${location.latitude}"
+                                data-lng="${location.longitude}"
+                                data-name="${location.building_name}">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger set-end-location"
+                                data-lat="${location.latitude}"
+                                data-lng="${location.longitude}"
+                                data-name="${location.building_name}">
+                            <i class="fas fa-flag"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Add click handlers for the buttons
+            const startButton = item.querySelector('.set-start-location');
+            const endButton = item.querySelector('.set-end-location');
+
+            startButton.addEventListener('click', () => {
+                const lat = parseFloat(startButton.dataset.lat);
+                const lng = parseFloat(startButton.dataset.lng);
+                const name = startButton.dataset.name;
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    console.error('Invalid coordinates from button:', { lat, lng });
+                    return;
+                }
+
+                handleLocationSelection(lat, lng, name, true);
+            });
+
+            endButton.addEventListener('click', () => {
+                const lat = parseFloat(endButton.dataset.lat);
+                const lng = parseFloat(endButton.dataset.lng);
+                const name = endButton.dataset.name;
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    console.error('Invalid coordinates from button:', { lat, lng });
+                    return;
+                }
+
+                handleLocationSelection(lat, lng, name, false);
+            });
+
+            allLocationsList.appendChild(item);
+        });
+
+    } catch (error) {
+        console.error('Error loading locations:', error);
+        const allLocationsList = document.getElementById('all-locations-list');
+        allLocationsList.innerHTML = `
+            <div class="list-group-item text-danger">
+                Error loading locations
+            </div>
+        `;
+    }
+}
+
+// Add event listeners for search inputs
+document.addEventListener('DOMContentLoaded', () => {
+    const startLocationInput = document.getElementById('start-location-input');
+    const startLocationResults = document.getElementById('start-location-results');
+    const destinationInput = document.getElementById('destination-input');
+    const destinationResults = document.getElementById('destination-results');
+    const useMyLocationBtn = document.getElementById('get-user-location');
+
+    let startSearchTimeout, destSearchTimeout;
+
+    // Add click handler for "Use My Location" button
+    if (useMyLocationBtn) {
+        useMyLocationBtn.addEventListener('click', () => {
+            // Show location permission alert
+            const locationAlert = document.getElementById('location-permission-alert');
+            if (locationAlert) {
+                locationAlert.classList.remove('d-none');
+            }
+
+            // Request location permission
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // Success
+                    if (locationAlert) {
+                        locationAlert.classList.add('d-none');
+                    }
+
+                    // Get user's location
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+
+                    // Create a marker for user's location
+                    const el = document.createElement('div');
+                    el.className = 'location-marker';
+                    el.innerHTML = `
+                        <div class="location-marker-content">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div class="location-marker-tooltip">My Location</div>
+                        </div>
+                    `;
+
+                    // Remove existing start marker if any
+                    if (startLocationMarker) {
+                        startLocationMarker.remove();
+                    }
+
+                    // Add new marker
+                    startLocationMarker = new mapboxgl.Marker(el)
+                        .setLngLat([userLng, userLat])
+                        .addTo(map);
+
+                    // Update start location input
+                    document.getElementById('start-location-input').value = 'My Location';
+
+                    // Center map on user's location
+                    map.flyTo({
+                        center: [userLng, userLat],
+                        zoom: 17,
+                        essential: true
+                    });
+
+                    // Start location tracking
+                    startLocationTracking();
+                },
+                (error) => {
+                    // Error
+                    if (locationAlert) {
+                        locationAlert.classList.add('d-none');
+                    }
+                    handleGeolocationError(error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        });
+    }
+
+    startLocationInput.addEventListener('input', function(e) {
+        clearTimeout(startSearchTimeout);
+        startSearchTimeout = setTimeout(() => {
+            searchLocations(e.target.value, startLocationResults, true);
+        }, 300);
+    });
+
+    destinationInput.addEventListener('input', function(e) {
+        clearTimeout(destSearchTimeout);
+        destSearchTimeout = setTimeout(() => {
+            searchLocations(e.target.value, destinationResults, false);
+        }, 300);
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!startLocationResults.contains(e.target) && e.target !== startLocationInput) {
+            startLocationResults.classList.add('d-none');
+        }
+        if (!destinationResults.contains(e.target) && e.target !== destinationInput) {
+            destinationResults.classList.add('d-none');
+        }
+    });
+
+    // Load all locations
+    loadAllLocations();
+});
+
+// Add styles for location markers
+const style = document.createElement('style');
+style.textContent = `
+    .location-marker {
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        background-color: #4285F4;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .location-marker-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .location-marker-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        white-space: nowrap;
+        display: none;
+        z-index: 1;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: #333;
+    }
+
+    .location-marker:hover .location-marker-tooltip {
+        display: block;
+    }
+
+    .location-marker i {
+        font-size: 16px;
+    }
+
+    .mapboxgl-popup-content {
+        padding: 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .mapboxgl-popup-close-button {
+        padding: 4px 8px;
+        font-size: 16px;
+        color: #666;
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endpush
 
 @push('styles')
 <style>
-#map { height: 75vh; width: 100%; }
-.navigation-controls { height: 75vh; overflow-y: auto; }
+#map { height: 85vh; width: 100% !important; }
+.navigation-controls { height: 85vh; overflow-y: auto; }
 #navigation-instructions { max-height: 300px; overflow-y: auto; }
 #loading-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
 .mapboxgl-ctrl-geolocate { margin: 10px; }
@@ -1119,7 +1689,9 @@ document.addEventListener('DOMContentLoaded', initMap);
     font-size: 0.85rem;
     z-index: 100;
 }
-
+.container-fluid{
+    width: 100%;
+}
 .location-tracking-button {
     z-index: 100;
     background-color: white;

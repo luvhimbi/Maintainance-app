@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\MissingIssueFormDataException;
 use App\Mail\TechnicianAssignmentEmail;
+use App\Mail\TechnicianReassignmentMail;
 use Illuminate\Http\Request;
 use App\Models\Location;
 use App\Models\Issue;
@@ -229,6 +230,7 @@ class IssueController extends Controller
                 'existing_issue_id' => $existingIssue->issue_id
             ]);
         }
+//        dd($formData['urgency_score']);
 
         try {
             DB::beginTransaction();
@@ -242,7 +244,7 @@ class IssueController extends Controller
                 'urgency_level' => $formData['urgency_level'],
                 'urgency_score' => $formData['urgency_score'] ?? null, // Add score if available
                 'safety_hazard' => $formData['safety_hazard'] ?? false,
-                'affects_operations'=>$formData['affects_operations'] ?? false,
+                'affects_operations' => $formData['affects_operations'] ?? false,
                 'affected_areas' => $formData['affected_areas'] ?? 1,
                 'pc_number' => $formData['pc_number'] ?? null,
                 'pc_issue_type' => $formData['pc_issue_type'] ?? null,
@@ -250,7 +252,8 @@ class IssueController extends Controller
                 'issue_status' => 'Open',
                 'created_at' => now()
             ]);
-Log::error("$issue->issue_id");
+
+            Log::error("$issue->issue_id");
             session()->put('reported_issue_id', $issue->issue_id);
 
             // Create the task
@@ -280,7 +283,7 @@ Log::error("$issue->issue_id");
 
             $reporter = User::find($formData['reporter_id']);
 
-            // Send notifications
+            // Send a success message notification to the reportertert
             $this->sendReporterNotification($issue, $reporter, $assignedTechnician);
 
             if ($assignedTechnician) {
@@ -398,151 +401,11 @@ Log::error("$issue->issue_id");
                 ->route('Student.issue_details', $issue->issue_id)
                 ->with('swal_error', 'Only Open issues can be edited.');
         }
-
+         // pass campus location to the edit Issue page
         $locations = Location::all();
+        // redirect to the edit issue page
         return view('Student.editissue', compact('issue', 'locations'));
     }
-
-
-/*
- * this is a method for updating the issue
- * to do update this as well
- *
- */
-
-
-//  public function update(Request $request, Issue $issue)
-//  {
-//      // Validate the request
-//      $validated = $request->validate([
-//          'location_id' => 'required|exists:location,location_id',
-//          'issue_type' => 'required|string|max:255',
-//          'issue_description' => 'required|string',
-//          'safety_hazard' => 'required|boolean', // Added safety_hazard
-//          'affected_areas' => 'required|integer|min:1', // Added affected_areas
-//          'pc_number' => 'nullable|integer|min:1|max:100', // Conditional, nullable
-//          'pc_issue_type' => 'nullable|string|max:255', // Conditional, nullable
-//          'critical_work_affected' => 'nullable|boolean', // Conditional, nullable
-//          'attachments.*' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,mp4', // Max 10MB (10240 KB)
-//      ]);
-
-//      // Authorization checks
-//      if (Auth::id() !== $issue->reporter_id) {
-//          abort(403, 'Unauthorized action.');
-//      }
-
-//      if ($issue->issue_status !== 'Open') {
-//          return redirect()->route('Student.issue_details', $issue->issue_id)
-//              ->with('error', 'Only Open issues can be updated.');
-//      }
-
-//      // Store the old issue type for comparison
-//      $oldIssueType = $issue->issue_type;
-
-//      // Calculate urgency score and determine urgency level
-//      $urgencyScore = $this->calculateUrgencyScore($validated);
-//      $urgencyLevel = $this->determineUrgencyLevel($urgencyScore);
-
-//      // Check if we need to reassign due to issue type change or urgency level change
-//      $needsReassignment = $issue->task && ($oldIssueType !== $validated['issue_type'] || $issue->urgency_level !== $urgencyLevel);
-
-//      // If we need to reassign, clear the current assignment first
-//      if ($needsReassignment) {
-//          // Remove the task from the current technician
-//          if ($issue->task->assignee_id) {
-//              // Decrease the current technician's workload
-//              DB::table('Technicians')
-//                  ->where('user_id', $issue->task->assignee_id)
-//                  ->decrement('current_workload');
-
-//              // Mark technician as Available if workload is less than 6
-//              $technician = DB::table('Technicians')
-//                  ->where('user_id', $issue->task->assignee_id)
-//                  ->first();
-
-//              if ($technician && $technician->current_workload < 6) {
-//                  DB::table('Technicians')
-//                      ->where('user_id', $technician->user_id) // Use $technician->user_id
-//                      ->update(['availability_status' => 'Available']);
-//              }
-//          }
-
-//          // Clear the task's assignee while maintaining assignment_date
-//          $issue->task->update([
-//              'assignee_id' => null
-//          ]);
-//      }
-
-//      // Prepare PC-specific fields, setting to null if issue type is not 'PC'
-//      $pcData = [];
-//      if ($validated['issue_type'] === 'PC') {
-//          $pcData['pc_number'] = $validated['pc_number'] ?? null;
-//          $pcData['pc_issue_type'] = $validated['pc_issue_type'] ?? null;
-//          $pcData['critical_work_affected'] = $validated['critical_work_affected'] ?? false;
-//      } else {
-//          $pcData['pc_number'] = null;
-//          $pcData['pc_issue_type'] = null;
-//          $pcData['critical_work_affected'] = false;
-//      }
-
-//      // Update the issue
-//      $issue->update(array_merge([
-//          'location_id' => $validated['location_id'],
-//          'issue_type' => $validated['issue_type'],
-//          'issue_description' => $validated['issue_description'],
-//          'safety_hazard' => $validated['safety_hazard'],
-//          'affected_areas' => $validated['affected_areas'],
-//          'urgency_level' => $urgencyLevel, // Use derived urgency level
-//          'updated_at' => now()
-//      ], $pcData)); // Merge PC-specific data
-
-//      // Reassign if needed after issue update
-//      if ($needsReassignment) {
-//          // Reassign the task to a new technician
-//          $newTechnician = $this->assignOrQueueTask($issue->task); // Assuming assignOrQueueTask exists and handles assignment
-//          if ($newTechnician) {
-//              // Update task priority with new urgency level
-//              $issue->task->update([
-//                  'priority' => $this->mapUrgencyToPriority($urgencyLevel) // Use derived urgency level
-//              ]);
-//          }
-//      } else {
-//          // Update task priority if issue type didn't change (only urgency might have changed)
-//          if ($issue->task) {
-//              $issue->task->update([
-//                  'priority' => $this->mapUrgencyToPriority($urgencyLevel) // Use derived urgency level
-//              ]);
-//          }
-//      }
-
-//      // Handle attachments: Delete all old attachments if new ones are uploaded
-//      if ($request->hasFile('attachments')) {
-//          // Delete all old attachments
-//          foreach ($issue->attachments as $attachment) {
-//              Storage::disk($attachment->storage_disk)->delete($attachment->file_path);
-//              $attachment->delete();
-//          }
-
-//          // Add new attachments
-//          foreach ($request->file('attachments') as $file) {
-//              $path = $file->store('attachments', 'public');
-
-//              IssueAttachment::create([
-//                  'issue_id' => $issue->issue_id,
-//                  'file_path' => $path,
-//                  'original_name' => $file->getClientOriginalName(),
-//                  'mime_type' => $file->getMimeType(),
-//                  'file_size' => $file->getSize(),
-//                  'storage_disk' => 'public',
-//              ]);
-//          }
-//      }
-
-//      return redirect()->route('Student.issue_details', $issue->issue_id)
-//          ->with('success', 'Issue updated successfully!');
-//  }
-
-
 
 
 
@@ -550,12 +413,15 @@ Log::error("$issue->issue_id");
      {
          // Get all available technicians with matching specialization
          $technicians = User::whereHas('maintenanceStaff', function ($query) use ($task) {
-             $query->where('availability_status', 'Available')
+                  $query->where('availability_status', 'Available')
                  ->where('specialization', $task->issue->issue_type);
-         })
+                      })
              ->join('Technicians', 'users.user_id', '=', 'Technicians.user_id')
              ->select('users.*', 'Technicians.current_workload', 'Technicians.user_id as technician_id')
              ->get();
+
+
+         // if there is technician then return null and log that nobody was assigned
 
          if ($technicians->isEmpty()) {
              // Queue the task if no technicians available
@@ -618,7 +484,8 @@ public function update(Request $request, Issue $issue)
         'critical_work_affected' => 'nullable|boolean',
         'attachments.*' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,mp4',
     ]);
-    Log::info('Validation passed', $validated);
+
+
     // Authorization checks
     if (Auth::id() !== $issue->reporter_id) {
         Log::warning('Unauthorized update attempt by user ID: ' . Auth::id());
@@ -635,13 +502,13 @@ public function update(Request $request, Issue $issue)
     $urgencyScore = $this->calculateUrgencyScore($validated);
     $newUrgencyLevel = $this->determineUrgencyLevel($urgencyScore);
 
-    // Determine if reassignment is needed
+
     // Reassignment is needed if issue type changes OR urgency level changes AND a task exists
     $needsReassignment = $issue->task && ($oldIssueType !== $validated['issue_type'] || $oldUrgencyLevel !== $newUrgencyLevel);
 
     $oldTechnician = null;
     if ($oldAssigneeId) {
-        $oldTechnician = User::find($oldAssigneeId); // Assuming technicians are User models
+        $oldTechnician = User::find($oldAssigneeId);
     }
 
     // If reassignment is needed, clear the current assignment first
@@ -689,11 +556,11 @@ public function update(Request $request, Issue $issue)
         'issue_description' => $validated['issue_description'],
         'safety_hazard' => $validated['safety_hazard'],
         'affected_areas' => $validated['affected_areas'],
-        'affects_operations'=>$validated['affects_operations'],
+        'affects_operations' => $validated['affects_operations'],
         'urgency_level' => $newUrgencyLevel,
         'updated_at' => now()
     ], $pcData));
-Log::info('Issue updated', $validated);
+    Log::info('Issue updated', $validated);
     $reporter = Auth::user();
 
     $assignedTechnician = null;
@@ -703,11 +570,54 @@ Log::info('Issue updated', $validated);
         // Reassign the task to a new technician
         $assignedTechnicianRecord = $this->assignOrQueueTask($issue->task);
         if ($assignedTechnicianRecord) {
-            $assignedTechnician = User::find($assignedTechnicianRecord->user_id); // Get User model
+            $assignedTechnician = User::find($assignedTechnicianRecord->user_id);
             // Update task priority with new urgency level
             $issue->task->update([
                 'priority' => $this->mapUrgencyToPriority($newUrgencyLevel)
             ]);
+        }
+        // Notify the old technician if reassigned
+        if ($oldTechnician) {
+            // In-app notification
+            $oldType = $oldIssueType;
+            $newType = $validated['issue_type'];
+            $oldTechnician->notify(new DatabaseNotification(
+                "You have been unassigned from Issue #{$issue->issue_id}. The issue type has changed from '{$oldType}' to '{$newType}'. The task has been reassigned to another technician.",
+                null, // No link
+                'Task Reassignment'
+            ));
+            // Email notification
+            try {
+                Mail::to($oldTechnician->email)->send(new TechnicianReassignmentMail($issue, $oldTechnician, $oldType, $newType));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send reassignment email to old technician: ' . $e->getMessage());
+            }
+        }
+        // Notify the new technician if assigned
+        if ($assignedTechnician) {
+            // In-app notification
+            $assignedTechnician->notify(new DatabaseNotification(
+                "You have been assigned a new task for Issue #{$issue->issue_id} ({$issue->issue_type}).",
+                route('technician.task_details', $issue->issue_id),
+                'New Task Assignment'
+            ));
+            // Email notification (reuse assignment email)
+            try {
+                $location = $issue->location;
+                $reporter = Auth::user();
+                $task = $issue->task;
+                $taskUrl = route('technician.task_details', $issue->issue_id);
+                Mail::to($assignedTechnician->email)->send(new TechnicianAssignmentEmail(
+                    $issue,
+                    $task,
+                    $assignedTechnician,
+                    $reporter,
+                    $location,
+                    $taskUrl
+                ));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send assignment email to new technician: ' . $e->getMessage());
+            }
         }
         // If assignedTechnician is null here, it means the task was queued.
     } else {
@@ -725,7 +635,7 @@ Log::info('Issue updated', $validated);
     // Send notifications if a technician is assigned
     if ($assignedTechnician) {
         $this->sendTechnicianUpdateNotification($issue, $issue->task, $reporter, $assignedTechnician);
-        // $this->sendTechnicianEmail($issue, $issue->task, $reporter, $assignedTechnician);
+
     }
 
 
@@ -780,19 +690,19 @@ public function sendTechnicianUpdateNotification($issue, $task, $reporter, $tech
 
 
     public function assignQueuedTasks($technicianId)
-{
-    $technician = User::find($technicianId);
-    $availableSlots = 3 - $technician->maintenanceStaff->current_workload;
+    {
+        $technician = User::find($technicianId);
+        $availableSlots = 3 - $technician->maintenanceStaff->current_workload;
 
-    $queuedTasks = Task::whereNull('assignee_id')
-        ->orderBy('created_at', 'asc')
-        ->limit($availableSlots)
-        ->get();
+        $queuedTasks = Task::whereNull('assignee_id')
+            ->orderBy('created_at', 'asc')
+            ->limit($availableSlots)
+            ->get();
 
-    foreach ($queuedTasks as $queuedTask) {
-        $this->assignOrQueueTask($queuedTask);
+        foreach ($queuedTasks as $queuedTask) {
+            $this->assignOrQueueTask($queuedTask);
+        }
     }
-}
 
     public function edit()
     {

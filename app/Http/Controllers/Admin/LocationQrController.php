@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Location;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class LocationQrController extends Controller
@@ -16,36 +17,68 @@ class LocationQrController extends Controller
         return view('admin.locations.index', compact('locations'));
     }
 
-    /**
-     * Store a newly created location
-     */
+    public function create()
+    {
+        return view('admin.locations.create', [
+            'mapboxAccessToken' => config('services.mapbox.access_token'),
+            'mapboxStyle' => config('services.mapbox.style', 'mapbox://styles/mapbox/streets-v11'),
+            'defaultLatitude' => -25.540672986478395,
+            'defaultLongitude' => 28.097913893018625
+        ]);
+    }
 
+    public function store(Request $request)
+    {
+        // Validate the incoming request data
+        $validatedData = $request->validate([
+            'building_name' => 'required|string|max:100',
+            'floor_number' => 'nullable|string|max:20',
+            'room_number' => 'nullable|string|max:20',
+            'description' => 'nullable|string',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+        ]);
 
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'building_name' => [
-            'required',
-            'string',
-            'max:100',
-            Rule::unique('location')->where(function ($query) use ($request) {
-                return $query->where('floor_number', $request->floor_number)
-                            ->where('room_number', $request->room_number);
-            })
-        ],
-        'floor_number' => 'required|string|max:20',
-        'room_number' => 'required|string|max:20',
-        'description' => 'nullable|string'
-    ], [
-        'building_name.unique' => 'This location combination (building, floor, room) already exists.'
-    ]);
+        try {
+            // Check for existing location with the same combination of attributes
+            $existingLocation = Location::where('building_name', $validatedData['building_name'])
+                ->where('floor_number', $validatedData['floor_number'])
+                ->where('room_number', $validatedData['room_number'])
+                ->where('latitude', $validatedData['latitude'])
+                ->where('longitude', $validatedData['longitude'])
+                ->first();
 
-    Location::create($validated);
+            if ($existingLocation) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'This location already exists in our system.');
+            }
 
-    return redirect()->route('admin.locations.create')
-        ->with('success', 'Location created successfully');
-}
+            // Create a new Location instance and fill it with validated data
+            $location = new Location();
+            $location->building_name = $validatedData['building_name'];
+            $location->floor_number = $validatedData['floor_number'];
+            $location->room_number = $validatedData['room_number'];
+            $location->description = $validatedData['description'];
+            $location->latitude = $validatedData['latitude'];
+            $location->longitude = $validatedData['longitude'];
+            $location->save();
 
+            // Redirect back with a success message to the locations list
+            return redirect()->route('admin.locations.index')->with('success', 'Location added successfully!');
+
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Error adding location: ' . $e->getMessage());
+            // Redirect back with an error message, preserving input
+            return redirect()->back()->withInput()->with('error', 'Failed to add location. Please try again.');
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Error adding location: ' . $e->getMessage());
+            // Redirect back with an error message, preserving input
+            return redirect()->back()->withInput()->with('error', 'Failed to add location. Please try again.');
+        }
+    }
     /**
      * Show the form for editing a location
      */
@@ -59,12 +92,13 @@ public function store(Request $request)
      */
     public function update(Request $request, Location $location)
     {
-
         $validated = $request->validate([
             'building_name' => 'required|string|max:100',
             'floor_number' => 'required|string|max:20',
             'room_number' => 'required|string|max:20',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180'
         ]);
 
         $location->update($validated);

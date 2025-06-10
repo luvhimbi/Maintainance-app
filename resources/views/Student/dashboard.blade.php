@@ -3,46 +3,47 @@
 @section('title', ' Dashboard')
 
 @section('content')
-    <div class="container py-4 bg-body-tertiary"> {{-- Added bg-body-tertiary for a subtle page background --}}
+    <div class="container py-4 bg-body-tertiary">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5">
             <div>
                 <h1 class="fw-bold mb-1 h3">Hi, {{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h1>
                 <p class="lead text-muted mb-0">Track and manage your reported maintenance issues</p>
             </div>
-            {{-- <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
-                <i class="fas fa-plus me-2"></i> Report An Issue
-            </a> --}}
         </div>
 
         <div class="card mb-4 border-0 shadow-sm">
             <div class="card-body p-3 p-md-4">
-                <div class="row g-3 align-items-center"> {{-- Increased gap slightly with g-3 --}}
-                    <div class="col-12 col-md-7">
-                        <div class="input-group input-group-lg">
-                            <input type="text"
-                                   id="searchInput"
-                                   class="form-control"
-                                   placeholder="Search by type, location, or description..."
-                                   aria-label="Search issues">
-                            <button class="btn btn-primary" id="searchButton" title="Search">
-                                <i class="fas fa-search"></i>
-                            </button>
-                            <button class="btn btn-outline-secondary" id="clearButton" title="Clear">
-                                <i class="fas fa-times"></i>
-                            </button>
+                <form id="searchForm" method="GET" action="{{ route('Student.dashboard') }}">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-12 col-md-7">
+                            <div class="input-group input-group-lg">
+                                <input type="text"
+                                       id="searchInput"
+                                       name="search"
+                                       class="form-control"
+                                       value="{{ request('search') }}"
+                                       placeholder="Search by type, location, or description..."
+                                       aria-label="Search issues">
+                                <button class="btn btn-primary" id="searchButton" title="Search" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <a href="{{ route('Student.dashboard') }}" class="btn btn-outline-secondary" id="clearButton" title="Clear">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-5 mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">
+                            <div class="form-check form-check-inline px-2">
+                                <input class="form-check-input status-filter" type="checkbox" value="open" id="openCheck" name="status[]" {{ in_array('open', (array)request('status', ['open', 'in progress'])) ? 'checked' : '' }}>
+                                <label class="form-check-label badge rounded-pill bg-primary-subtle text-primary fw-normal py-2 px-3" for="openCheck" style="cursor:pointer;">Open</label>
+                            </div>
+                            <div class="form-check form-check-inline px-2">
+                                <input class="form-check-input status-filter" type="checkbox" value="in progress" id="progressCheck" name="status[]" {{ in_array('in progress', (array)request('status', ['open', 'in progress'])) ? 'checked' : '' }}>
+                                <label class="form-check-label badge rounded-pill bg-warning-subtle text-warning fw-normal py-2 px-3" for="progressCheck" style="cursor:pointer;">In Progress</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-5 mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">
-                        <div class="form-check form-check-inline px-2">
-                            <input class="form-check-input status-filter" type="checkbox" value="open" id="openCheck" checked> {{-- Changed value to lowercase --}}
-                            <label class="form-check-label badge rounded-pill bg-primary-subtle text-primary fw-normal py-2 px-3" for="openCheck" style="cursor:pointer;">Open</label> {{-- Adjusted padding for filter labels --}}
-                        </div>
-                        <div class="form-check form-check-inline px-2">
-                            <input class="form-check-input status-filter" type="checkbox" value="in progress" id="progressCheck" checked> {{-- Changed value to lowercase --}}
-                            <label class="form-check-label badge rounded-pill bg-warning-subtle text-warning fw-normal py-2 px-3" for="progressCheck" style="cursor:pointer;">In Progress</label> {{-- Adjusted padding for filter labels --}}
-                        </div>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
 
@@ -55,24 +56,25 @@
                 @forelse ($issues as $issue)
                 @php
                     $icon = match($issue->issue_type) {
-                        'Plumbing' => 'fa-faucet-drip',
-                        'Electrical' => 'fa-bolt-lightning',
-                        'Furniture' => 'fa-couch',
-                        'HVAC' => 'fa-fan',
-                        'Internet' => 'fa-network-wired',
-                        'Cleaning' => 'fa-broom',
-                        default => 'fa-circle-exclamation'
-                    };
-                    $urgencyColor = match($issue->urgency_level) {
-                        'High' => 'danger',
-                        'Medium' => 'warning',
-                        default => 'secondary'
-                    };
-                    $statusColor = match($issue->issue_status) {
-                        'Open' => 'primary',
-                        'In Progress' => 'warning',
-                        default => 'secondary'
-                    };
+      'Plumbing'   => 'fa-faucet-drip',
+      'Electrical' => 'fa-bolt-lightning',
+      'Furniture'  => 'fa-couch',
+      'HVAC'       => 'fa-fan',
+      'Internet'   => 'fa-network-wired',
+      'Structural' => 'fa-building',
+      'General'    => 'fa-toolbox',
+      default      => 'fa-toolbox',
+  };
+                      $urgencyColor = match($issue->urgency_level) {
+                          'High' => 'danger',
+                          'Medium' => 'warning',
+                          default => 'secondary'
+                      };
+                      $statusColor = match($issue->issue_status) {
+                          'Open' => 'primary',
+                          'In Progress' => 'warning',
+                          default => 'secondary'
+                      };
                 @endphp
                 <div class="issue-card d-flex flex-column flex-md-row align-items-stretch border-bottom p-3 p-md-4 issue-item position-relative"
                     data-issue-type="{{ strtolower(trim($issue->issue_type)) }}"
@@ -119,24 +121,26 @@
                     </div>
                 </div>
                 @empty
-                {{-- This part is primarily for non-JS scenarios or initial render. JS will show #emptyState --}}
-                {{-- If JS is enabled, #emptyState below will be shown instead by the script. --}}
-                @if($issues->isEmpty()) {{-- Explicit check for initial load --}}
                 <div class="text-center py-5 px-3">
                     <i class="fas fa-clipboard-list fa-4x text-muted mb-4"></i>
-                    <h4 class="fw-semibold mb-2">No issues reported yet.</h4>
-                    <p class="text-muted mb-3">Ready to report your first maintenance issue?</p>
+                    <h4 class="fw-semibold mb-2">No issues found</h4>
+                    <p class="text-muted mb-3">
+                        @if(request('search') || request('status'))
+                            No issues match your search or filter criteria.
+                        @else
+                            Ready to report your first maintenance issue?
+                        @endif
+                    </p>
                     <a href="{{ route('Student.createissue') }}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
                         <i class="fas fa-plus me-2"></i> Report An Issue
                     </a>
                 </div>
-                @endif
                 @endforelse
             </div>
             @if($issues->hasPages())
                 <div class="card-footer bg-white border-top-0 py-3">
                     <div class="d-flex justify-content-center">
-                        {{ $issues->withQueryString()->links('pagination::bootstrap-5') }}
+                        {{ $issues->appends(request()->query())->links('pagination::bootstrap-5') }}
                     </div>
                 </div>
             @endif
@@ -250,11 +254,11 @@ document.addEventListener('DOMContentLoaded', function() {
     @push('styles')
         <style>
             body {
-                /* Assuming StudentNavbar might not set this, or to override */
-                background-color: #f8f9fa; /* Bootstrap's $gray-100 or bg-light equivalent */
-                min-height: 100vh; /* Ensure body takes full viewport height */
-                display: flex; /* Enable flexbox */
-                flex-direction: column; /* Arrange content in a column */
+            
+                background-color: #f8f9fa; 
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column; 
             }
             .issue-card {
                 background: #fff;
@@ -264,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 position: relative;
                 overflow: hidden;
                 transition: box-shadow 0.25s ease-out, transform 0.25s ease-out;
-                /* cursor: pointer; /* Add if the whole card is a link to details */
+           
             }
             .issue-card:hover {
                 box-shadow: 0 7px 22px rgba(13,110,253,0.12); /* More pronounced, themed shadow */

@@ -4,7 +4,7 @@
     <div class="container mt-4">
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <h1 class="h3 fw-bold mb-2 mb-md-0">Issue Details</h1>
-            <a href="{{ route('home') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+            <a href="{{ route('Student.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
                 <i class="fas fa-arrow-left me-1"></i> Back to dashboard
             </a>
         </div>
@@ -25,11 +25,13 @@
                     </div>
                     <div class="d-flex align-items-center">
                 <span class="badge rounded-pill me-2 py-2 px-3 fw-medium
-                    @if($issue->urgency_level == 'High') bg-danger-subtle text-danger
-                    @elseif($issue->urgency_level == 'Medium') bg-warning-subtle text-warning
-                    @else bg-success-subtle text-success @endif">
-                    {{ $issue->urgency_level }} Priority
-                </span>
+    @if($issue->urgency_level == 'High') bg-danger-subtle text-danger
+    @elseif($issue->urgency_level == 'Medium') bg-warning-subtle text-warning
+    @else bg-success-subtle text-success
+    @endif">
+    {{ $issue->urgency_level }} Priority ({{ $issue->urgency_score }})
+</span>
+
                         <span class="text-muted small">
                     <i class="fas fa-calendar-alt me-1"></i>
                     {{ \Carbon\Carbon::parse($issue->report_date)->format('M d, Y') }}

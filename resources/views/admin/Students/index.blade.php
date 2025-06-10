@@ -11,15 +11,21 @@
                     </div>
 
                     <div class="d-flex flex-column flex-sm-row gap-2 mt-3 mt-md-0">
-                        <div class="input-group rounded-pill overflow-hidden shadow-sm-sm"> {{-- Styled search input --}}
-                            <span class="input-group-text bg-light border-0 ps-3">
-                            <i class="fas fa-search text-muted"></i>
-                        </span>
-                            <input type="text" id="studentSearch" class="form-control border-0 pe-3" placeholder="Search students...">
-                            <button class="btn btn-outline-secondary border-0" type="button" id="clearSearch">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                        <form method="GET" action="{{ route('admin.students.index') }}" class="w-100 d-flex">
+                            <div class="input-group rounded-pill overflow-hidden shadow-sm-sm w-100">
+                                <span class="input-group-text bg-light border-0 ps-3">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" id="studentSearch" name="search" class="form-control border-0 pe-3"
+                                       placeholder="Search students..." value="{{ request('search', '') }}">
+                                <button class="btn btn-outline-secondary border-0" type="submit" aria-label="Search">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <a href="{{ route('admin.students.index') }}" class="btn btn-outline-secondary border-0" type="button" aria-label="Clear search">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 <div id="searchFeedback" class="mt-2 small text-muted text-end" style="display: none;"> {{-- Moved feedback below input group --}}
@@ -36,8 +42,11 @@
                         <table class="table align-middle mb-0 table-hover"> {{-- Added table-hover for better UX --}}
                             <thead class="table-light">
                             <tr>
-                                <th class="ps-4 py-3">Student</th> {{-- Added py-3 for consistent padding --}}
+                                <th class="ps-4 py-3">Student</th>
                                 <th class="py-3">Contact</th>
+                                <th class="py-3">Student Number</th>
+                                <th class="py-3">Course</th>
+                                <th class="py-3">Faculty</th>
                                 <th class="py-3">Address</th>
                                 <th class="pe-4 text-end py-3">Actions</th>
                             </tr>
@@ -60,6 +69,15 @@
                                     <td>
                                         <div class="text-primary fw-medium">{{ $student->email }}</div>
                                         <small class="text-muted">{{ $student->phone_number ?? 'No phone' }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ $student->studentDetail->student_number ?? 'N/A' }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ $student->studentDetail->course ?? 'N/A' }}</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ $student->studentDetail->faculty ?? 'N/A' }}</small>
                                     </td>
                                     <td>
                                         <small class="text-muted">{{ $student->address ?? 'No Address' }}</small>

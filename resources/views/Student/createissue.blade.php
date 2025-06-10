@@ -6,7 +6,7 @@
     <div class="container py-4">
         <div class="row justify-content-center">
             <div class="col-lg-9">
-                <h3 class="text-center mb-4 fw-bold" style="color:black;">Report a Maintenance Issue</h3>
+                <h3 class="text-center mb-4 fw-bold" style="color:black;">Fill Out Issue Details</h3>
 
                 <div id="error-messages" class="alert alert-danger d-none">
                     <strong style="color:black;">Please fix these issues:</strong>

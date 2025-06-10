@@ -28,7 +28,7 @@
                             <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>All Status</option>
                             <option value="completed" {{ ($filters['status'] ?? '') === 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="pending" {{ ($filters['status'] ?? '') === 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="in_progress" {{ ($filters['status'] ?? '') === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                            <option value="in_progress" {{ ($filters['status'] ?? '') === 'in progress' ? 'selected' : '' }}>In Progress</option>
                         </select>
                     </div>
                     <div class="col-12 col-md-3">
@@ -60,8 +60,8 @@
                             <li><a class="dropdown-item" href="{{ route('technicians.export.excel', request()->query()) }}"><i class="fas fa-file-excel me-2"></i> Export to Excel</a></li>
                             <li><a class="dropdown-item" href="{{ route('technicians.export.word', request()->query()) }}"><i class="fas fa-file-word me-2"></i> Export to Word</a></li>
                             <li><a class="dropdown-item" href="#" id="exportTechnicianJpg"><i class="fas fa-file-image me-2"></i> Export to JPG</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" onclick="window.print()"><i class="fas fa-print me-2"></i> Print Report</a></li>
+
+
                         </ul>
                     </div>
                 </div>

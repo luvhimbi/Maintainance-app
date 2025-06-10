@@ -14,16 +14,16 @@ class StudentSeeder extends Seeder
     {
         $students = [
             [
-                'email' => 'student1@university.edu',
-                'first_name' => 'Alex',
-                'last_name' => 'Johnson',
+                'email' => '224551100@tut4life.ac.za',
+                'first_name' => 'Olerato',
+                'last_name' => 'Moeko',
                 'course' => 'Computer Science',
                 'faculty' => 'ICT',
             ],
             [
-                'email' => 'student2@university.edu',
-                'first_name' => 'Maria',
-                'last_name' => 'Garcia',
+                'email' => '221857887@tut4life.ac.zAT',
+                'first_name' => 'Brilliant',
+                'last_name' => 'Matlala',
                 'course' => 'Business Administration',
                 'faculty' => 'Business',
             ],

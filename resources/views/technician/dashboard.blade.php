@@ -4,12 +4,7 @@
 
 @section('content')
     <div class="container-fluid px-4 py-4"> {{-- Added py-4 for top/bottom spacing --}}
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('technician.dashboard') }}" class="text-decoration-none text-muted">Dashboard</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Overview</li>
-            </ol>
-        </nav>
+
         <div class="row mb-4">
             <div class="col-12">
                 <div class="welcome-card bg-white p-4 rounded-4 shadow-sm"> {{-- Added rounded-4 --}}
@@ -162,10 +157,20 @@
 
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <i class="fas fa-map-marker-alt text-muted me-2"></i> {{-- Changed icon color to muted --}}
+                                                    <i class="fas fa-map-marker-alt text-muted me-2"></i>
                                                     <div>
-                                                        <div class="text-dark">{{ $task->issue->location->building_name ?? 'N/A' }}</div> {{-- Changed text color --}}
-                                                        <small class="text-muted">Room {{ $task->issue->location->room_number ?? 'N/A' }}</small>
+                                                        <a href="{{ route('technician.directions', [
+                                                            'building' => $task->issue->location->building_name ?? 'N/A',
+                                                            'room' => $task->issue->location->room_number ?? 'N/A',
+                                                            'lat' => $task->issue->location->latitude ?? '',
+                                                            'lng' => $task->issue->location->longitude ?? ''
+                                                        ]) }}" class="location-link text-decoration-none">
+                                                            <div class="text-dark d-flex align-items-center">
+                                                                <span>{{ $task->issue->location->building_name ?? 'N/A' }}</span>
+                                                                <i class="fas fa-external-link-alt ms-2 text-primary small"></i>
+                                                            </div>
+                                                            <small class="text-muted">Room {{ $task->issue->location->room_number ?? 'N/A' }}</small>
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </td>
@@ -317,6 +322,38 @@
             background-color: #fdfdfd;
 
             border: 1px solid #e9ecef;
+        }
+
+        .location-link {
+            display: block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .location-link:hover {
+            background-color: #f8f9fa;
+            border-color: #e9ecef;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .location-link:hover .text-dark {
+            color: #0d6efd !important;
+        }
+
+        .location-link:hover .fa-external-link-alt {
+            transform: translateX(2px);
+        }
+
+        .location-link .fa-external-link-alt {
+            transition: transform 0.2s ease;
+            opacity: 0.7;
+        }
+
+        .location-link:hover .fa-external-link-alt {
+            opacity: 1;
         }
     </style>
 

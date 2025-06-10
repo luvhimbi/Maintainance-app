@@ -4,10 +4,13 @@
   <meta charset="utf-8">
   <title>New Task Assignment - OCM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     body {
       background: #f4f6fa;
-      font-family: 'Segoe UI', Arial, sans-serif;
+      font-family: 'Poppins', Arial, sans-serif;
       margin: 0;
       padding: 0;
       color: #22223b;

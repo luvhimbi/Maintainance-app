@@ -5,18 +5,7 @@
     <div class="container py-4"> {{-- Added py-4 for top/bottom spacing --}}
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
             <div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item">
-                            <a href="{{ route('technician.dashboard') }}" class="text-decoration-none text-muted">
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">
-                            Notifications
-                        </li>
-                    </ol>
-                </nav>
+
                 <h1 class="h3 fw-bold mb-1 text-dark">Your Notifications</h1>
                 <p class="text-muted mb-0">Stay informed about your assigned tasks and system updates.</p>
             </div>

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('issue_type', 50); // electrical, structural, hvac, furniture, general, pc
             $table->text('issue_description');
             $table->dateTime('report_date')->useCurrent();
-            $table->enum('issue_status', ['Open', 'In Progress', 'Resolved', 'Closed'])->default('Open');
+            $table->enum('issue_status', ['Open', 'In Progress', 'Resolved'])->default('Open');
             $table->enum('urgency_level', ['Low', 'Medium', 'High'])->default('Low');
             $table->integer("urgency_score")->default(0);
             // Issue characteristics

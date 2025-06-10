@@ -4,121 +4,119 @@
     <title>OCM - Students and Staff Report</title>
     <style>
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 10px;
-            line-height: 1.4;
-            color: #333;
-            -webkit-print-color-adjust: exact; /* For consistent background colors on print */
-        }
-        h1, h2, h3 {
-            color: #2c3e50; /* Darker blue-grey for headings */
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-        h1 {
-            font-size: 20px;
-            text-align: center;
-            margin-bottom: 5px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #eee;
-        }
-        h2 {
-            font-size: 16px;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #eee;
-        }
-        .system-info {
-            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-size: 11px;
-            color: #7f8c8d; /* Muted grey for system info */
-            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #2c3e50;
+            background-color: #fff;
+            -webkit-print-color-adjust: exact;
+            margin: 20px;
         }
-        .header-info {
-            margin-bottom: 20px;
-            padding: 10px 0;
-            border-top: 1px solid #eee;
-            border-bottom: 1px solid #eee;
-            background-color: #f9f9f9; /* Light background for filter info */
-            display: block; /* Ensure full width for spacing */
+
+        h1, h2 {
+            margin-bottom: 10px;
+            color: #1a252f;
+        }
+
+        h1 {
+            font-size: 24px;
             text-align: center;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
         }
+
+        h2 {
+            font-size: 18px;
+            margin-top: 30px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        .system-info, .header-info {
+            text-align: center;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
         .header-info span {
             display: inline-block;
-            margin: 0 10px;
-            padding: 5px 0;
-            font-weight: normal;
-            color: #555;
+            margin: 0 8px;
+            font-size: 11px;
+            color: #444;
         }
+
         .header-info span strong {
-            font-weight: bold;
-            color: #34495e;
+            color: #1a252f;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 5px rgba(0,0,0,0.05); /* Subtle shadow for tables */
+            margin-top: 15px;
+            background-color: #fdfdfd;
+            box-shadow: 0 0 3px rgba(0,0,0,0.1);
         }
+
         th, td {
-            border: 1px solid #e0e0e0; /* Lighter border for cells */
-            padding: 10px;
+            padding: 10px 8px;
+            border: 1px solid #e0e0e0;
             text-align: left;
-            vertical-align: top;
+            vertical-align: middle;
         }
+
         th {
-            background-color: #f5f5f5; /* Lighter header background */
+            background-color: #f4f6f7;
             font-weight: bold;
-            color: #555;
-            font-size: 10px;
             text-transform: uppercase;
+            font-size: 11px;
+            color: #333;
         }
-        td {
-            font-size: 9px;
-            color: #444;
-        }
+
         tr:nth-child(even) {
-            background-color: #fcfcfc; /* Zebra striping for table rows */
+            background-color: #f9f9f9;
         }
+
         .text-center {
             text-align: center;
         }
+
         .badge {
-            display: inline-block;
-            padding: .3em .6em;
-            font-size: 70%;
-            font-weight: 600;
-            line-height: 1;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: baseline;
-            border-radius: .25rem;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 12px;
             color: #fff;
-            background-color: #6c757d; /* Default badge color */
         }
+
+
+        .badge-default {
+            background-color: #7f8c8d;
+            font: 10px;
+        }
+
         .alert {
-            background-color: #e6f7ff;
-            border: 1px solid #b3e0ff;
-            color: #336699;
-            padding: 10px;
-            border-radius: 5px;
+            background-color: #fef9e7;
+            border: 1px solid #f7dc6f;
+            color: #7d6608;
+            padding: 12px;
             text-align: center;
-            font-size: 11px;
+            border-radius: 4px;
             margin-top: 20px;
+            font-size: 11px;
         }
+
         .alert i {
-            margin-right: 5px;
+            margin-right: 6px;
         }
     </style>
 </head>
 <body>
 <div class="system-info">
-    OCM - Online Campus Management
+    <strong>OCM - Online Campus Management</strong>
 </div>
+
 <h1>Students & Staff Report</h1>
+
 <div class="system-info">
     Report Generated: <strong>{{ now()->format('F j, Y \a\t H:i') }} SAST</strong>
 </div>
@@ -130,12 +128,13 @@
     @if($searchTerm)
         <span>Search Term: <strong>"{{ $searchTerm }}"</strong></span>
     @endif
-    <span>Total Students (filtered): <strong>{{ $students->count() }}</strong></span>
-    <span>Total Staff (filtered): <strong>{{ $staffMembers->count() }}</strong></span>
-    <span>Total Issues Reported (filtered): <strong>{{ $totalStudentIssues + $totalStaffIssues }}</strong></span>
+    <span>Total Students: <strong>{{ $students->count() }}</strong></span>
+    <span>Total Staff: <strong>{{ $staffMembers->count() }}</strong></span>
+    <span>Total Issues: <strong>{{ $totalStudentIssues + $totalStaffIssues }}</strong></span>
 </div>
 
 <h2>Students Overview</h2>
+
 @if($students->isNotEmpty())
     <table>
         <thead>
@@ -155,7 +154,7 @@
                 <td>{{ $student->studentDetail->student_number ?? 'N/A' }}</td>
                 <td>{{ $student->studentDetail->course ?? 'N/A' }}</td>
                 <td class="text-center">
-                    <span class="badge">{{ $student->issues->count() }}</span>
+                    <span class="badge badge-default">{{ $student->issues->count() }}</span>
                 </td>
             </tr>
         @endforeach
@@ -168,6 +167,7 @@
 @endif
 
 <h2>Staff Members Overview</h2>
+
 @if($staffMembers->isNotEmpty())
     <table>
         <thead>
@@ -187,7 +187,7 @@
                 <td>{{ $staff->staffDetail->department ?? 'N/A' }}</td>
                 <td>{{ $staff->staffDetail->position_title ?? 'N/A' }}</td>
                 <td class="text-center">
-                    <span class="badge">{{ $staff->issues->count() }}</span>
+                    <span class="badge badge-default">{{ $staff->issues->count() }}</span>
                 </td>
             </tr>
         @endforeach

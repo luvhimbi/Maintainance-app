@@ -3,36 +3,38 @@
 @section('content')
     <div class="container-fluid locations-management py-4">
         <div class="card border-0 shadow-sm">
-            <!-- Card Header -->
             <div class="card-header bg-white border-bottom-0 py-3 px-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                     <div class="mb-3 mb-md-0">
                         <h2 class="h5 mb-1">Location Management</h2>
-                        <p class="text-muted small mb-0">Manage all building locations and rooms</p>
+                        <p class="text-muted small mb-0">Manage all building locations and coordinates</p>
                     </div>
 
-                    <!-- Search Bar -->
-                    <div class="search-container w-100 w-md-auto">
-                        <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="fas fa-search text-muted"></i>
-                        </span>
-                            <input type="text"
-                                   id="locationSearch"
-                                   class="form-control"
-                                   placeholder="Search buildings, floors or rooms..."
-                                   aria-label="Search locations">
-                            <button class="btn btn-outline-secondary"
-                                    type="button"
-                                    id="clearSearch">
-                                <i class="fas fa-times"></i>
-                            </button>
+                    <div class="d-flex flex-column flex-md-row align-items-md-center">
+                        <div class="search-container w-100 w-md-auto me-md-3 mb-3 mb-md-0">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text"
+                                       id="locationSearch"
+                                       class="form-control"
+                                       placeholder="Search buildings, floors, rooms or coordinates..."
+                                       aria-label="Search locations">
+                                <button class="btn btn-outline-secondary"
+                                        type="button"
+                                        id="clearSearch">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
+                        <a href="{{ route('admin.locations.create') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i> Add New Location
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Card Body -->
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
@@ -41,6 +43,8 @@
                             <th class="ps-4">Building</th>
                             <th>Floor</th>
                             <th>Room</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
                             <th class="pe-4" width="180">Actions</th>
                         </tr>
                         </thead>
@@ -49,8 +53,9 @@
                             <tr class="location-row"
                                 data-building="{{ strtolower($location->building_name) }}"
                                 data-floor="{{ $location->floor_number }}"
-                                data-room="{{ $location->room_number ?? '' }}">
-                                <!-- Building -->
+                                data-room="{{ $location->room_number ?? '' }}"
+                                data-latitude="{{ $location->latitude }}"
+                                data-longitude="{{ $location->longitude }}">
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center">
                                         <div class="icon-container text-primary me-2">
@@ -60,14 +65,12 @@
                                     </div>
                                 </td>
 
-                                <!-- Floor -->
                                 <td>
                                 <span class="badge  floor-number">
                                     Floor {{ $location->floor_number }}
                                 </span>
                                 </td>
 
-                                <!-- Room -->
                                 <td>
                                     @if($location->room_number)
                                         <span class="badge bg-soft-info room-number">
@@ -78,17 +81,30 @@
                                     @endif
                                 </td>
 
-                                <!-- Actions -->
+                                <td>
+                                    @if($location->latitude)
+                                        <span class="coord latitude">{{ number_format($location->latitude, 6) }}</span>
+                                    @else
+                                        <span class="text-muted">N/A</span>
+                                    @endif
+                                </td>
+
+                                <td>
+                                    @if($location->longitude)
+                                        <span class="coord longitude">{{ number_format($location->longitude, 6) }}</span>
+                                    @else
+                                        <span class="text-muted">N/A</span>
+                                    @endif
+                                </td>
+
                                 <td class="pe-4">
                                     <div class="d-flex">
-                                        <!-- Edit Button -->
                                         <a href="{{ route('admin.locations.edit', $location->location_id) }}"
                                            class="btn btn-sm btn-soft-primary me-2"
                                            title="Edit">
                                             <i class="fas fa-edit me-1"></i> Edit
                                         </a>
 
-                                        <!-- Delete Form -->
                                         <form action="{{ route('admin.locations.destroy', $location->location_id) }}"
                                               method="POST"
                                               class="d-inline">
@@ -106,7 +122,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center py-5">
+                                <td colspan="6" class="text-center py-5">
                                     <div class="empty-state">
                                         <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
                                         <h5 class="mb-1">No Locations Found</h5>
@@ -118,7 +134,6 @@
                         </tbody>
                     </table>
 
-                    <!-- Search Error State (Hidden by Default) -->
                     <div id="searchErrorState" class="text-center py-5 d-none">
                         <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
                         <h5 class="mb-1">No Matching Locations Found</h5>
@@ -128,7 +143,6 @@
                         </button>
                     </div>
 
-                    <!-- Pagination -->
                     <div class="pagination px-4 py-3">
                         {{ $locations->links('pagination::bootstrap-5') }}
                     </div>
@@ -147,6 +161,7 @@
             background-color: #f8f9fa;
             border-top: 1px solid #eee;
         }
+
         /* Badge Styles */
         .badge {
             font-weight: 500;
@@ -172,7 +187,27 @@
             font-weight: 500;
         }
 
+        /* Coordinate styles */
+        .coord {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #495057;
+        }
+
         /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            .table th:nth-child(4),
+            .table td:nth-child(4),
+            .table th:nth-child(5),
+            .table td:nth-child(5) {
+                display: none;
+            }
+        }
+
         @media (max-width: 768px) {
             .card-header {
                 flex-direction: column;
@@ -218,11 +253,15 @@
                     const building = row.dataset.building;
                     const floor = row.dataset.floor;
                     const room = row.dataset.room;
+                    const latitude = row.dataset.latitude;
+                    const longitude = row.dataset.longitude;
 
                     const matchesSearch = searchTerm === '' ||
                         building.includes(searchTerm) ||
                         floor.includes(searchTerm) ||
-                        room.includes(searchTerm);
+                        room.includes(searchTerm) ||
+                        (latitude && latitude.includes(searchTerm)) ||
+                        (longitude && longitude.includes(searchTerm));
 
                     if (matchesSearch) {
                         row.style.display = '';
@@ -260,7 +299,9 @@
                 const elements = [
                     row.querySelector('.building-name'),
                     row.querySelector('.floor-number'),
-                    row.querySelector('.room-number')
+                    row.querySelector('.room-number'),
+                    row.querySelector('.latitude'),
+                    row.querySelector('.longitude')
                 ];
 
                 elements.forEach(el => {

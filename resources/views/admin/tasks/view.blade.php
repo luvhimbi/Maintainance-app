@@ -166,11 +166,29 @@
                                     <td class="pe-4 text-end">
                                         <div class="d-flex justify-content-end gap-2">
                                             <a href="{{ route('tasks.progress.show', $task->task_id) }}"
-                                               class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2" {{-- Styled button --}}
+                                               class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2"
                                                data-bs-toggle="tooltip"
                                                title="View Progress">
                                                 <i class="fas fa-eye"></i>
                                             </a>
+                                            @if($task->expected_completion->isPast() && $task->issue_status != 'Completed' && $task->assignee)
+                                                <button
+                                                    class="btn btn-sm btn-outline-danger rounded-pill px-3 py-2 send-reminder-btn"
+                                                    data-task-id="{{ $task->task_id }}"
+                                                    data-tech-name="{{ $task->assignee->first_name }} {{ $task->assignee->last_name }}"
+                                                    data-url="{{ route('admin.tasks.sendReminder', $task->task_id) }}"
+                                                    title="Send Reminder to Technician">
+                                                    <i class="fas fa-bell"></i> Send Reminder
+                                                </button>
+                                                <button
+                                                    class="btn btn-sm btn-outline-warning rounded-pill px-3 py-2 reassign-task-btn"
+                                                    data-task-id="{{ $task->task_id }}"
+                                                    data-url="{{ route('admin.tasks.reassign', $task->task_id) }}"
+                                                    data-issue-id="{{ $task->issue_id }}"
+                                                    title="Reassign Task">
+                                                    <i class="fas fa-random"></i> Reassign
+                                                </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -483,6 +501,137 @@
                     }
                 }
 
+                // Send Reminder Button Logic
+                document.querySelectorAll('.send-reminder-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        const url = this.dataset.url;
+                        const techName = this.dataset.techName;
+                        Swal.fire({
+                            title: 'Send Reminder?',
+                            html: 'Send a reminder to <b>' + techName + '</b> about this overdue task?',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, Send Reminder',
+                            cancelButtonText: 'Cancel',
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                Swal.fire({
+                                    title: 'Sending Reminder...',
+                                    html: '<div class="spinner-border text-danger" role="status"></div><br>Please wait while we notify the technician.',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                    showConfirmButton: false,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                    }
+                                });
+                                fetch(url, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    Swal.fire({
+                                        icon: data.success ? 'success' : 'error',
+                                        title: data.success ? 'Reminder Sent!' : 'Error',
+                                        text: data.message || (data.success ? 'Reminder sent successfully.' : 'Failed to send reminder.'),
+                                        confirmButtonText: 'OK',
+                                        customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                                        buttonsStyling: false
+                                    });
+                                })
+                                .catch(() => {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: 'Failed to send reminder. Please try again.',
+                                        confirmButtonText: 'OK',
+                                        customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                                        buttonsStyling: false
+                                    });
+                                });
+                            }
+                        });
+                    });
+                });
+
+                // Reassign Task Button Logic
+                document.querySelectorAll('.reassign-task-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        const url = this.dataset.url;
+                        const taskId = this.dataset.taskId;
+                        Swal.fire({
+                            title: 'Reassign Task?',
+                            html: 'Are you sure you want to reassign this task to a new technician?<br>This will notify both the old and new technician.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, Reassign',
+                            cancelButtonText: 'Cancel',
+                            confirmButtonColor: '#f39c12',
+                            cancelButtonColor: '#6c757d'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                Swal.fire({
+                                    title: 'Reassigning...',
+                                    html: '<div class="spinner-border text-warning" role="status"></div><br>Please wait while we reassign the task.',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                    showConfirmButton: false,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                    }
+                                });
+                                fetch(url, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                .then(async response => {
+                                    let data = null;
+                                    try {
+                                        data = await response.json();
+                                    } catch (e) {
+                                        throw new Error('Server returned an invalid response.');
+                                    }
+                                    if (!response.ok) {
+                                        throw new Error(data.message || 'Failed to reassign task.');
+                                    }
+                                    return data;
+                                })
+                                .then(data => {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Task Reassigned!',
+                                        text: data.message || 'Task has been reassigned to a new technician.',
+                                        confirmButtonText: 'OK',
+                                        customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                                        buttonsStyling: false
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                })
+                                .catch(error => {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: error.message,
+                                        confirmButtonText: 'OK',
+                                        customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                                        buttonsStyling: false
+                                    });
+                                });
+                            }
+                        });
+                    });
+                });
+
                 // Add event listeners
                 if (searchInput) {
                     searchInput.addEventListener('input', filterTasks);
@@ -512,3 +661,141 @@
             });
         </script>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Send Reminder Button Logic
+    document.querySelectorAll('.send-reminder-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.url;
+            const techName = this.dataset.techName;
+            Swal.fire({
+                title: 'Send Reminder?',
+                html: 'Send a reminder to <b>' + techName + '</b> about this overdue task?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Send Reminder',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Sending Reminder...',
+                        html: '<div class="spinner-border text-danger" role="status"></div><br>Please wait while we notify the technician.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        Swal.fire({
+                            icon: data.success ? 'success' : 'error',
+                            title: data.success ? 'Reminder Sent!' : 'Error',
+                            text: data.message || (data.success ? 'Reminder sent successfully.' : 'Failed to send reminder.'),
+                            confirmButtonText: 'OK',
+                            customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                            buttonsStyling: false
+                        });
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to send reminder. Please try again.',
+                            confirmButtonText: 'OK',
+                            customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                            buttonsStyling: false
+                        });
+                    });
+                }
+            });
+        });
+    });
+
+    // Reassign Task Button Logic
+    document.querySelectorAll('.reassign-task-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.url;
+            const taskId = this.dataset.taskId;
+            Swal.fire({
+                title: 'Reassign Task?',
+                html: 'Are you sure you want to reassign this task to a new technician?<br>This will notify both the old and new technician.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Reassign',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#f39c12',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Reassigning...',
+                        html: '<div class="spinner-border text-warning" role="status"></div><br>Please wait while we reassign the task.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(async response => {
+                        let data = null;
+                        try {
+                            data = await response.json();
+                        } catch (e) {
+                            throw new Error('Server returned an invalid response.');
+                        }
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Failed to reassign task.');
+                        }
+                        return data;
+                    })
+                    .then(data => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Task Reassigned!',
+                            text: data.message || 'Task has been reassigned to a new technician.',
+                            confirmButtonText: 'OK',
+                            customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                            buttonsStyling: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: error.message,
+                            confirmButtonText: 'OK',
+                            customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                            buttonsStyling: false
+                        });
+                    });
+                }
+            });
+        });
+    });
+});
+</script>
+@endpush

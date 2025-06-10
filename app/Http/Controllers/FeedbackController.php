@@ -10,33 +10,38 @@ use Excel;
 use App\Exports\FeedbacksExport;
 class FeedbackController extends Controller
 {
-    public function store(Request $request, Issue $issue)
+    public function store(Request $request, $issueId)
     {
-        // Validate the request
         $request->validate([
-            'rating' => 'required|integer|between:1,5',
-            'comments' => 'nullable|string|max:500'
+            'rating' => 'required|integer|min:1|max:5',
+            'comments' => 'nullable|string|max:1000',
         ]);
 
-        // Ensure issue is resolved
-        if ($issue->issue_status !== 'Resolved') {
-            return back()->with('error', 'Feedback can only be submitted for resolved issues.');
+        $user = $request->user();
+        $issue = \App\Models\Issue::findOrFail($issueId);
+
+        // Prevent duplicate feedback from the same user for the same issue
+        $existing = \App\Models\Feedback::where('issue_id', $issueId)
+            ->where('user_id', $user->user_id)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'You have already submitted feedback for this issue.'
+            ], 409);
         }
 
-        // Ensure user hasn't already submitted feedback
-        if ($issue->hasFeedbackFrom(Auth::user())) {
-            return back()->with('error', 'You have already submitted feedback for this issue.');
-        }
-
-        // Create feedback
-        Feedback::create([
-            'issue_id' => $issue->issue_id,
-            'user_id' => Auth::id(),
-            'rating' => $request->rating,
-            'comments' => $request->comments
+        $feedback = \App\Models\Feedback::create([
+            'issue_id' => $issueId,
+            'user_id' => $user->user_id,
+            'rating' => $request->input('rating'),
+            'comments' => $request->input('comments'),
         ]);
 
-        return back()->with('success', 'Thank you for your feedback!');
+        return response()->json([
+            'message' => 'Feedback submitted successfully.',
+            'feedback' => $feedback
+        ]);
     }
 
        public function index(Request $request)

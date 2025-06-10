@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Exports\StudentsAndStaffExport;
 use App\Http\Controllers\Controller;
 
 use App\Models\Task;
@@ -13,21 +12,17 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TechnicianPerformanceExport;
-use App\Exports\TaskExport;
+use App\Exports\TaskReportExport;
 use App\Exports\TechnicianReportExport;
-use App\Exports\PerformanceReportExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
-use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
 {
-
-
-// this is for display data initially
     public function StudentsAndStaffReport(Request $request)
     {
         // 1. Validate Inputs
@@ -365,7 +360,7 @@ class ReportController extends Controller
         $validatedData = $request->validate([
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => ['nullable', 'string', Rule::in(['all', 'completed', 'pending', 'in_progress', 'overdue'])],
+            'status' => ['nullable', 'string', Rule::in(['all', 'completed', 'pending', 'in progress', 'overdue'])],
             'priority' => ['nullable', 'string', Rule::in(['all', 'high', 'medium', 'low'])],
         ]);
 
@@ -411,7 +406,7 @@ class ReportController extends Controller
             'total' => $allFilteredTasks->count(),
             'completed' => $allFilteredTasks->where('issue_status', 'Completed')->count(), // Use capitalized
             'pending' => $allFilteredTasks->where('issue_status', 'Pending')->count(),     // Use capitalized
-            'in_progress' => $allFilteredTasks->where('issue_status', 'In Progress')->count(), // Use capitalized
+            'in progress' => $allFilteredTasks->where('issue_status', 'In Progress')->count(), // Use capitalized
             'overdue' => $allFilteredTasks->filter(function ($task) {
                 return $task->expected_completion < now() && $task->issue_status != 'Completed'; // Use capitalized
             })->count(),
@@ -477,22 +472,29 @@ class ReportController extends Controller
         $endDate = $data['endDate'];
         $filters = $data['filters'];
 
-        $phpWord = new PhpWord();
-        $section = $phpWord->addSection();
+        $phpWord = new \PhpOffice\PhpWord\PhpWord();
+        $section = $phpWord->addSection([
+            'marginTop' => 600,
+            'marginBottom' => 600,
+            'marginLeft' => 800,
+            'marginRight' => 800,
+        ]);
 
         // Styles
         $fontStyleTitle = ['name' => 'Arial', 'size' => 16, 'bold' => true, 'color' => '2C3E50'];
         $fontStyleSub = ['name' => 'Arial', 'size' => 12, 'bold' => true, 'color' => '34495E'];
         $fontStyleNormal = ['name' => 'Arial', 'size' => 10, 'color' => '333333'];
         $fontStyleSmall = ['name' => 'Arial', 'size' => 9, 'color' => '555555'];
-        $paraStyleCenter = ['align' => 'center'];
+        $paraStyleCenter = ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER];
+        $paraStyleLeft = ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT];
+
         $tableStyle = [
             'borderColor' => 'D0D0D0',
             'borderSize'  => 6,
             'cellMargin'  => 80,
-            'valign'      => 'center',
-            'unit'        => \PhpOffice\PhpWord\SimpleType\TblWidth::PERCENT, // Use percentage width
-            'width'       => 10000, // 100%
+            'alignment'   => \PhpOffice\PhpWord\SimpleType\JcTable::CENTER,
+            'width'       => 100 * 50, // 100% in twips (1% = 50 twips)
+            'unit'        => \PhpOffice\PhpWord\SimpleType\TblWidth::PERCENT,
         ];
         $headerCellStyle = ['bgColor' => 'F5F5F5', 'valign' => 'center'];
         $headerFont = ['bold' => true, 'size' => 10, 'color' => '555555'];
@@ -504,7 +506,7 @@ class ReportController extends Controller
         $section->addTextBreak(1);
 
         // Summary
-        $section->addText('Report Summary:', $fontStyleSub);
+        $section->addText('Report Summary:', $fontStyleSub, $paraStyleLeft);
         $section->addText('Period: ' . $startDate->format('F j, Y') . ' to ' . $endDate->format('F j, Y'), $fontStyleNormal);
         $section->addText('Total Tasks: ' . $stats['total'], $fontStyleNormal);
         $section->addText('Completed Tasks: ' . $stats['completed'], $fontStyleNormal);
@@ -513,76 +515,79 @@ class ReportController extends Controller
         $section->addText('Overdue Tasks: ' . $stats['overdue'], $fontStyleNormal);
         $section->addTextBreak(1);
 
-        // Filters Applied
-        $section->addText('Filters Applied:', $fontStyleSub);
-        $section->addText('Status: ' . ucfirst(str_replace('_', ' ', $filters['status'])), $fontStyleNormal);
-        $section->addText('Priority: ' . ucfirst($filters['priority']), $fontStyleNormal);
+        // Filters
+        $section->addText('Filters Applied:', $fontStyleSub, $paraStyleLeft);
+        $section->addText('Status: ' . ucfirst(str_replace('_', ' ', $filters['status'] ?? 'All')), $fontStyleNormal);
+        $section->addText('Priority: ' . ucfirst($filters['priority'] ?? 'All'), $fontStyleNormal);
         $section->addTextBreak(2);
 
         // Task Details Table
-        $section->addText('Task Details:', $fontStyleSub);
+        $section->addText('Task Details:', $fontStyleSub, $paraStyleLeft);
         $section->addTextBreak(1);
 
         if ($tasks->isNotEmpty()) {
-            $table = $section->addTable($tableStyle);
-            $table->addRow(400); // Header row height
+            $phpWord->addTableStyle('TaskTable', $tableStyle, $headerCellStyle);
+            $table = $section->addTable('TaskTable');
+            $table->addRow(400);
 
             // Table Headers
-            $table->addCell(1500, $headerCellStyle)->addText('Task ID', $headerFont, $paraStyleCenter);
-            $table->addCell(2000, $headerCellStyle)->addText('Issue Type', $headerFont, $paraStyleCenter);
-            $table->addCell(2500, $headerCellStyle)->addText('Location', $headerFont, $paraStyleCenter);
-            $table->addCell(2000, $headerCellStyle)->addText('Assignee', $headerFont, $paraStyleCenter);
-            $table->addCell(1500, $headerCellStyle)->addText('Status', $headerFont, $paraStyleCenter);
-            $table->addCell(2000, $headerCellStyle)->addText('Due Date', $headerFont, $paraStyleCenter);
+            $table->addCell(1200, $headerCellStyle)->addText('Task ID', $headerFont, $paraStyleCenter);
+            $table->addCell(1600, $headerCellStyle)->addText('Issue Type', $headerFont, $paraStyleCenter);
+            $table->addCell(1800, $headerCellStyle)->addText('Location', $headerFont, $paraStyleCenter);
+            $table->addCell(1800, $headerCellStyle)->addText('Assignee', $headerFont, $paraStyleCenter);
+            $table->addCell(1200, $headerCellStyle)->addText('Status', $headerFont, $paraStyleCenter);
+            $table->addCell(1500, $headerCellStyle)->addText('Due Date', $headerFont, $paraStyleCenter);
 
             // Table Rows
             foreach ($tasks as $task) {
                 $table->addRow();
-                $table->addCell(1500)->addText('#' . $task->task_id);
-                $table->addCell(2000)->addText($task->issue->issue_type ?? 'N/A');
-                $table->addCell(2500)->addText(
-                    ($task->issue->location->building_name ?? 'N/A') .
-                    ($task->issue->location->room_number ? ' (Room ' . $task->issue->location->room_number . ')' : '')
+
+                $table->addCell(1200)->addText('#' . $task->task_id, null, $paraStyleLeft);
+
+                $table->addCell(1600)->addText(
+                    $task->issue->issue_type ?? 'N/A',
+                    null,
+                    $paraStyleLeft
                 );
-                $table->addCell(2000)->addText($task->assignee ? $task->assignee->first_name . ' ' . $task->assignee->last_name : 'Unassigned');
+
+                $location = ($task->issue->location->building_name ?? 'N/A');
+                if (!empty($task->issue->location->room_number)) {
+                    $location .= ' (Room ' . $task->issue->location->room_number . ')';
+                }
+                $table->addCell(1800)->addText($location, null, $paraStyleLeft);
+
+                $assignee = $task->assignee ? $task->assignee->first_name . ' ' . $task->assignee->last_name : 'Unassigned';
+                $table->addCell(1800)->addText($assignee, null, $paraStyleLeft);
 
                 $statusText = ucfirst(str_replace('_', ' ', $task->issue_status));
-                $statusColor = '000000'; // Default black
-                if ($task->issue_status == 'completed') $statusColor = '28A745'; // Green
-                elseif ($task->issue_status == 'pending') $statusColor = 'FFC107'; // Yellow
-                elseif ($task->issue_status == 'in_progress') $statusColor = '0D6EFD'; // Blue
-                else if ($task->expected_completion < now() && $task->issue_status != 'completed') $statusColor = 'DC3545'; // Red for overdue
-
-                $table->addCell(1500)->addText($statusText, ['color' => $statusColor, 'bold' => true], $paraStyleCenter);
+                $statusColor = '000000';
+                if ($task->issue_status === 'completed') {
+                    $statusColor = '28A745';
+                } elseif ($task->issue_status === 'pending') {
+                    $statusColor = 'FFC107';
+                } elseif ($task->issue_status === 'in_progress') {
+                    $statusColor = '0D6EFD';
+                } elseif ($task->expected_completion < now() && $task->issue_status !== 'completed') {
+                    $statusColor = 'DC3545';
+                }
+                $table->addCell(1200)->addText($statusText, ['color' => $statusColor, 'bold' => true], $paraStyleCenter);
 
                 $dueDateText = $task->expected_completion->format('M d, Y');
-                $dueDateColor = '000000';
-                if ($task->expected_completion < now() && $task->issue_status != 'completed') {
-                    $dueDateColor = 'DC3545'; // Red for overdue
-                }
-                $table->addCell(2000)->addText($dueDateText, ['color' => $dueDateColor, 'bold' => true]);
+                $dueDateColor = ($task->expected_completion < now() && $task->issue_status !== 'completed') ? 'DC3545' : '000000';
+                $table->addCell(1500)->addText($dueDateText, ['color' => $dueDateColor, 'bold' => true], $paraStyleCenter);
             }
         } else {
-            $section->addText('No tasks found matching your criteria.');
+            $section->addText('No tasks found matching your criteria.', $fontStyleNormal);
         }
 
+        // Save the file and return download
+        $fileName = 'task_report_' . now()->format('Ymd_His') . '.docx';
+        $tempFile = storage_path('app/public/' . $fileName);
+        $phpWord->save($tempFile, 'Word2007');
 
-        // Save the document and send as download
-        try {
-            $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
-            $fileName = 'maintenance_task_report_' . now()->format('Ymd_His') . '.docx';
-
-            header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-            header('Content-Disposition: attachment;filename="' . $fileName . '"');
-            header('Cache-Control: max-age=0');
-
-            $objWriter->save('php://output');
-            exit;
-        } catch (\Exception $e) {
-            \Log::error('Task Word export failed: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to generate Word report. ' . $e->getMessage());
-        }
+        return response()->download($tempFile)->deleteFileAfterSend(true);
     }
+
 
 
 
@@ -618,7 +623,7 @@ class ReportController extends Controller
         $validatedData = $request->validate([
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => ['nullable', 'string', Rule::in(['all', 'completed', 'pending', 'in_progress'])], // 'overdue' not applicable here as it's a derived status
+            'status' => ['nullable', 'string', Rule::in(['all', 'completed', 'pending', 'in progress'])], // 'overdue' not applicable here as it's a derived status
             'priority' => ['nullable', 'string', Rule::in(['all', 'high', 'medium', 'low'])],
         ]);
 
@@ -764,6 +769,7 @@ class ReportController extends Controller
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
+
     public function exportTechnicianWord(Request $request)
     {
         $data = $this->getFilteredTechnicianReportData($request);
@@ -782,16 +788,18 @@ class ReportController extends Controller
         $fontStyleNormal = ['name' => 'Arial', 'size' => 10, 'color' => '333333'];
         $fontStyleSmall = ['name' => 'Arial', 'size' => 9, 'color' => '555555'];
         $paraStyleCenter = ['align' => 'center'];
+        $headerCellStyle = ['bgColor' => 'F5F5F5', 'valign' => 'center'];
+        $headerFont = ['bold' => true, 'size' => 10, 'color' => '555555'];
+
+        // Table Style
         $tableStyle = [
             'borderColor' => 'D0D0D0',
             'borderSize'  => 6,
             'cellMargin'  => 80,
-            'valign'      => 'center',
-            'unit'        => \PhpOffice\PhpWord\SimpleType\TblWidth::PERCENT,
-            'width'       => 10000,
+            'alignment'   => \PhpOffice\PhpWord\SimpleType\JcTable::CENTER,
+            'layout'      => \PhpOffice\PhpWord\Style\Table::LAYOUT_FIXED,
         ];
-        $headerCellStyle = ['bgColor' => 'F5F5F5', 'valign' => 'center'];
-        $headerFont = ['bold' => true, 'size' => 10, 'color' => '555555'];
+        $phpWord->addTableStyle('TechnicianTable', $tableStyle);
 
         // Header
         $section->addText('OCM - Online Campus Management', $fontStyleSmall, $paraStyleCenter);
@@ -808,47 +816,47 @@ class ReportController extends Controller
         $section->addText('Average Completion Rate: ' . number_format($stats['avg_completion_rate'], 2) . '%', $fontStyleNormal);
         $section->addTextBreak(1);
 
-        // Filters Applied
+        // Filters
         $section->addText('Filters Applied:', $fontStyleSub);
         $section->addText('Status: ' . ucfirst(str_replace('_', ' ', $filters['status'])), $fontStyleNormal);
         $section->addText('Priority: ' . ucfirst($filters['priority']), $fontStyleNormal);
         $section->addTextBreak(2);
 
-        // Technician Details Table
+        // Table Title
         $section->addText('Technician Details:', $fontStyleSub);
         $section->addTextBreak(1);
 
         if ($technicians->isNotEmpty()) {
-            $table = $section->addTable($tableStyle);
-            $table->addRow(400); // Header row height
+            $table = $section->addTable('TechnicianTable');
+            $table->addRow();
 
-            // Table Headers
+            // Table header cells (adjust width in TWIP; total should be around 9000-9500)
             $table->addCell(1500, $headerCellStyle)->addText('Name', $headerFont, $paraStyleCenter);
-            $table->addCell(2000, $headerCellStyle)->addText('Specialization', $headerFont, $paraStyleCenter);
-            $table->addCell(1500, $headerCellStyle)->addText('Availability', $headerFont, $paraStyleCenter);
-            $table->addCell(1500, $headerCellStyle)->addText('Workload', $headerFont, $paraStyleCenter);
-            $table->addCell(1500, $headerCellStyle)->addText('Total Tasks', $headerFont, $paraStyleCenter);
-            $table->addCell(1500, $headerCellStyle)->addText('Completed Tasks', $headerFont, $paraStyleCenter);
+            $table->addCell(1500, $headerCellStyle)->addText('Specialization', $headerFont, $paraStyleCenter);
+            $table->addCell(1000, $headerCellStyle)->addText('Availability', $headerFont, $paraStyleCenter);
+            $table->addCell(1000, $headerCellStyle)->addText('Workload', $headerFont, $paraStyleCenter);
+            $table->addCell(1000, $headerCellStyle)->addText('Total Tasks', $headerFont, $paraStyleCenter);
+            $table->addCell(1000, $headerCellStyle)->addText('Completed Tasks', $headerFont, $paraStyleCenter);
             $table->addCell(1500, $headerCellStyle)->addText('Completion Rate', $headerFont, $paraStyleCenter);
-            $table->addCell(1500, $headerCellStyle)->addText('Avg Time (Days)', $headerFont, $paraStyleCenter);
+            $table->addCell(1000, $headerCellStyle)->addText('Avg Time (Days)', $headerFont, $paraStyleCenter);
 
             // Table Rows
             foreach ($technicians as $technician) {
                 $table->addRow();
                 $table->addCell(1500)->addText($technician['name']);
-                $table->addCell(2000)->addText($technician['specialization']);
-                $table->addCell(1500)->addText($technician['availability']);
-                $table->addCell(1500)->addText($technician['workload']);
-                $table->addCell(1500)->addText($technician['total_tasks']);
-                $table->addCell(1500)->addText($technician['completed_tasks']);
+                $table->addCell(1500)->addText($technician['specialization']);
+                $table->addCell(1000)->addText($technician['availability']);
+                $table->addCell(1000)->addText($technician['workload']);
+                $table->addCell(1000)->addText($technician['total_tasks']);
+                $table->addCell(1000)->addText($technician['completed_tasks']);
                 $table->addCell(1500)->addText(number_format($technician['completion_rate'], 2) . '%');
-                $table->addCell(1500)->addText(number_format($technician['avg_completion_time'], 1));
+                $table->addCell(1000)->addText(number_format($technician['avg_completion_time'], 1));
             }
         } else {
             $section->addText('No technicians found matching your criteria.');
         }
 
-        // Save the document and send as download
+        // Output to download
         try {
             $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
             $fileName = 'technician_report_' . now()->format('Ymd_His') . '.docx';
@@ -864,7 +872,5 @@ class ReportController extends Controller
             return redirect()->back()->with('error', 'Failed to generate Word report. ' . $e->getMessage());
         }
     }
-
-
 
 }

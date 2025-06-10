@@ -14,16 +14,16 @@ class StaffMemberSeeder extends Seeder
     {
         $staffMembers = [
             [
-            'email' => 'registrar1@example.com',
-            'first_name' => 'John',
-            'last_name' => 'Doe',
+            'email' => '230747598@tut4life.ac.za',
+            'first_name' => 'Siyamthanda',
+            'last_name' => 'Khumalo',
             'department' => 'Registrar Office',
             'position' => 'Senior Coordinator'
             ],
             [
-            'email' => 'academic1@example.com',
-            'first_name' => 'Jane',
-            'last_name' => 'Smith',
+            'email' => '224688350@tut4life.ac.za',
+            'first_name' => 'Samkelo',
+            'last_name' => 'Mavuso',
             'department' => 'Academic Affairs',
             'position' => 'Department Head'
             ],

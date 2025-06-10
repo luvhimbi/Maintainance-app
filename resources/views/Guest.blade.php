@@ -31,10 +31,9 @@
         }
 
         .hero {
-            background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)),
-            url('Images/TutApp.webp') no-repeat center center/cover;
-            color: white;
-            padding: 300px 0;
+            background-color: #ffffff; /* white background */
+            color: #000000; /* dark text for contrast */
+            padding: 200px 0; /* makes hero section larger */
             text-align: center;
         }
 
@@ -44,7 +43,8 @@
         }
 
         .hero p {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
         }
 
         .features, .how-it-works, .cta-section {
@@ -78,16 +78,22 @@
         footer {
             background-color: #f1f1f1;
         }
+
+        .navbar {
+            box-shadow: none !important;
+            border-bottom: none !important;
+        }
     </style>
 </head>
 <body>
 
-@include('layouts.navbar')
+@include('layouts.GuestNavBar')
+
 <!-- Hero Section -->
 <section class="hero">
     <div class="container">
         <h1>Welcome to OCM</h1>
-        <p class="mt-3 mb-4">Easily report and track campus maintenance issues at Tshwane University of Technology.</p>
+        <p class="mt-3">Easily report and track campus maintenance issues at Tshwane University of Technology.</p>
         <a href="/login" class="btn btn-primary btn-lg">Login to Report an Issue</a>
     </div>
 </section>

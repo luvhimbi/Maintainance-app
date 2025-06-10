@@ -390,7 +390,19 @@
                     cancelButtonText: 'No, go back'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        confirmForm.submit();
+                        // Show loading modal
+                        Swal.fire({
+                            title: 'Submitting...',
+                            html: '<div class="spinner-border text-primary" role="status"></div><br>Please wait while we process your issue and send notifications.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                                // Actually submit the form now
+                                confirmForm.submit();
+                            }
+                        });
                     }
                 });
             });

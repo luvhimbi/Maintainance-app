@@ -135,7 +135,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('Student.dashboard') }}">
                 <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
                 <i class="fas fa-tools me-2"></i>
             OCM
@@ -148,7 +148,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
+                        <a class="nav-link {{ Request::routeIs('Student.dashboard') ? 'active' : '' }}" href="{{ route('Student.dashboard') }}">
                             <i class="fas fa-home me-2"></i>Home
                         </a>
                     </li>
