@@ -63,10 +63,6 @@
                     <label class="form-label">Location on Map</label>
                     <div id="map" style="height: 600px; border-radius: 8px; border: 1px solid #ddd;"></div>
                     <div id="location-info" class="mt-3 p-4 bg-white rounded shadow-sm" style="display: none;">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <h6 class="mb-0">Selected Location</h6>
-                        </div>
                         <div id="location-details" class="location-details"></div>
                         <input type="hidden" id="latitude" name="latitude" value="{{ old('latitude', $location->latitude) }}" required>
                         <input type="hidden" id="longitude" name="longitude" value="{{ old('longitude', $location->longitude) }}" required>
@@ -138,39 +134,125 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        #location-info h6 {
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
         .location-details {
             color: #6c757d;
             font-size: 0.95rem;
             line-height: 1.6;
         }
 
-        .location-details .address {
-            color: #2c3e50;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
+        .location-coordinates {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 12px;
         }
 
-        .location-details .coordinates {
-            color: #6c757d;
-            font-size: 0.9rem;
+        .coordinate-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .coordinate-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .coordinate-label {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .coordinate-value {
+            color: #333;
             font-family: monospace;
-            background: #f8f9fa;
-            padding: 0.25rem 0.5rem;
+            font-size: 13px;
+            background-color: #fff;
+            padding: 2px 6px;
             border-radius: 4px;
-            display: inline-block;
+            border: 1px solid #ddd;
+            max-width: 70%;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .mapboxgl-marker {
+            cursor: move;
+            z-index: 1;
+        }
+
+        .mapboxgl-marker svg {
+            width: 30px !important;
+            height: 30px !important;
+        }
+
+        .mapboxgl-marker:hover {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+
+        .click-animation {
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 0, 0, 0.6);
+            border: 2px solid #FFFFFF;
+            border-radius: 50%;
+            animation: pulse 1s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .location-info {
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .location-coordinates {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .coordinate-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .coordinate-label {
+            font-weight: 600;
+            color: #4B5563;
+            min-width: 80px;
+        }
+
+        .coordinate-value {
+            color: #1F2937;
+            font-family: monospace;
+            background-color: #F3F4F6;
+            padding: 4px 8px;
+            border-radius: 4px;
         }
 
         .mapboxgl-ctrl-geolocate {
             margin: 10px !important;
         }
+
         .mapboxgl-ctrl-group {
             margin: 10px !important;
         }
+
         .mapboxgl-canvas {
             width: 100% !important;
             height: 100% !important;
@@ -285,14 +367,8 @@
                 }, 100);
             });
 
-            // Create a marker with improved positioning
-            var marker = new mapboxgl.Marker({
-                draggable: true,
-                color: '#FF0000',
-                anchor: 'bottom'
-            })
-            .setLngLat(initialCenter)
-            .addTo(map);
+            // Create a marker variable but don't add it to the map yet
+            var marker = null;
 
             // Function to update location info display
             function updateLocationInfo(lngLat, address = null) {
@@ -300,21 +376,43 @@
                 const locationDetails = document.getElementById('location-details');
                 
                 locationInfo.style.display = 'block';
-                if (address) {
-                    locationDetails.innerHTML = `
-                        <div class="address">${address}</div>
-                        <div class="coordinates">${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}</div>
-                    `;
-                } else {
-                    locationDetails.innerHTML = `
-                        <div class="coordinates">${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}</div>
-                    `;
-                }
+                locationDetails.innerHTML = `
+                    <div class="location-coordinates">
+                        <div class="coordinate-item">
+                            <span class="coordinate-label">Latitude:</span>
+                            <span class="coordinate-value">${lngLat.lat.toFixed(6)}</span>
+                        </div>
+                        <div class="coordinate-item">
+                            <span class="coordinate-label">Longitude:</span>
+                            <span class="coordinate-value">${lngLat.lng.toFixed(6)}</span>
+                        </div>
+                        ${address ? `<div class="coordinate-item">
+                            <span class="coordinate-label">Address:</span>
+                            <span class="coordinate-value">${address}</span>
+                        </div>` : ''}
+                    </div>
+                `;
             }
 
-            // Update marker position when map is clicked
+            // Function to show click animation
+            function showClickAnimation(coords) {
+                const el = document.createElement('div');
+                el.className = 'click-animation';
+                const animationMarker = new mapboxgl.Marker(el)
+                    .setLngLat(coords)
+                    .addTo(map);
+
+                // Remove the animation marker after 1 second
+                setTimeout(() => {
+                    animationMarker.remove();
+                }, 1000);
+            }
+
+            // Update location when map is clicked
             map.on('click', function(e) {
-                marker.setLngLat(e.lngLat);
+                // Show click animation
+                showClickAnimation(e.lngLat);
+                
                 document.getElementById('longitude').value = e.lngLat.lng.toFixed(6);
                 document.getElementById('latitude').value = e.lngLat.lat.toFixed(6);
                 
@@ -333,28 +431,28 @@
                     .catch(error => console.error('Error fetching address:', error));
             });
 
-            // Update coordinates when marker is dragged
-            function onDragEnd() {
-                var lngLat = marker.getLngLat();
-                document.getElementById('longitude').value = lngLat.lng.toFixed(6);
-                document.getElementById('latitude').value = lngLat.lat.toFixed(6);
+            // If there's an existing location, show it
+            if (document.getElementById('longitude').value && document.getElementById('latitude').value) {
+                const lng = parseFloat(document.getElementById('longitude').value);
+                const lat = parseFloat(document.getElementById('latitude').value);
+                
+                // Show click animation at existing location
+                showClickAnimation([lng, lat]);
                 
                 // Update location info
-                updateLocationInfo(lngLat);
+                updateLocationInfo({lng, lat});
 
                 // Try to get address using reverse geocoding
-                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}`)
+                fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.features && data.features.length > 0) {
                             const address = data.features[0].place_name;
-                            updateLocationInfo(lngLat, address);
+                            updateLocationInfo({lng, lat}, address);
                         }
                     })
                     .catch(error => console.error('Error fetching address:', error));
             }
-
-            marker.on('dragend', onDragEnd);
 
             // Set initial values and location info
             document.getElementById('longitude').value = initialCenter[0].toFixed(6);

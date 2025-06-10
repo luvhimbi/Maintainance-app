@@ -162,19 +162,6 @@
                                         <!-- Route summary will be displayed here -->
                                     </div>
 
-                                    <div id="clicked-points" class="mt-4 p-3 bg-light rounded d-none">
-                                        <h6><i class="fas fa-map-marker-alt me-2"></i> Clicked Points</h6>
-                                        <div id="clicked-points-container" class="mt-2"></div>
-                                        <button id="clear-points" class="btn btn-sm btn-outline-danger mt-2">
-                                            <i class="fas fa-trash me-1"></i> Clear Points
-                                        </button>
-                                    </div>
-
-                                    <div id="distances" class="mt-4 p-3 bg-light rounded d-none">
-                                        <h6><i class="fas fa-ruler me-2"></i> Distances</h6>
-                                        <div id="distances-container" class="mt-2"></div>
-                                    </div>
-
                                     <div id="loading-indicator" class="text-center mt-4 d-none">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Loading...</span>
@@ -199,7 +186,6 @@
 mapboxgl.accessToken = '{{ $mapboxAccessToken }}';
 let map, userLocation;
 let markers = [];
-let clickedPoints = [];
 let watchId = null;
 let currentRoute = null;
 let navigationActive = false;
@@ -209,9 +195,6 @@ let currentStepIndex = 0;
 let speechSynthesis = window.speechSynthesis;
 let userLocationMarker = null;
 let geolocateControl = null;
-
-// Add variables for location markers
-let locationMarkers = [];
 let startLocationMarker = null;
 let endLocationMarker = null;
 
@@ -461,21 +444,26 @@ function startLocationTracking() {
         navigator.geolocation.clearWatch(watchId);
     }
 
-    watchId = navigator.geolocation.watchPosition(
-        updateUserLocation,
-        handleGeolocationError,
-        {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        }
-    );
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    };
 
-    // Show location info
-    const locationInfo = document.getElementById('location-info');
-    if (locationInfo) {
-        locationInfo.classList.remove('d-none');
-    }
+    watchId = navigator.geolocation.watchPosition(
+        (position) => {
+            updateUserLocation(position);
+            // Show location info
+            const locationInfo = document.getElementById('location-info');
+            if (locationInfo) {
+                locationInfo.classList.remove('d-none');
+            }
+        },
+        (error) => {
+            handleGeolocationError(error);
+        },
+        options
+    );
 }
 
 function showLocationError(message) {
@@ -490,22 +478,16 @@ function showLocationError(message) {
 function setupEventListeners() {
     const startBtn = document.getElementById('start-navigation');
     const clearBtn = document.getElementById('clear-route');
-    const clearPointsBtn = document.getElementById('clear-points');
+    const useMyLocationBtn = document.getElementById('get-user-location');
     const toggleVoiceBtn = document.getElementById('toggle-voice');
 
     if (startBtn && clearBtn) {
         startBtn.addEventListener('click', startNavigation);
         clearBtn.addEventListener('click', clearRoute);
-        console.log('Navigation buttons set up');
-    } else {
-        console.error('Navigation buttons not found');
     }
 
-    if (clearPointsBtn) {
-        clearPointsBtn.addEventListener('click', clearClickedPoints);
-        console.log('Clear points button set up');
-    } else {
-        console.warn('Clear points button not found');
+    if (useMyLocationBtn) {
+        useMyLocationBtn.addEventListener('click', getUserLocation);
     }
 
     if (toggleVoiceBtn) {
@@ -545,8 +527,6 @@ function speak(text) {
 function updateUserLocation(position) {
     const { latitude, longitude, accuracy } = position.coords;
     userLocation = [longitude, latitude];
-
-    console.log('User location updated:', userLocation);
 
     // Update location display
     updateLocationDisplay(position.coords);
@@ -630,7 +610,6 @@ function updateAccuracyCircle(center, accuracyMeters) {
 
 // Handle geolocation errors
 function handleGeolocationError(error) {
-    console.error('Geolocation error:', error);
     let errorMessage;
 
     switch(error.code) {
@@ -666,7 +645,6 @@ function handleGeolocation(e) {
 }
 
 function updateLocationDisplay(coords) {
-    console.log('Updating location display');
     const locationInfo = document.getElementById('location-info');
     const coordinates = document.getElementById('coordinates');
     const accuracy = document.getElementById('accuracy');
@@ -685,131 +663,127 @@ function updateLocationDisplay(coords) {
     }
 }
 
+// Function to handle map clicks
 function handleMapClick(e) {
     const coords = e.lngLat;
     console.log('Map clicked at:', coords);
 
-    // Add marker to map
-    const marker = new mapboxgl.Marker({
-        color: clickedPoints.length === 0 ? "#FF0000" : "#00FF00" // Red for first point, green for second
-    })
-        .setLngLat(coords)
-        .addTo(map);
-
-    // Store marker and coordinates
-    markers.push(marker);
-    clickedPoints.push([coords.lng, coords.lat]);
-
-    // Update UI with clicked points
-    updateClickedPointsDisplay();
-
-    // If we have 2 points, calculate and display distance
-    if (clickedPoints.length === 2) {
-        calculateDistanceBetweenPoints();
-
-        // If navigation is active, calculate route between points
-        if (navigationActive) {
-            calculateRoute({
-                origin: clickedPoints[0],
-                destination: clickedPoints[1],
-                profile: document.getElementById('travel-mode').value
-            });
-        }
-    }
-}
-
-function calculateDistanceBetweenPoints() {
-    if (clickedPoints.length !== 2) return;
-
-    const point1 = turf.point(clickedPoints[0]);
-    const point2 = turf.point(clickedPoints[1]);
-
-    // Calculate distance in meters
-    const distance = turf.distance(point1, point2, { units: 'meters' });
-
-    // Update distance display
-    const distancesContainer = document.getElementById('distances-container');
-    if (distancesContainer) {
-        distancesContainer.innerHTML = `
-            <div class="alert alert-info">
-                <div class="fw-bold">Distance between points:</div>
-                <div>${distance.toFixed(2)} meters</div>
-                <div>(${(distance/1000).toFixed(2)} kilometers)</div>
+    // If no start location is set, set it as start location
+    if (!startLocationMarker) {
+        const el = document.createElement('div');
+        el.className = 'location-marker';
+        el.innerHTML = `
+            <div class="location-marker-content">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="location-marker-tooltip">Start Location</div>
             </div>
         `;
 
-        document.getElementById('distances').classList.remove('d-none');
-    }
+        startLocationMarker = new mapboxgl.Marker(el)
+            .setLngLat(coords)
+            .addTo(map);
 
-    // Draw a line between points
-    const line = turf.lineString([clickedPoints[0], clickedPoints[1]]);
-
-    if (map.getSource('distance-line')) {
-        map.removeLayer('distance-line');
-        map.removeSource('distance-line');
-    }
-
-    map.addSource('distance-line', {
-        'type': 'geojson',
-        'data': line
-    });
-
-    map.addLayer({
-        'id': 'distance-line',
-        'type': 'line',
-        'source': 'distance-line',
-        'paint': {
-            'line-color': '#FF0000',
-            'line-width': 2,
-            'line-dasharray': [2, 2]
-        }
-    });
-}
-
-function updateClickedPointsDisplay() {
-    const container = document.getElementById('clicked-points-container');
-    if (!container) {
-        console.warn('Clicked points container not found');
-        return;
-    }
-
-    container.innerHTML = clickedPoints.map((point, index) => `
-        <div class="d-flex mb-2">
-            <div class="me-3 text-danger fw-bold">${index + 1}</div>
-            <div>
-                <div>Point at: ${point[1].toFixed(6)}, ${point[0].toFixed(6)}</div>
+        // Update start location input
+        document.getElementById('start-location-input').value = 'Selected Location';
+    } 
+    // If start location exists but no destination, set as destination
+    else if (!endLocationMarker) {
+        const el = document.createElement('div');
+        el.className = 'location-marker';
+        el.innerHTML = `
+            <div class="location-marker-content">
+                <i class="fas fa-flag"></i>
+                <div class="location-marker-tooltip">Destination</div>
             </div>
-        </div>
-    `).join('');
+        `;
 
-    const clickedPointsElement = document.getElementById('clicked-points');
-    if (clickedPointsElement) {
-        clickedPointsElement.classList.remove('d-none');
+        endLocationMarker = new mapboxgl.Marker(el)
+            .setLngLat(coords)
+            .addTo(map);
+
+        // Update destination input
+        document.getElementById('destination-input').value = 'Selected Location';
+
+        // Calculate route if both points are set
+        calculateRoute({
+            origin: startLocationMarker.getLngLat().toArray(),
+            destination: endLocationMarker.getLngLat().toArray(),
+            profile: document.getElementById('travel-mode').value
+        }).then(routeData => {
+            displayRoute(routeData);
+        }).catch(error => {
+            console.error('Route calculation error:', error);
+            handleNavigationError(error);
+        });
     }
 }
 
-function clearClickedPoints() {
-    // Remove all markers
-    markers.forEach(marker => marker.remove());
-    markers = [];
-    clickedPoints = [];
+// Function to get user location
+function getUserLocation() {
+    if (navigator.geolocation) {
+        // Show location permission alert
+        const locationAlert = document.getElementById('location-permission-alert');
+        if (locationAlert) {
+            locationAlert.classList.remove('d-none');
+        }
 
-    // Remove distance line
-    if (map.getSource('distance-line')) {
-        map.removeLayer('distance-line');
-        map.removeSource('distance-line');
-    }
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                // Success
+                if (locationAlert) {
+                    locationAlert.classList.add('d-none');
+                }
 
-    // Update UI
-    const clickedPointsElement = document.getElementById('clicked-points');
-    const distancesElement = document.getElementById('distances');
+                const { latitude, longitude } = position.coords;
+                
+                // Create marker for user location
+                const el = document.createElement('div');
+                el.className = 'location-marker';
+                el.innerHTML = `
+                    <div class="location-marker-content">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div class="location-marker-tooltip">My Location</div>
+                    </div>
+                `;
 
-    if (clickedPointsElement) {
-        clickedPointsElement.classList.add('d-none');
-    }
+                // Remove existing start marker if any
+                if (startLocationMarker) {
+                    startLocationMarker.remove();
+                }
 
-    if (distancesElement) {
-        distancesElement.classList.add('d-none');
+                // Add new marker
+                startLocationMarker = new mapboxgl.Marker(el)
+                    .setLngLat([longitude, latitude])
+                    .addTo(map);
+
+                // Update start location input
+                document.getElementById('start-location-input').value = 'My Location';
+
+                // Center map on user's location
+                map.flyTo({
+                    center: [longitude, latitude],
+                    zoom: 17,
+                    essential: true
+                });
+
+                // Start location tracking
+                startLocationTracking();
+            },
+            (error) => {
+                // Error
+                if (locationAlert) {
+                    locationAlert.classList.add('d-none');
+                }
+                handleGeolocationError(error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        showLocationError('Geolocation is not supported by your browser');
     }
 }
 
@@ -844,8 +818,9 @@ async function startNavigation() {
             throw new Error('Please set a destination location');
         }
 
-        // Only remove the route layer, not the markers
+        // Remove existing route layer
         if (map.getSource('route')) {
+            map.removeLayer('route-glow');
             map.removeLayer('route');
             map.removeSource('route');
         }
@@ -871,6 +846,14 @@ async function startNavigation() {
 
         // Start navigation updates
         startNavigationUpdates();
+
+        // Ensure markers are visible
+        if (startLocationMarker) {
+            startLocationMarker.getElement().style.zIndex = '1000';
+        }
+        if (endLocationMarker) {
+            endLocationMarker.getElement().style.zIndex = '1000';
+        }
 
     } catch (error) {
         console.error('Navigation error:', error);
@@ -989,14 +972,28 @@ function displayRoute(routeData) {
 
     // Clear existing route
     if (map.getSource('route')) {
+        map.removeLayer('route-glow');
         map.removeLayer('route');
         map.removeSource('route');
     }
 
     // Get the route coordinates
-    const routeCoordinates = routeData.routes[0].geometry.coordinates;
+    let routeCoordinates = routeData.routes[0].geometry.coordinates;
 
-    // Add new route layer
+    // Ensure the route starts and ends exactly at the markers
+    if (startLocationMarker && endLocationMarker) {
+        const startCoords = startLocationMarker.getLngLat().toArray();
+        const endCoords = endLocationMarker.getLngLat().toArray();
+        
+        // Add start and end coordinates to ensure connection
+        routeCoordinates = [
+            startCoords,
+            ...routeCoordinates,
+            endCoords
+        ];
+    }
+
+    // Add new route layer with improved styling
     map.addSource('route', {
         type: 'geojson',
         data: {
@@ -1009,6 +1006,7 @@ function displayRoute(routeData) {
         }
     });
 
+    // Add the main route line
     map.addLayer({
         id: 'route',
         type: 'line',
@@ -1019,10 +1017,35 @@ function displayRoute(routeData) {
         },
         paint: {
             'line-color': '#3a86ff',
-            'line-width': 4,
-            'line-opacity': 0.7
+            'line-width': 5,
+            'line-opacity': 0.8
         }
     });
+
+    // Add a glow effect to the route
+    map.addLayer({
+        id: 'route-glow',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#3a86ff',
+            'line-width': 8,
+            'line-opacity': 0.2,
+            'line-blur': 2
+        }
+    });
+
+    // Ensure markers are on top
+    if (startLocationMarker) {
+        startLocationMarker.getElement().style.zIndex = '1000';
+    }
+    if (endLocationMarker) {
+        endLocationMarker.getElement().style.zIndex = '1000';
+    }
 
     // Update route summary
     const route = routeData.routes[0];
@@ -1099,21 +1122,14 @@ function showInstructions(steps) {
 }
 
 function clearRoute() {
-    console.log('Clearing route');
-    // Remove route layer
+    // Remove route layers
     if (map.getSource('route')) {
+        map.removeLayer('route-glow');
         map.removeLayer('route');
         map.removeSource('route');
     }
 
-    // Remove route markers (but keep clicked point markers)
-    const clickedPointsCount = clickedPoints.length;
-    if (markers.length > clickedPointsCount) {
-        markers.slice(clickedPointsCount).forEach(marker => marker.remove());
-        markers = markers.slice(0, clickedPointsCount);
-    }
-
-    // Clear start and destination markers
+    // Remove markers
     if (startLocationMarker) {
         startLocationMarker.remove();
         startLocationMarker = null;
@@ -1197,10 +1213,17 @@ async function calculateRoute({ origin, destination, profile }) {
             throw new Error('Security token missing. Please refresh the page and try again.');
         }
 
+        // Map the profile to the correct Mapbox profile
+        const mapboxProfile = {
+            'walking': 'walking',
+            'driving': 'driving',
+            'cycling': 'cycling'
+        }[profile] || 'walking';
+
         console.log('Sending route request with params:', {
             origin: `${originCoords[0]},${originCoords[1]}`,
             destination: `${destCoords[0]},${destCoords[1]}`,
-            profile: profile
+            profile: mapboxProfile
         });
 
         const response = await fetch('/technician/route', {
@@ -1212,7 +1235,7 @@ async function calculateRoute({ origin, destination, profile }) {
             body: JSON.stringify({
                 origin: `${originCoords[0]},${originCoords[1]}`,
                 destination: `${destCoords[0]},${destCoords[1]}`,
-                profile: profile
+                profile: mapboxProfile
             })
         });
 
@@ -1234,7 +1257,7 @@ async function calculateRoute({ origin, destination, profile }) {
                         <div class="mt-2">
                             <small class="text-muted">
                                 <i class="fas fa-info-circle"></i>
-                                Try selecting points closer together or use the campus navigation feature.
+                                Try selecting points closer together or use a different travel mode.
                             </small>
                         </div>
                     `;
@@ -1248,6 +1271,21 @@ async function calculateRoute({ origin, destination, profile }) {
 
         if (!data.routes || data.routes.length === 0) {
             throw new Error('No route found between these points');
+        }
+
+        // Validate the route based on travel mode
+        const route = data.routes[0];
+        const distanceKm = route.distance / 1000;
+
+        // Add distance limits for different travel modes
+        const distanceLimits = {
+            'walking': 5, // 5 km for walking
+            'cycling': 15, // 15 km for cycling
+            'driving': 50 // 50 km for driving
+        };
+
+        if (distanceKm > distanceLimits[mapboxProfile]) {
+            throw new Error(`Route is too long for ${profile} mode. Please try a different travel mode or select closer points.`);
         }
 
         return data;
@@ -1407,8 +1445,7 @@ async function loadAllLocations() {
         allLocationsList.innerHTML = '';
 
         if (locations.length === 0) {
-            allLocationsList.innerHTML = `
-                <div class="list-group-item text-muted">
+            allLocationsList.innerHTML = `                <div class="list-group-item text-muted">
                     No locations found
                 </div>
             `;
@@ -1507,70 +1544,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add click handler for "Use My Location" button
     if (useMyLocationBtn) {
         useMyLocationBtn.addEventListener('click', () => {
-            // Show location permission alert
-            const locationAlert = document.getElementById('location-permission-alert');
-            if (locationAlert) {
-                locationAlert.classList.remove('d-none');
-            }
-
-            // Request location permission
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    // Success
-                    if (locationAlert) {
-                        locationAlert.classList.add('d-none');
-                    }
-
-                    // Get user's location
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-
-                    // Create a marker for user's location
-                    const el = document.createElement('div');
-                    el.className = 'location-marker';
-                    el.innerHTML = `
-                        <div class="location-marker-content">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <div class="location-marker-tooltip">My Location</div>
-                        </div>
-                    `;
-
-                    // Remove existing start marker if any
-                    if (startLocationMarker) {
-                        startLocationMarker.remove();
-                    }
-
-                    // Add new marker
-                    startLocationMarker = new mapboxgl.Marker(el)
-                        .setLngLat([userLng, userLat])
-                        .addTo(map);
-
-                    // Update start location input
-                    document.getElementById('start-location-input').value = 'My Location';
-
-                    // Center map on user's location
-                    map.flyTo({
-                        center: [userLng, userLat],
-                        zoom: 17,
-                        essential: true
-                    });
-
-                    // Start location tracking
-                    startLocationTracking();
-                },
-                (error) => {
-                    // Error
-                    if (locationAlert) {
-                        locationAlert.classList.add('d-none');
-                    }
-                    handleGeolocationError(error);
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            );
+            getUserLocation();
         });
     }
 
@@ -1665,9 +1639,41 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Update the travel mode select options
+document.addEventListener('DOMContentLoaded', () => {
+    const travelModeSelect = document.getElementById('travel-mode');
+    if (travelModeSelect) {
+        travelModeSelect.innerHTML = `
+            <option value="walking">Walking (up to 5 km)</option>
+            <option value="cycling">Cycling (up to 15 km)</option>
+            <option value="driving">Driving (up to 50 km)</option>
+        `;
+    }
+});
+
+// Add event listener for travel mode changes
+document.addEventListener('DOMContentLoaded', () => {
+    const travelModeSelect = document.getElementById('travel-mode');
+    if (travelModeSelect) {
+        travelModeSelect.addEventListener('change', () => {
+            if (startLocationMarker && endLocationMarker) {
+                calculateRoute({
+                    origin: startLocationMarker.getLngLat().toArray(),
+                    destination: endLocationMarker.getLngLat().toArray(),
+                    profile: travelModeSelect.value
+                }).then(routeData => {
+                    displayRoute(routeData);
+                }).catch(error => {
+                    console.error('Route calculation error:', error);
+                    handleNavigationError(error);
+                });
+            }
+        });
+    }
+});
 </script>
 @endpush
-
 @push('styles')
 <style>
 #map { height: 85vh; width: 100% !important; }
@@ -1737,3 +1743,5 @@ document.head.appendChild(style);
 }
 </style>
 @endpush
+
+
