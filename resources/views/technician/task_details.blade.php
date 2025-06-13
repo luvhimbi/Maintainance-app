@@ -29,7 +29,11 @@
                         <h2 class="h5 mb-0 text-dark fw-bold">Task #{{ $task->task_id }}</h2>
                     </div>
                     <div class="text-muted small">
-                        <i class="fas fa-calendar-alt me-1"></i> Assigned: {{ $task->assignment_date->format('M d, Y') }}
+                        
+                        <span class="ms-3">
+                <i class="fas fa-clock me-1"></i>
+                Created: {{ $task->created_at ? \Carbon\Carbon::parse($task->created_at)->format('M d, Y H:i') : 'N/A' }}
+            </span>
                     </div>
                 </div>
             </div>

@@ -110,7 +110,7 @@ Route::post('/reset-password', [AuthController::class, 'sendResetLink'])->name('
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset.form');
 Route::post('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.update');
 
-
+Route::get('/leaving', [App\Http\Controllers\LeaveSiteController::class, 'show'])->name('leaving');
 
 
 // this for edit a profile for a technician

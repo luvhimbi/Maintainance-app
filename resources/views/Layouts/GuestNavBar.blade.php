@@ -28,3 +28,27 @@
         @endif
     </div>
 </nav>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Only rewrite external links, not mailto: or tel:
+    const links = document.querySelectorAll("a[href^='http']");
+    const currentHost = window.location.hostname;
+
+    links.forEach(link => {
+        try {
+            const url = new URL(link.href);
+            if (
+                url.hostname !== currentHost &&
+                !link.href.startsWith('mailto:') &&
+                !link.href.startsWith('tel:')
+            ) {
+                const encodedUrl = encodeURIComponent(link.href);
+                link.setAttribute('data-leaving', 'true');
+                link.href = `/leaving?url=${encodedUrl}`;
+            }
+        } catch (e) {
+            // Ignore invalid URLs
+        }
+    });
+});
+</script>

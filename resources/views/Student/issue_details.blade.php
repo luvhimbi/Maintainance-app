@@ -32,11 +32,12 @@
     {{ $issue->urgency_level }} Priority ({{ $issue->urgency_score }})
 </span>
 
-                        <span class="text-muted small">
-                    <i class="fas fa-calendar-alt me-1"></i>
-                    {{ \Carbon\Carbon::parse($issue->report_date)->format('M d, Y') }}
-                </span>
-                    </div>
+   
+    <span class="text-muted small ms-3">
+        <i class="fas fa-clock me-1"></i>
+        Created: {{ $issue->created_at ? \Carbon\Carbon::parse($issue->created_at)->format('M d, Y H:i') : 'N/A' }}
+    </span>
+</div>
                 </div>
             </div>
 
