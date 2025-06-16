@@ -15,8 +15,8 @@ WORKDIR /app
 # 5. First copy composer files
 COPY composer.json composer.lock ./
 
-# 6. Install with production flags
-RUN composer install --optimize-autoloader --no-scripts --no-interaction --no-dev
+# # 6. Install with production flags
+# RUN composer install --optimize-autoloader --no-scripts --no-interaction --no-dev
 
 # 7. Now copy rest of application
 COPY . .
