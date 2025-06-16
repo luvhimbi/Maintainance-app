@@ -1,4 +1,4 @@
-@extends('layouts.StudentNavbar')
+@extends('Layouts.StudentNavbar')
 
 @section('title', 'Edit Issue')
 
@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Handle building selection
     buildingSelect.addEventListener('change', function() {
         const buildingId = this.value;
-        
+
         // Reset and disable floor and room dropdowns
         floorSelect.innerHTML = '<option value="">-- Select floor --</option>';
         roomSelect.innerHTML = '<option value="">-- Select room --</option>';
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (buildingId) {
             // Show loading spinner
             floorLoading.classList.remove('d-none');
-            
+
             // Fetch floors for the selected building
             fetch(`/buildings/${buildingId}/floors`)
                 .then(response => {
@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             floorSelect.appendChild(option);
                         });
                         floorSelect.disabled = false;
-                        
+
                         // If we have a pre-selected floor, select it after loading
                         const preselectedFloor = '{{ $issue->floor_id }}';
                         if (preselectedFloor) {
@@ -550,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Handle floor selection
     floorSelect.addEventListener('change', function() {
         const floorId = this.value;
-        
+
         // Reset and disable room dropdown
         roomSelect.innerHTML = '<option value="">-- Select room --</option>';
         roomSelect.disabled = true;
@@ -558,7 +558,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (floorId) {
             // Show loading spinner
             roomLoading.classList.remove('d-none');
-            
+
             // Fetch rooms for the selected floor
             fetch(`/floors/${floorId}/rooms`)
                 .then(response => {
@@ -576,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             roomSelect.appendChild(option);
                         });
                         roomSelect.disabled = false;
-                        
+
                         // If we have a pre-selected room, select it after loading
                         const preselectedRoom = '{{ $issue->room_id }}';
                         if (preselectedRoom) {

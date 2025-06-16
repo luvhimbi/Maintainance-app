@@ -36,7 +36,7 @@ class AuthController extends Controller
         }
     }
 
-    return view('login');
+    return view('Login');
 }
 
 public function showResetForm()

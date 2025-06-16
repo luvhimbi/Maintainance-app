@@ -250,7 +250,7 @@
 </head>
 <body>
 
-@extends('layouts.StudentNavbar')
+@extends('Layouts.StudentNavbar')
 
 @section('title', 'Issue Reported Successfully')
 

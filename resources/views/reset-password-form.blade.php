@@ -95,7 +95,7 @@
 <body>
 <div class="page-wrapper">
 
-    @include('layouts.GuestNavBar')
+    @include('Layouts.GuestNavBar')
 
     <div class="content-wrapper">
         <div class="auth-container">

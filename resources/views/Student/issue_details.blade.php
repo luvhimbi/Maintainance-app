@@ -1,4 +1,4 @@
-@extends('layouts.StudentNavbar')
+@extends('Layouts.StudentNavbar')
 @section('title', 'Issue Details')
 @section('content')
     <div class="container mt-4">
@@ -19,8 +19,8 @@
                             <h4 class="card-title mb-0 fw-bold text-dark">{{ $issue->issue_type }}</h4>
                             <p class="text-muted small mb-0">
                                 <i class="fas fa-map-marker-alt text-muted me-1"></i>
-                                {{ $issue->building->building_name ?? 'Unknown' }}, 
-                                Floor {{ $issue->floor->floor_number ?? 'Unknown' }}, 
+                                {{ $issue->building->building_name ?? 'Unknown' }},
+                                Floor {{ $issue->floor->floor_number ?? 'Unknown' }},
                                 Room {{ $issue->room->room_number ?? 'Unknown' }}
                             </p>
                         </div>
@@ -34,7 +34,7 @@
     {{ $issue->urgency_level }} Priority ({{ $issue->urgency_score }})
 </span>
 
-   
+
     <span class="text-muted small ms-3">
         <i class="fas fa-clock me-1"></i>
         Created: {{ $issue->created_at ? \Carbon\Carbon::parse($issue->created_at)->format('M d, Y H:i') : 'N/A' }}

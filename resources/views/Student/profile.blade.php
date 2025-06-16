@@ -1,4 +1,4 @@
-@extends('layouts.StudentNavbar')
+@extends('Layouts.StudentNavbar')
 
 @section('title', 'Profile')
 
@@ -77,7 +77,7 @@
                                             Professional Information
                                         @endif
                                     </h3>
-                                    
+
                                     @if(auth()->user()->user_role === 'Student')
                                         <!-- Student Specific Fields -->
                                         <div class="d-flex align-items-center mb-3">

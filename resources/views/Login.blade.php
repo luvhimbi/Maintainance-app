@@ -108,7 +108,7 @@
 <body>
 
 <!-- Navbar -->
-@include('layouts.GuestNavBar')
+@include('Layouts.GuestNavBar')
 
 <!-- Login Form -->
 <div class="container">
