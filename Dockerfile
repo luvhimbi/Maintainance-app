@@ -1,5 +1,5 @@
-# 1. Use base PHP with FPM
-FROM php:8.1-fpm AS builder
+# 1. Use base PHP 8.2 with FPM
+FROM php:8.2-fpm AS builder
 
 # 2. Install prerequisites for pdo_pgsql
 RUN apt-get update && apt-get install -y \
