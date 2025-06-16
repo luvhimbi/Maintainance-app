@@ -209,7 +209,7 @@
 </head>
 <body>
 
-@include('layouts.GuestNavBar')
+@include('Layouts.GuestNavBar')
 
 <!-- Hero Section -->
 <section class="hero">
