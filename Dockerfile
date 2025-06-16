@@ -1,5 +1,5 @@
-# 1. Use base PHP with FPM
-FROM php:8.1-fpm AS builder
+# 1. Use base PHP 8.2 with FPM
+FROM php:8.2-fpm AS builder
 
 # 2. Install prerequisites for pdo_pgsql
 RUN apt-get update && apt-get install -y \
@@ -15,8 +15,8 @@ WORKDIR /app
 # 5. First copy composer files
 COPY composer.json composer.lock ./
 
-# 6. Install with production flags
-RUN composer install --optimize-autoloader --no-scripts --no-interaction --no-dev
+# # 6. Install with production flags
+# RUN composer install --optimize-autoloader --no-scripts --no-interaction --no-dev
 
 # 7. Now copy rest of application
 COPY . .
