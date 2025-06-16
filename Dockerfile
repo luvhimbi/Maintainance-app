@@ -1,26 +1,25 @@
+# 1. Use base PHP with FPM
 FROM php:8.1-fpm AS builder
 
-# Install prerequisites
+# 2. Install prerequisites for pdo_pgsql
 RUN apt-get update && apt-get install -y \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
-    libpng-dev \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure and enable gd
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql
+# 3. Enable PDO and PDO_PGSQL
+RUN docker-php-ext-install pdo pdo_pgsql
 
-# Set working directory
+# 4. Set working directory
 WORKDIR /app
 
-# First copy composer files
+# 5. First copy composer files
 COPY composer.json composer.lock ./
-# Install with production flags
+
+# 6. Install with production flags
 RUN composer install --optimize-autoloader --no-scripts --no-interaction --no-dev
 
-# Now copy rest of application
+# 7. Now copy rest of application
 COPY . .
 
+# 8. Provide command to start your application
 CMD php artisan serve --host=0.0.0.0 --port=8000
-
