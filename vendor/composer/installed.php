@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '86f57396d2d4dbb954f2042e12e758460c571adc',
+        'reference' => '0d316a13fc11f63de80789dfc7d06a6843d3a8e4',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -541,7 +541,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '86f57396d2d4dbb954f2042e12e758460c571adc',
+            'reference' => '0d316a13fc11f63de80789dfc7d06a6843d3a8e4',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -1327,15 +1327,6 @@
             'install_path' => __DIR__ . '/../sebastian/version',
             'aliases' => array(),
             'dev_requirement' => true,
-        ),
-        'simplesoftwareio/simple-qrcode' => array(
-            'pretty_version' => '4.2.0',
-            'version' => '4.2.0.0',
-            'reference' => '916db7948ca6772d54bb617259c768c9cdc8d537',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../simplesoftwareio/simple-qrcode',
-            'aliases' => array(),
-            'dev_requirement' => false,
         ),
         'spatie/once' => array(
             'dev_requirement' => false,
