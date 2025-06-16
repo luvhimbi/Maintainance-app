@@ -63,7 +63,7 @@ class ProfileController extends Controller
         $user = Auth::user();
         $admin = Admin::where('user_id', $user->user_id)->first();
 
-        return view('admin.profile', [
+        return view('admin.Profile', [
             'user' => $user,
             'admin' => $admin
         ]);
