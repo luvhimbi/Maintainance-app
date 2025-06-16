@@ -1,13 +1,26 @@
 import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import tailwindcss from '@tailwindcss/vite';
+import laravel from 'laravel-vite-plugin';import { defineConfig } from 'vite';
+import laravelPlugin from 'laravel-vite-plugin';
+import reactRefresh from '@vitejs/plugin-react';
 
-export default defineConfig({
+export default defineConfig({ 
     plugins: [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+        reactRefresh(), // If you’re using React; omit if not
+        laravelPlugin({ 
+            input: ['resources/js/app.js'], // <- We normally import CSS in app.js
             refresh: true,
-        }),
-        tailwindcss(),
+        })
     ],
+    server: {
+        strictPort: true,
+        port: 5173,
+    },
+    build: {
+        rollupOptions: {
+            input: {
+                app: 'resources/js/app.js',
+            },
+        },
+    },
 });
+
