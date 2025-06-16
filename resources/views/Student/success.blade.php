@@ -301,10 +301,12 @@
                             </div>
                         </div>
                         <div class="button-container mt-4">
-                            <a href="{{ route('Student.issue_details', ['id' => session('issue_id')]) }}"
-                               class="btn btn-primary">
-                                <i class="fas fa-search me-2"></i> View Issue Details
-                            </a>
+                            @if(session('issue_id'))
+                                <a href="{{ route('Student.issue_details', ['id' => session('issue_id')]) }}"
+                                   class="btn btn-primary">
+                                    <i class="fas fa-search me-2"></i> View Issue Details
+                                </a>
+                            @endif
                             <a href="{{ route('Student.dashboard') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-home me-2"></i> Return to dashboard
                             </a>

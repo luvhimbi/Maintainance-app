@@ -34,10 +34,14 @@
                         <div class="info-label fw-bold text-muted small">LOCATION</div>
                         <div class="info-value">
                             <i class="fas fa-building me-1 text-secondary"></i> {{ $location->building_name }}
-                            <span class="mx-2">•</span>
-                            <i class="fas fa-layer-group me-1 text-secondary"></i> Floor {{ $location->floor_number }}
-                            <span class="mx-2">•</span>
-                            <i class="fas fa-door-open me-1 text-secondary"></i> Room {{ $location->room_number }}
+                            @if($location->floor_number)
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-layer-group me-1 text-secondary"></i> Floor {{ $location->floor_number }}
+                            @endif
+                            @if($location->room_number)
+                                <span class="mx-2">•</span>
+                                <i class="fas fa-door-open me-1 text-secondary"></i> Room {{ $location->room_number }}
+                            @endif
                         </div>
                     </div>
                     <div class="mb-3">

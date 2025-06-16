@@ -68,7 +68,7 @@
                                             </select>
                                         </div>
                                         <div class="col-md-4">
-                                            <label for="floor_id" class="form-label">Floor</label>
+                                            <label for="floor_id" class="form-label">Floor *</label>
                                             <div class="position-relative">
                                                 <select class="form-select border-primary" name="floor_id" id="floor_id" required {{ empty($issue->building_id) ? 'disabled' : '' }}>
                                                     <option value="">-- Select floor --</option>
@@ -86,7 +86,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-4">
-                                            <label for="room_id" class="form-label">Room</label>
+                                            <label for="room_id" class="form-label">Room *</label>
                                             <div class="position-relative">
                                                 <select class="form-select border-primary" name="room_id" id="room_id" required {{ empty($issue->floor_id) ? 'disabled' : '' }}>
                                                     <option value="">-- Select room --</option>
@@ -678,12 +678,6 @@ document.addEventListener('DOMContentLoaded', function () {
         let errors = [];
         if (!buildingSelect.value) {
             errors.push('Please select a building.');
-        }
-        if (!floorSelect.value) {
-            errors.push('Please select a floor.');
-        }
-        if (!roomSelect.value) {
-            errors.push('Please select a room.');
         }
         if (!issueTypeInput.value) {
             errors.push('Please select an issue type.');
