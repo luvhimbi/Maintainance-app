@@ -119,8 +119,8 @@
                                                 <i class="fas fa-map-marker-alt text-secondary"></i>
                                             </div>
                                             <div>
-                                                <span class="d-block">{{ $task->issue->location->building_name ?? 'N/A' }}</span>
-                                                <small class="text-muted">Room {{ $task->issue->location->room_number ?? 'N/A' }}</small>
+                                                <span class="d-block">{{ $task->issue->building->building_name ?? 'N/A' }}</span>
+                                                <small class="text-muted">Room {{ $task->issue->room->room_number ?? 'N/A' }}</small>
                                             </div>
                                         </div>
                                     </td>

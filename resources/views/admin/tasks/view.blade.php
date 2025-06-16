@@ -13,11 +13,11 @@
                     </div>
 
                     <div class="col-12 col-md-6 col-lg-4 offset-lg-2 d-flex flex-column flex-sm-row align-items-center justify-content-end gap-3"> {{-- Added flexbox for alignment --}}
-                        <div class="input-group rounded-pill overflow-hidden shadow-sm-sm flex-grow-1"> {{-- Styled search input --}}
+                        <div class="input-group rounded-pill overflow-hidden shadow-sm-sm" style="min-width: 300px;"> {{-- Added min-width and removed flex-grow-1 --}}
                             <span class="input-group-text bg-light border-0 ps-3">
-                            <i class="fas fa-search text-muted"></i>
-                        </span>
-                            <input type="text" id="taskSearch" class="form-control border-0 pe-3" placeholder="Search tasks by ID, issue, technician, status..." aria-label="Search tasks"> {{-- Expanded placeholder --}}
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="taskSearch" class="form-control border-0 pe-3" placeholder="Search tasks..." aria-label="Search tasks">
                             <button class="btn btn-outline-secondary border-0" type="button" id="clearSearch">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -25,6 +25,27 @@
                         <div class="overdue-alert badge bg-danger-subtle text-danger py-2 px-3 rounded-pill fw-medium"> {{-- Styled overdue badge --}}
                             <i class="fas fa-exclamation-circle me-1"></i>
                             Overdue Tasks: {{ $overdueCount }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap gap-2" id="statusFilters">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 active" data-status="all">
+                                <i class="fas fa-list me-1"></i> All Tasks
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-2" data-status="pending">
+                                <i class="fas fa-hourglass-half me-1"></i> Pending
+                            </button>
+                            <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-2" data-status="in-progress">
+                                <i class="fas fa-spinner me-1"></i> In Progress
+                            </button>
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-3 py-2" data-status="completed">
+                                <i class="fas fa-check-circle me-1"></i> Completed
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3 py-2" data-status="overdue">
+                                <i class="fas fa-clock me-1"></i> Overdue
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -289,26 +310,38 @@
             /* Search input group styling */
             .input-group.rounded-pill {
                 border: 1px solid #ced4da;
-                border-radius: 2rem; /* More rounded */
+                border-radius: 2rem;
                 overflow: hidden;
+                transition: all 0.2s ease;
+            }
+            .input-group.rounded-pill:hover {
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            .input-group.rounded-pill:focus-within {
+                box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+                border-color: #0d6efd;
             }
             .input-group.rounded-pill .form-control,
             .input-group.rounded-pill .input-group-text,
             .input-group.rounded-pill .btn {
-                border: none !important; /* Remove individual borders */
+                border: none !important;
                 background-color: white;
+                padding: 0.75rem 1rem;
             }
             .input-group.rounded-pill .form-control:focus {
-                box-shadow: none; /* No focus shadow inside input group */
+                box-shadow: none;
             }
             .input-group.rounded-pill .input-group-text {
-                padding-left: 1rem;
+                padding-left: 1.25rem;
             }
             .input-group.rounded-pill .form-control {
                 padding-left: 0.5rem;
             }
             .input-group.rounded-pill .btn {
-                padding-right: 1rem;
+                padding-right: 1.25rem;
+            }
+            .input-group.rounded-pill .btn:hover {
+                background-color: #f8f9fa;
             }
 
             /* Table specific styles */
@@ -336,9 +369,21 @@
 
             /* Search highlight */
             .search-highlight {
-                background-color: #FFF9C4; /* Light yellow */
+                background-color: #FFF9C4;
                 padding: 0 2px;
                 border-radius: 3px;
+                display: inline;
+            }
+
+            /* Ensure these elements maintain their design during search */
+            .avatar, .icon-container, .badge {
+                position: relative;
+                z-index: 1;
+            }
+
+            .avatar *, .icon-container *, .badge * {
+                position: relative;
+                z-index: 2;
             }
 
             /* Empty state styling */
@@ -376,69 +421,18 @@
                 const resetEmptyStateFiltersButton = document.getElementById('resetEmptyStateFilters');
                 const searchFeedback = document.getElementById('searchFeedback');
                 const resultCount = document.getElementById('resultCount');
+                const statusFilters = document.getElementById('statusFilters');
 
-                // Function to highlight text matches
-                function highlightText(element, searchTerm) {
-                    if (!element || !searchTerm) return;
+                let currentStatus = 'all';
 
-                    const text = element.textContent;
-                    const lowerText = text.toLowerCase();
-                    let startIndex = 0;
-
-                    // If the search term isn't found in this element, return
-                    if (!lowerText.includes(searchTerm.toLowerCase())) return;
-
-                    // Clear the element's content while preserving its original text for re-highlighting
-                    const originalContent = element.innerHTML;
-                    element.innerHTML = ''; // Clear current HTML
-
-                    // Find all occurrences and highlight them
-                    while (startIndex < text.length) {
-                        const matchIndex = lowerText.indexOf(searchTerm.toLowerCase(), startIndex);
-
-                        if (matchIndex === -1) {
-                            // No more matches, add the remaining text
-                            element.appendChild(document.createTextNode(text.substring(startIndex)));
-                            break;
-                        }
-
-                        // Add text before the match
-                        if (matchIndex > startIndex) {
-                            element.appendChild(document.createTextNode(text.substring(startIndex, matchIndex)));
-                        }
-
-                        // Add the highlighted match
-                        const highlightSpan = document.createElement('span');
-                        highlightSpan.className = 'search-highlight';
-                        highlightSpan.textContent = text.substring(matchIndex, matchIndex + searchTerm.length);
-                        element.appendChild(highlightSpan);
-
-                        // Move past this match
-                        startIndex = matchIndex + searchTerm.length;
-                    }
-                }
-
-                // Function to remove all highlights from a row
-                function removeHighlightsFromRow(row) {
-                    row.querySelectorAll('.search-highlight').forEach(span => {
-                        const parent = span.parentNode;
-                        parent.replaceChild(document.createTextNode(span.textContent), span);
-                        parent.normalize(); // Merge adjacent text nodes
-                    });
-                }
-
-                // Function to filter table rows based on search input
+                // Function to filter table rows based on search input and status
                 function filterTasks() {
                     const searchTerm = searchInput.value.toLowerCase().trim();
                     let visibleCount = 0;
 
-                    // Get all actual task rows
                     const taskRows = Array.from(tasksTableBody.children).filter(row => row.classList.contains('task-row'));
 
                     taskRows.forEach(row => {
-                        // Remove any existing highlights first
-                        removeHighlightsFromRow(row);
-
                         const taskId = row.dataset.taskid;
                         const issueId = row.dataset.issueid;
                         const issueTitle = row.dataset.issuetitle;
@@ -447,8 +441,23 @@
                         const dueDate = row.dataset.duedate;
                         const status = row.dataset.status;
                         const priority = row.dataset.priority;
+                        const isOverdue = row.classList.contains('table-danger-light');
 
-                        const matchesSearch =
+                        // Check status filter
+                        let statusMatch = true;
+                        if (currentStatus !== 'all') {
+                            if (currentStatus === 'overdue') {
+                                statusMatch = isOverdue;
+                            } else if (currentStatus === 'in-progress') {
+                                // Show tasks that are in progress, regardless of overdue status
+                                statusMatch = status === 'in progress';
+                            } else {
+                                statusMatch = status === currentStatus;
+                            }
+                        }
+
+                        // Check search term
+                        const searchMatch = !searchTerm || 
                             taskId.includes(searchTerm) ||
                             issueId.includes(searchTerm) ||
                             issueTitle.includes(searchTerm) ||
@@ -458,18 +467,8 @@
                             status.includes(searchTerm) ||
                             priority.includes(searchTerm);
 
-                        if (matchesSearch) {
+                        if (statusMatch && searchMatch) {
                             row.style.display = '';
-                            if (searchTerm) { // Only highlight if there's a search term
-                                highlightText(row.querySelector('.task-id'), searchTerm);
-                                highlightText(row.querySelector('.issue-id'), searchTerm);
-                                highlightText(row.querySelector('.issue-title'), searchTerm);
-                                highlightText(row.querySelector('.technician-name'), searchTerm);
-                                highlightText(row.querySelector('.assignment-date'), searchTerm);
-                                highlightText(row.querySelector('.due-date'), searchTerm);
-                                highlightText(row.querySelector('.task-status'), searchTerm);
-                                highlightText(row.querySelector('.task-priority'), searchTerm);
-                            }
                             visibleCount++;
                         } else {
                             row.style.display = 'none';
@@ -481,16 +480,15 @@
                         tasksTableContainer.classList.add('d-none');
                         noTasksFoundState.classList.remove('d-none');
 
-                        // Adjust empty state message based on whether a search term is present
-                        if (searchTerm) {
+                        if (searchTerm || currentStatus !== 'all') {
                             emptyStateHeading.textContent = 'No Matching Tasks Found';
-                            emptyStateText.textContent = 'We couldn\'t find any tasks matching your search criteria.';
-                            resetEmptyStateFiltersButton.classList.remove('d-none'); // Show reset filters button
+                            emptyStateText.textContent = 'We couldn\'t find any tasks matching your criteria.';
+                            resetEmptyStateFiltersButton.classList.remove('d-none');
                             searchFeedback.style.display = 'none';
                         } else {
                             emptyStateHeading.textContent = 'No Tasks Found';
                             emptyStateText.textContent = 'There are no maintenance tasks to display.';
-                            resetEmptyStateFiltersButton.classList.add('d-none'); // Hide reset filters button
+                            resetEmptyStateFiltersButton.classList.add('d-none');
                             searchFeedback.style.display = 'none';
                         }
                     } else {
@@ -500,137 +498,6 @@
                         resultCount.textContent = visibleCount;
                     }
                 }
-
-                // Send Reminder Button Logic
-                document.querySelectorAll('.send-reminder-btn').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        const url = this.dataset.url;
-                        const techName = this.dataset.techName;
-                        Swal.fire({
-                            title: 'Send Reminder?',
-                            html: 'Send a reminder to <b>' + techName + '</b> about this overdue task?',
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonText: 'Yes, Send Reminder',
-                            cancelButtonText: 'Cancel',
-                            confirmButtonColor: '#dc3545',
-                            cancelButtonColor: '#6c757d'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                Swal.fire({
-                                    title: 'Sending Reminder...',
-                                    html: '<div class="spinner-border text-danger" role="status"></div><br>Please wait while we notify the technician.',
-                                    allowOutsideClick: false,
-                                    allowEscapeKey: false,
-                                    showConfirmButton: false,
-                                    didOpen: () => {
-                                        Swal.showLoading();
-                                    }
-                                });
-                                fetch(url, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json'
-                                    }
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    Swal.fire({
-                                        icon: data.success ? 'success' : 'error',
-                                        title: data.success ? 'Reminder Sent!' : 'Error',
-                                        text: data.message || (data.success ? 'Reminder sent successfully.' : 'Failed to send reminder.'),
-                                        confirmButtonText: 'OK',
-                                        customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
-                                        buttonsStyling: false
-                                    });
-                                })
-                                .catch(() => {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Error',
-                                        text: 'Failed to send reminder. Please try again.',
-                                        confirmButtonText: 'OK',
-                                        customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
-                                        buttonsStyling: false
-                                    });
-                                });
-                            }
-                        });
-                    });
-                });
-
-                // Reassign Task Button Logic
-                document.querySelectorAll('.reassign-task-btn').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        const url = this.dataset.url;
-                        const taskId = this.dataset.taskId;
-                        Swal.fire({
-                            title: 'Reassign Task?',
-                            html: 'Are you sure you want to reassign this task to a new technician?<br>This will notify both the old and new technician.',
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonText: 'Yes, Reassign',
-                            cancelButtonText: 'Cancel',
-                            confirmButtonColor: '#f39c12',
-                            cancelButtonColor: '#6c757d'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                Swal.fire({
-                                    title: 'Reassigning...',
-                                    html: '<div class="spinner-border text-warning" role="status"></div><br>Please wait while we reassign the task.',
-                                    allowOutsideClick: false,
-                                    allowEscapeKey: false,
-                                    showConfirmButton: false,
-                                    didOpen: () => {
-                                        Swal.showLoading();
-                                    }
-                                });
-                                fetch(url, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json'
-                                    }
-                                })
-                                .then(async response => {
-                                    let data = null;
-                                    try {
-                                        data = await response.json();
-                                    } catch (e) {
-                                        throw new Error('Server returned an invalid response.');
-                                    }
-                                    if (!response.ok) {
-                                        throw new Error(data.message || 'Failed to reassign task.');
-                                    }
-                                    return data;
-                                })
-                                .then(data => {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Task Reassigned!',
-                                        text: data.message || 'Task has been reassigned to a new technician.',
-                                        confirmButtonText: 'OK',
-                                        customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
-                                        buttonsStyling: false
-                                    }).then(() => {
-                                        window.location.reload();
-                                    });
-                                })
-                                .catch(error => {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Error',
-                                        text: error.message,
-                                        confirmButtonText: 'OK',
-                                        customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
-                                        buttonsStyling: false
-                                    });
-                                });
-                            }
-                        });
-                    });
-                });
 
                 // Add event listeners
                 if (searchInput) {
@@ -643,11 +510,18 @@
 
                     resetEmptyStateFiltersButton?.addEventListener('click', function() {
                         searchInput.value = '';
+                        currentStatus = 'all';
+                        // Reset status filter buttons
+                        statusFilters.querySelectorAll('button').forEach(btn => {
+                            btn.classList.remove('active');
+                            if (btn.dataset.status === 'all') {
+                                btn.classList.add('active');
+                            }
+                        });
                         filterTasks();
                         searchInput.focus();
                     });
 
-                    // Add keyboard shortcut (Ctrl+F or Cmd+F) to focus search
                     document.addEventListener('keydown', function(e) {
                         if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
                             e.preventDefault();
@@ -656,7 +530,22 @@
                     });
                 }
 
-                // Initial call to filterTasks to set the correct state on page load
+                // Status filter event listeners
+                statusFilters.querySelectorAll('button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Update active state
+                        statusFilters.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Update current status
+                        currentStatus = this.dataset.status;
+                        
+                        // Apply filters
+                        filterTasks();
+                    });
+                });
+
+                // Initial call to filterTasks
                 filterTasks();
             });
         </script>

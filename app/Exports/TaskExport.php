@@ -51,25 +51,44 @@ class TaskExport implements FromCollection, WithHeadings, ShouldAutoSize, WithMa
 
         // Filters Applied
         $data->push(['Filters Applied:']);
-        $data->push(['Status:', ucfirst(str_replace('_', ' ', $this->filters['status']))]);
-        $data->push(['Priority:', ucfirst($this->filters['priority'])]);
+        $data->push(['Status:', ucfirst(str_replace('_', ' ', $this->filters['status'] ?? 'All'))]);
+        $data->push(['Priority:', ucfirst($this->filters['priority'] ?? 'All')]);
         $data->push(['']); // Empty row for spacing
         $data->push(['']); // Empty row for spacing
 
         // Add Task Details section
         $data->push(['TASK DETAILS']);
         $data->push($this->headings()); // Add headings for task table
+
         foreach ($this->tasks as $task) {
-            $data->push([
-                '#' . $task->task_id,
-                $task->issue->issue_type ?? 'N/A',
-                ($task->issue->location->building_name ?? 'N/A') .
-                ($task->issue->location->room_number ? ' (Room ' . $task->issue->location->room_number . ')' : ''),
-                $task->assignee ? $task->assignee->first_name . ' ' . $task->assignee->last_name : 'Unassigned',
-                ucfirst(str_replace('_', ' ', $task->issue_status)),
-                $task->expected_completion->format('M d, Y'),
-                $task->expected_completion < now() && $task->issue_status != 'completed' ? 'YES' : 'NO', // Overdue Flag
-            ]);
+            try {
+                $location = 'N/A';
+                if ($task->issue && $task->issue->location) {
+                    $location = $task->issue->location->building_name ?? 'N/A';
+                    if (!empty($task->issue->location->room_number)) {
+                        $location .= ' (Room ' . $task->issue->location->room_number . ')';
+                    }
+                }
+
+                $assignee = 'Unassigned';
+                if ($task->assignee) {
+                    $assignee = $task->assignee->first_name . ' ' . $task->assignee->last_name;
+                }
+
+                $data->push([
+                    '#' . $task->task_id,
+                    $task->issue->issue_type ?? 'N/A',
+                    $location,
+                    $assignee,
+                    ucfirst(str_replace('_', ' ', $task->issue_status)),
+                    $task->expected_completion ? $task->expected_completion->format('M d, Y') : 'N/A',
+                    ($task->expected_completion && $task->expected_completion < now() && $task->issue_status != 'Completed') ? 'YES' : 'NO',
+                ]);
+            } catch (\Exception $e) {
+                // Log the error and continue with the next task
+                \Log::error('Error processing task for Excel export: ' . $e->getMessage());
+                continue;
+            }
         }
 
         return $data;
@@ -87,7 +106,7 @@ class TaskExport implements FromCollection, WithHeadings, ShouldAutoSize, WithMa
             'Assignee',
             'Status',
             'Due Date',
-            'Overdue', // New column
+            'Overdue',
         ];
     }
 

@@ -57,8 +57,8 @@ class TechnicianControllers extends Controller
             'first_name' => 'required|string|max:50',
             'last_name' => 'required|string|max:50',
             'address' => 'required|string|max:255',
-            'email' => 'required|string|email|max:200|unique:users,email', // <-- Ensure email is unique
-            'password' => ['required', 'confirmed', Rules\Password::defaults()], // <-- CORRECTED: Use 'password' for validation
+            'email' => 'required|string|email|max:200|unique:users,email',
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'phone_number' => [
                 'nullable',
                 'string',

@@ -206,20 +206,21 @@
                                     <h3 class="h6 text-uppercase text-muted fw-bold mb-0">Location Details</h3>
                                 </div>
 
-                                @if ($task->issue->location)
+                                @if ($task->issue->building)
                                     <div class="d-flex align-items-start mb-3">
                                         <i class="fas fa-building text-muted mt-1 me-2"></i>
                                         <div>
-                                            <h4 class="h6 mb-0 text-dark fw-semibold">{{ $task->issue->location->building_name }}</h4>
-                                            <small class="text-muted">Room {{ $task->issue->location->room_number }}</small>
+                                            <h4 class="h6 mb-0 text-dark fw-semibold">{{ $task->issue->building->building_name }}</h4>
+                                            <small class="text-muted">floor {{ $task->issue->floor->floor_number }}</small>
+                                            <small class="text-muted">Room {{ $task->issue->room->room_number }}</small>
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-start">
-                                        <i class="fas fa-location-dot text-muted mt-1 me-2"></i>
-                                        <div>
-                                            <p class="mb-0 text-dark">{{ $task->issue->location->location_name }}</p>
-                                        </div>
-                                    </div>
+{{--                                    <div class="d-flex align-items-start">--}}
+{{--                                        <i class="fas fa-location-dot text-muted mt-1 me-2"></i>--}}
+{{--                                        <div>--}}
+{{--                                            <p class="mb-0 text-dark">{{ $task->issue->location->location_name }}</p>--}}
+{{--                                        </div>--}}
+{{--                                    </div>--}}
                                 @else
                                     <div class="alert alert-light py-2 mb-0 rounded-3">
                                         <i class="fas fa-info-circle me-1"></i> No location specified
@@ -311,8 +312,9 @@
                     </h5>
                 </div>
                 <div class="card-body p-4 p-md-5">
-                    <form action="{{ route('task.add_update', $task->task_id) }}" method="POST">
+                    <form action="{{ route('tasks.update', $task->task_id) }}" method="POST">
                         @csrf
+                        @method('PUT')
                         <div class="mb-3">
                             <label for="update_description" class="form-label fw-bold">Update Description</label>
                             <textarea class="form-control rounded-3" id="update_description" name="update_description" rows="3" placeholder="Provide details about the task update..." required></textarea>

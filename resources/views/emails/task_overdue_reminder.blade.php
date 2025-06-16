@@ -129,7 +129,11 @@
         </tr>
         <tr>
           <td class="label">Location:</td>
-          <td class="value">{{ $task->issue->location->building_name ?? 'N/A' }}, Room {{ $task->issue->location->room_number ?? 'N/A' }}</td>
+          <td class="value">
+            Building: {{ $task->issue->building->building_name ?? 'N/A' }}, 
+            Floor: {{ $task->issue->floor->floor_number ?? 'N/A' }}, 
+            Room: {{ $task->issue->room->room_number ?? 'N/A' }}
+          </td>
         </tr>
         <tr>
           <td class="label">Due Date:</td>

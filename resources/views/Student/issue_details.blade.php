@@ -19,7 +19,9 @@
                             <h4 class="card-title mb-0 fw-bold text-dark">{{ $issue->issue_type }}</h4>
                             <p class="text-muted small mb-0">
                                 <i class="fas fa-map-marker-alt text-muted me-1"></i>
-                                {{ $issue->location->building_name ?? 'Unknown' }}, Room {{ $issue->location->room_number ?? 'Unknown' }}
+                                {{ $issue->building->building_name ?? 'Unknown' }}, 
+                                Floor {{ $issue->floor->floor_number ?? 'Unknown' }}, 
+                                Room {{ $issue->room->room_number ?? 'Unknown' }}
                             </p>
                         </div>
                     </div>
@@ -189,21 +191,44 @@
                     </div>
 
                     <div class="col-lg-4">
-                        <div class="card border-0 shadow-sm rounded-3 h-100">
+                        <div class="card border-0 shadow-sm rounded-3 mb-4">
                             <div class="card-body p-4">
                                 <h5 class="card-title fw-bold d-flex align-items-center mb-3 text-dark">
-                            <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                <i class="fas fa-user-cog"></i>
-                            </span>
+                                    <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </span>
+                                    Location Details
+                                </h5>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Building</label>
+                                    <p class="mb-0 fw-bold">{{ $issue->building->building_name ?? 'N/A' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Floor</label>
+                                    <p class="mb-0 fw-bold">Floor {{ $issue->floor->floor_number ?? 'N/A' }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Room</label>
+                                    <p class="mb-0 fw-bold">Room {{ $issue->room->room_number ?? 'N/A' }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body p-4">
+                                <h5 class="card-title fw-bold d-flex align-items-center mb-3 text-dark">
+                                    <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        <i class="fas fa-user-cog"></i>
+                                    </span>
                                     Technician Details
                                 </h5>
 
                                 @if ($issue->task && $issue->task->assignee)
                                     <div class="text-center mb-3">
                                         <div class="avatar avatar-xl bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 80px; height: 80px;">
-                                    <span class="fs-3 fw-bold">
-                                        {{ substr($issue->task->assignee->first_name, 0, 1) }}{{ substr($issue->task->assignee->last_name, 0, 1) }}
-                                    </span>
+                                            <span class="fs-3 fw-bold">
+                                                {{ substr($issue->task->assignee->first_name, 0, 1) }}{{ substr($issue->task->assignee->last_name, 0, 1) }}
+                                            </span>
                                         </div>
                                         <h6 class="fw-bold mb-1 text-dark">{{ $issue->task->assignee->first_name }} {{$issue->task->assignee->last_name}}</h6>
                                         <p class="text-muted small mb-2">Assigned Technician</p>

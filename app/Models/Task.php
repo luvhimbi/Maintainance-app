@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Admin;
 use App\Models\Location;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 class Task extends Model
 {
     use HasFactory;
@@ -45,8 +46,19 @@ class Task extends Model
 
     public function assignee()
     {
-        return $this->belongsTo(User::class, 'assignee_id');
+        return $this->belongsTo(User::class, 'assignee_id', 'user_id');
     }
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id', 'user_id');
+    }
+
+    public function updates()
+    {
+        return $this->hasMany(TaskUpdate::class, 'task_id');
+    }
+
     public function getIssueIcon()
     {
         return match($this->issue->issue_type) {
@@ -58,13 +70,5 @@ class Task extends Model
             'Cleaning' => 'fa-broom',
             default => 'fa-circle-exclamation'
         };
-    }
-    public function admin()
-    {
-        return $this->belongsTo(User::class, 'admin_id');
-    }
-    public function updates()
-    {
-        return $this->hasMany(TaskUpdate::class, 'task_id');
     }
 }

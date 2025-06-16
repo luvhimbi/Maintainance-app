@@ -113,7 +113,11 @@
         </tr>
         <tr>
           <td class="label">Location:</td>
-          <td class="value">{{ $issue->location->building_name ?? 'N/A' }}, Room {{ $issue->location->room_number ?? 'N/A' }}</td>
+          <td class="value">
+            Building: {{ $issue->building->building_name ?? 'N/A' }}, 
+            Floor: {{ $issue->floor->floor_number ?? 'N/A' }}, 
+            Room: {{ $issue->room->room_number ?? 'N/A' }}
+          </td>
         </tr>
         <tr>
           <td class="label">Urgency:</td>

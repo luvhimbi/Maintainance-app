@@ -62,13 +62,13 @@ class TaskController extends Controller
 
         // Set actual completion time if status is changed to Completed
         if ($newStatus === 'Completed' && $oldStatus !== 'Completed') {
-            $task->actual_completion = now(); // or Carbon::now() if you're using Carbon
+            $task->actual_completion = now();
         }
 
         $task->save();
 
         // Update related issue status
-        $issue = Issue::findOrFail($task->issue_id);
+        $issue = Issue::with(['building', 'floor', 'room'])->findOrFail($task->issue_id);
 
         if ($newStatus === 'Completed') {
             $issue->issue_status = 'Resolved';
@@ -89,7 +89,7 @@ class TaskController extends Controller
             'update_timestamp' => now(),
         ]);
 
-        // Notification logic remains the same
+        // Notification logic
         $reporter = User::find($issue->reporter_id);
         $updater = auth()->user();
 
@@ -122,6 +122,30 @@ class TaskController extends Controller
             ));
         }
 
+        // Notify all admins when task is completed
+        if ($newStatus === 'Completed') {
+            $admins = User::where('user_role', 'Admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new DatabaseNotification(
+                    sprintf(
+                        "Task #%d has been completed:\n\n" .
+                        "Issue Type: %s\n" .
+                        "Location: %s, Floor %s, Room %s\n" .
+                        "Completed by: %s\n" .
+                        "Completion Time: %s",
+                        $task->task_id,
+                        $issue->issue_type,
+                        $issue->building->building_name,
+                        $issue->floor->floor_number,
+                        $issue->room->room_number,
+                        $task->assignee ? $task->assignee->first_name . ' ' . $task->assignee->last_name : 'Unassigned',
+                        now()->format('Y-m-d H:i:s')
+                    ),
+                    route('admin.tasks.view')
+                ));
+            }
+        }
+
         return redirect()->route('tasks.update.form', $task->task_id)
             ->with('success', 'Task updated successfully!');
     }
@@ -131,14 +155,23 @@ class TaskController extends Controller
      */
     private function createReporterMessage($issue, $task, $oldStatus, $newStatus, $updater, $description)
     {
+        $location = sprintf(
+            "%s, Floor %s, Room %s",
+            $issue->building->building_name,
+            $issue->floor->floor_number,
+            $issue->room->room_number
+        );
+
         return sprintf(
             "Update on your issue #%s (%s):\n\n" .
+            "Location: %s\n" .
             "Status changed from %s to %s\n" .
             "Updated by: %s\n" .
             "Update details: %s\n\n" .
             "Task: %s",
             $issue->id,
             $issue->issue_type,
+            $location,
             $oldStatus,
             $newStatus,
             $updater->first_name,
@@ -152,8 +185,16 @@ class TaskController extends Controller
      */
     private function createTechnicianMessage($issue, $task, $oldStatus, $newStatus, $updater, $description)
     {
+        $location = sprintf(
+            "%s, Floor %s, Room %s",
+            $issue->building->building_name,
+            $issue->floor->floor_number,
+            $issue->room->room_number
+        );
+
         return sprintf(
             "Task #%s update (%s):\n\n" .
+            "Location: %s\n" .
             "Status changed from %s to %s\n" .
             "Updated by: %s\n" .
             "Update details: %s\n\n" .
@@ -161,6 +202,7 @@ class TaskController extends Controller
             "Reporter: %s",
             $task->id,
             $issue->issue_type,
+            $location,
             $oldStatus,
             $newStatus,
             $updater->first_name,

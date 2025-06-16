@@ -99,7 +99,7 @@
                                         <div class="icon-circle bg-light-secondary me-2">
                                             <i class="fas fa-map-marker-alt text-secondary"></i>
                                         </div>
-                                        <span>{{ $issue->location->building_name ?? 'unknown' }}</span>
+                                        <span>{{ $issue->building->building_name ?? 'unknown' }}</span>
                                     </div>
                                 </td>
                                 <td class="text-end pe-4">

@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="ajax-url" content="{{ url('/') }}">
     <title>@yield('title', 'Dashboard') - Maintenance System</title>
 
     <!-- Bootstrap CSS -->
@@ -136,9 +138,14 @@
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('Student.dashboard') }}">
-                <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
+                <x-cloudinary-image 
+                    public-id="images" 
+                    alt="Company Logo"
+                    class="me-2"
+                    style="height: 30px; width: auto;"
+                />
                 <i class="fas fa-tools me-2"></i>
-            OCM
+                OCM
             </a>
 
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

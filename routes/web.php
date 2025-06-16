@@ -1,23 +1,26 @@
 <?php
 
-use App\Http\Controllers\FeedbackController;
-use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\StudentController;
-use App\Http\Controllers\TechnicianController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\IssueController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\notificationController;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\LocationQrController;
-use App\Http\Controllers\Admin\TechnicianControllers;
-use App\Http\Controllers\Admin\TaskAssignmentController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StaffController;
+use App\Http\Controllers\Admin\TaskAssignmentController;
+use App\Http\Controllers\Admin\TechnicianControllers;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\IssueController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\notificationController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TechnicianController;
+use App\Http\Controllers\LeaveSiteController;
+use App\Http\Controllers\FileController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Models\Building;
 
 Route::middleware(['auth', 'admin','prevent-back'])->group(function () {
 
@@ -87,6 +90,23 @@ Route::delete('admin/technicians/{technician}', [TechnicianControllers::class, '
     Route::get('admin/campus-locations/edit/{location}', [LocationQrController::class, 'edit'])->name('admin.locations.edit');
     Route::delete('locations/{location}', [LocationQrController::class, 'destroy'])->name('admin.locations.destroy');
     Route::put('locations/{location}', [LocationQrController::class, 'update'])->name('admin.locations.update');
+
+    // Building Management Routes
+    Route::get('admin/buildings', [LocationQrController::class, 'buildingsIndex'])->name('admin.buildings.index');
+    Route::get('admin/buildings/create', [LocationQrController::class, 'createBuilding'])->name('admin.buildings.create');
+    Route::post('admin/buildings', [LocationQrController::class, 'storeBuilding'])->name('admin.buildings.store');
+    Route::get('admin/buildings/{building}/edit', [LocationQrController::class, 'editBuilding'])->name('admin.buildings.edit');
+    Route::put('admin/buildings/{building}', [LocationQrController::class, 'updateBuilding'])->name('admin.buildings.update');
+    Route::delete('admin/buildings/{building}', [LocationQrController::class, 'destroyBuilding'])->name('admin.buildings.destroy');
+
+    // Floor Management Routes
+    Route::get('admin/floors', [LocationQrController::class, 'floorsIndex'])->name('admin.floors.index');
+    Route::get('admin/floors/create', [LocationQrController::class, 'createFloor'])->name('admin.floors.create');
+    Route::post('admin/floors', [LocationQrController::class, 'storeFloor'])->name('admin.floors.store');
+    Route::get('admin/floors/{floor}/edit', [LocationQrController::class, 'editFloor'])->name('admin.floors.edit');
+    Route::put('admin/floors/{floor}', [LocationQrController::class, 'updateFloor'])->name('admin.floors.update');
+    Route::delete('admin/floors/{floor}', [LocationQrController::class, 'destroyFloor'])->name('admin.floors.destroy');
+
     // Admin route to view tasks
     Route::get('/admin/tasks/view', [TaskController::class, 'viewTasks'])->name('admin.tasks.view');
     // Route to view task progress
@@ -144,7 +164,6 @@ Route::middleware('auth','prevent-back','technician')->group(function () {
     Route::get('technician/profile', [ProfileController::class, 'techProfile'])->name('techProfile');
     Route::get('technician/edit-profile', [ProfileController::class, 'editProfile'])->name('tech_edit');
     Route::post('/techEditProfile', [ProfileController::class, 'techUpdate'])->name('tech_profile.update');
-
 });
 
 
@@ -194,11 +213,17 @@ Route::middleware('auth','prevent-back','campus_member')->group(function () {
 
         Route::post('/issues/{issue}/feedback', [FeedbackController::class, 'store'])
     ->name('feedback.submit');
+
+    // Location routes for fetching floors and rooms
+    Route::get('/buildings/{building}/floors', [LocationController::class, 'getFloors']);
+    Route::get('/floors/{floor}/rooms', [LocationController::class, 'getRooms']);
 });
 
 // shared routes for both students and staff members ,admin and technician
 Route::middleware('auth')->group(function () {
-
+    // File access routes
+    Route::get('/files/view/{id}', [FileController::class, 'view'])->name('files.view');
+    Route::get('/files/download/{id}', [FileController::class, 'download'])->name('files.download');
 
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.updatePassword');
 
@@ -245,9 +270,11 @@ Route::middleware(['auth'])->prefix('technician')->name('technician.')->group(fu
     // Use Scout for case-insensitive search (convert query to lowercase)
     Route::get('/search-locations', function (Request $request) {
         $query = strtolower($request->get('query', ''));
-        return \App\Models\Location::search($query)
+        
+        return Building::whereRaw('LOWER(building_name) LIKE ?', ["%" . $query . "%"])
+            ->select('building_name', 'latitude', 'longitude')
             ->take(10)
-            ->get(['location_id', 'building_name', 'floor_number', 'room_number', 'description', 'latitude', 'longitude']);
+            ->get();
     });
 });
 

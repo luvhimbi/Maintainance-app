@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
+use Illuminate\Notifications\DatabaseNotification;
 
 class LoginTest extends TestCase
 {
@@ -20,20 +21,20 @@ class LoginTest extends TestCase
     public function test_student_can_login_with_valid_credentials()
     {
         $user = User::factory()->create([
-            'email' => 'unique_student@example.com', // Use unique email
+            'email' => 'unique_student_' . uniqid() . '@example.com', // Ensure unique email
             'password_hash' => Hash::make('student123'),
             'user_role' => 'Student'
         ]);
 
         Student::create([
             'user_id' => $user->user_id,
-            'student_number' => 'S12345', // Required field
+            'student_number' => 'S' . uniqid(), // Ensure unique student number
             'course' => 'Computer Science',
             'faculty' => 'Engineering'
         ]);
 
         $response = $this->post('/login', [
-            'email' => 'unique_student@example.com', // Match the unique email
+            'email' => $user->email, // Use the unique email
             'password' => 'student123',
             'role' => 'Student'
         ]);
@@ -46,7 +47,7 @@ class LoginTest extends TestCase
     public function test_staff_member_can_login_with_valid_credentials()
     {
         $user = User::factory()->create([
-            'email' => 'unique_staff@example.com', // Use unique email
+            'email' => 'unique_staff_' . uniqid() . '@example.com', // Ensure unique email
             'password_hash' => Hash::make('staff123'),
             'user_role' => 'Staff_Member'
         ]);
@@ -58,7 +59,7 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->post('/login', [
-            'email' => 'unique_staff@example.com', // Match the unique email
+            'email' => $user->email, // Use the unique email
             'password' => 'staff123',
             'role' => 'Staff_Member'
         ]);
@@ -71,7 +72,7 @@ class LoginTest extends TestCase
     public function test_maintenance_staff_can_login_with_valid_credentials()
     {
         $user = User::factory()->create([
-            'email' => 'unique_tech@example.com', // Use unique email
+            'email' => 'unique_tech_' . uniqid() . '@example.com', // Ensure unique email
             'password_hash' => Hash::make('tech123'),
             'user_role' => 'Technician'
         ]);
@@ -84,7 +85,7 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->post('/login', [
-            'email' => 'unique_tech@example.com', // Match the unique email
+            'email' => $user->email, // Use the unique email
             'password' => 'tech123',
             'role' => 'Technician'
         ]);
@@ -97,7 +98,7 @@ class LoginTest extends TestCase
     public function test_admin_can_login_with_valid_credentials()
     {
         $user = User::factory()->create([
-            'email' => 'unique_admin@example.com', // Use unique email
+            'email' => 'unique_admin_' . uniqid() . '@example.com', // Ensure unique email
             'password_hash' => Hash::make('admin123'),
             'user_role' => 'Admin'
         ]);
@@ -108,7 +109,7 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->post('/login', [
-            'email' => 'unique_admin@example.com', // Match the unique email
+            'email' => $user->email, // Use the unique email
             'password' => 'admin123',
             'role' => 'Admin'
         ]);
@@ -121,20 +122,20 @@ class LoginTest extends TestCase
     public function test_login_fails_with_incorrect_password()
     {
         $user = User::factory()->create([
-            'email' => 'unique_fail@example.com', // Ensure unique email
+            'email' => 'unique_fail_' . uniqid() . '@example.com', // Ensure unique email
             'password_hash' => Hash::make('correctpassword'),
             'user_role' => 'Student'
         ]);
 
         Student::create([
             'user_id' => $user->user_id,
-            'student_number' => 'S54321', // Required field
+            'student_number' => 'S' . uniqid(), // Ensure unique student number
             'course' => 'Mathematics',
             'faculty' => 'Science'
         ]);
 
         $response = $this->post('/login', [
-            'email' => 'unique_fail@example.com', // Match the unique email
+            'email' => $user->email, // Use the unique email
             'password' => 'wrongpassword',
             'role' => 'Student'
         ]);
@@ -147,20 +148,20 @@ class LoginTest extends TestCase
     public function test_login_fails_with_incorrect_role()
     {
         $user = User::factory()->create([
-            'email' => 'unique_role_fail@example.com', // Ensure unique email
+            'email' => 'unique_role_fail_' . uniqid() . '@example.com', // Ensure unique email
             'password_hash' => Hash::make('password'),
             'user_role' => 'Student'
         ]);
 
         Student::create([
             'user_id' => $user->user_id,
-            'student_number' => 'S67890', // Required field
+            'student_number' => 'S' . uniqid(), // Ensure unique student number
             'course' => 'Physics',
             'faculty' => 'Science'
         ]);
 
         $response = $this->post('/login', [
-            'email' => 'unique_role_fail@example.com', // Match the unique email
+            'email' => $user->email, // Use the unique email
             'password' => 'password',
             'role' => 'Admin'
         ]);
@@ -194,13 +195,13 @@ class LoginTest extends TestCase
     public function test_authenticated_users_are_redirected_from_login()
     {
         $user = User::factory()->create([
-            'email' => 'unique_redirect@example.com', // Ensure unique email
+            'email' => 'unique_redirect_' . uniqid() . '@example.com', // Ensure unique email
             'user_role' => 'Student'
         ]);
 
         Student::create([
             'user_id' => $user->user_id,
-            'student_number' => 'S98765', // Required field
+            'student_number' => 'S' . uniqid(), // Ensure unique student number
             'course' => 'Biology',
             'faculty' => 'Science'
         ]);
@@ -210,5 +211,8 @@ class LoginTest extends TestCase
         $response = $this->get('/login');
         $response->assertRedirect(route('Student.dashboard'));
     }
+
+    /** @test */
+
 
 }

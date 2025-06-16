@@ -53,33 +53,56 @@
                         <div class="card shadow-sm h-100 border-0">
                             <div class="card-body">
                                 <h5 class="mb-3 section-title" style="color:black;"><i class="fas fa-map-marker-alt me-2"></i>Location Details</h5>
-                                <div class="mb-3">
-                                    <label for="location_id" class="form-label" style="color:black;">Select Location *</label>
-                                    <select class="form-select border-primary" name="location_id" id="location_id" required>
-                                        <option value="">-- Select location --</option>
-                                        @foreach($locations as $location)
-                                            <option value="{{ $location->location_id }}"
-                                                {{ ($issue->location_id ?? '') == $location->location_id ? 'selected' : '' }}
-                                                data-building="{{ $location->building_name }}"
-                                                data-floor="{{ $location->floor_number }}"
-                                                data-room="{{ $location->room_number }}">
-                                                {{ $location->building_name }} - Floor {{ $location->floor_number }}, Room {{ $location->room_number }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="row g-2 mb-4">
-                                    <div class="col-4">
-                                        <label for="building" class="form-label" style="color:black;">Building</label>
-                                        <input type="text" class="form-control bg-light border-primary" id="building" value="{{ $issue->location->building_name ?? '' }}" readonly>
-                                    </div>
-                                    <div class="col-4">
-                                        <label for="floor" class="form-label" style="color:black;">Floor</label>
-                                        <input type="text" class="form-control bg-light border-primary" id="floor" value="{{ $issue->location->floor_number ?? '' }}" readonly>
-                                    </div>
-                                    <div class="col-4">
-                                        <label for="room" class="form-label" style="color:black;">Room</label>
-                                        <input type="text" class="form-control bg-light border-primary" id="room" value="{{ $issue->location->room_number ?? '' }}" readonly>
+                                <div class="mb-4">
+                                    <h5 class="text-primary mb-3">Location Details</h5>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="building_id" class="form-label">Building</label>
+                                            <select class="form-select border-primary" name="building_id" id="building_id" required>
+                                                <option value="">-- Select building --</option>
+                                                @foreach($buildings as $building)
+                                                    <option value="{{ $building->id }}" {{ $issue->building_id == $building->id ? 'selected' : '' }}>
+                                                        {{ $building->building_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="floor_id" class="form-label">Floor</label>
+                                            <div class="position-relative">
+                                                <select class="form-select border-primary" name="floor_id" id="floor_id" required {{ empty($issue->building_id) ? 'disabled' : '' }}>
+                                                    <option value="">-- Select floor --</option>
+                                                    @foreach($floors as $floor)
+                                                        <option value="{{ $floor->id }}" {{ $issue->floor_id == $floor->id ? 'selected' : '' }}>
+                                                            Floor {{ $floor->floor_number }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div id="floorLoading" class="position-absolute top-50 end-0 translate-middle-y me-2 d-none">
+                                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="room_id" class="form-label">Room</label>
+                                            <div class="position-relative">
+                                                <select class="form-select border-primary" name="room_id" id="room_id" required {{ empty($issue->floor_id) ? 'disabled' : '' }}>
+                                                    <option value="">-- Select room --</option>
+                                                    @foreach($rooms as $room)
+                                                        <option value="{{ $room->id }}" {{ $issue->room_id == $room->id ? 'selected' : '' }}>
+                                                            Room {{ $room->room_number }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <div id="roomLoading" class="position-absolute top-50 end-0 translate-middle-y me-2 d-none">
+                                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -232,7 +255,7 @@
                                     <label for="mediaUpload" class="form-label" style="color:black;">Attachments</label>
                                     <input type="file" class="form-control border-primary" id="mediaUpload" name="attachments[]" multiple accept="image/*,.pdf,.doc,.docx">
                                     <div class="form-text" style="color:#4361ee;">
-                                        Upload images (jpg, jpeg, png, gif), videos (mp4), or documents (pdf, doc, docx). Max 5 files.
+                                        Upload images (jpg, jpeg, png, gif) or  videos (mp4).
                                     </div>
                                     <div id="fileList" class="text-start mt-3">
                                         @if($issue->attachments && $issue->attachments->count())
@@ -460,6 +483,129 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Building, Floor, and Room dropdowns
+    const buildingSelect = document.getElementById('building_id');
+    const floorSelect = document.getElementById('floor_id');
+    const roomSelect = document.getElementById('room_id');
+    const floorLoading = document.getElementById('floorLoading');
+    const roomLoading = document.getElementById('roomLoading');
+
+    // Handle building selection
+    buildingSelect.addEventListener('change', function() {
+        const buildingId = this.value;
+        
+        // Reset and disable floor and room dropdowns
+        floorSelect.innerHTML = '<option value="">-- Select floor --</option>';
+        roomSelect.innerHTML = '<option value="">-- Select room --</option>';
+        floorSelect.disabled = true;
+        roomSelect.disabled = true;
+
+        if (buildingId) {
+            // Show loading spinner
+            floorLoading.classList.remove('d-none');
+            
+            // Fetch floors for the selected building
+            fetch(`/buildings/${buildingId}/floors`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(response => {
+                    if (response.success) {
+                        response.data.forEach(floor => {
+                            const option = document.createElement('option');
+                            option.value = floor.id;
+                            option.textContent = `Floor ${floor.floor_number}`;
+                            floorSelect.appendChild(option);
+                        });
+                        floorSelect.disabled = false;
+                        
+                        // If we have a pre-selected floor, select it after loading
+                        const preselectedFloor = '{{ $issue->floor_id }}';
+                        if (preselectedFloor) {
+                            floorSelect.value = preselectedFloor;
+                            floorSelect.dispatchEvent(new Event('change'));
+                        }
+                    } else {
+                        console.error('Error:', response.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching floors:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Failed to load floors. Please try again.',
+                        confirmButtonColor: '#4361ee'
+                    });
+                })
+                .finally(() => {
+                    floorLoading.classList.add('d-none');
+                });
+        }
+    });
+
+    // Handle floor selection
+    floorSelect.addEventListener('change', function() {
+        const floorId = this.value;
+        
+        // Reset and disable room dropdown
+        roomSelect.innerHTML = '<option value="">-- Select room --</option>';
+        roomSelect.disabled = true;
+
+        if (floorId) {
+            // Show loading spinner
+            roomLoading.classList.remove('d-none');
+            
+            // Fetch rooms for the selected floor
+            fetch(`/floors/${floorId}/rooms`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(response => {
+                    if (response.success) {
+                        response.data.forEach(room => {
+                            const option = document.createElement('option');
+                            option.value = room.id;
+                            option.textContent = `Room ${room.room_number}`;
+                            roomSelect.appendChild(option);
+                        });
+                        roomSelect.disabled = false;
+                        
+                        // If we have a pre-selected room, select it after loading
+                        const preselectedRoom = '{{ $issue->room_id }}';
+                        if (preselectedRoom) {
+                            roomSelect.value = preselectedRoom;
+                        }
+                    } else {
+                        console.error('Error:', response.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching rooms:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Failed to load rooms. Please try again.',
+                        confirmButtonColor: '#4361ee'
+                    });
+                })
+                .finally(() => {
+                    roomLoading.classList.add('d-none');
+                });
+        }
+    });
+
+    // If a building is pre-selected, trigger the change event
+    if (buildingSelect.value) {
+        buildingSelect.dispatchEvent(new Event('change'));
+    }
+
     // Issue type button group logic
     const issueTypeGroup = document.getElementById('issueTypeGroup');
     const issueTypeInput = document.getElementById('issueType');
@@ -502,27 +648,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Location details autofill logic
-    const locationSelect = document.getElementById('location_id');
-    const buildingInput = document.getElementById('building');
-    const floorInput = document.getElementById('floor');
-    const roomInput = document.getElementById('room');
-
-    function updateLocationDetails() {
-        const selectedOption = locationSelect.options[locationSelect.selectedIndex];
-        if (selectedOption && selectedOption.value) {
-            buildingInput.value = selectedOption.getAttribute('data-building') || '';
-            floorInput.value = selectedOption.getAttribute('data-floor') || '';
-            roomInput.value = selectedOption.getAttribute('data-room') || '';
-        } else {
-            buildingInput.value = '';
-            floorInput.value = '';
-            roomInput.value = '';
-        }
-    }
-    locationSelect.addEventListener('change', updateLocationDetails);
-    updateLocationDetails();
-
     // File upload display with icon
     const mediaUpload = document.getElementById('mediaUpload');
     const fileList = document.getElementById('fileList');
@@ -551,8 +676,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const editIssueForm = document.getElementById('editIssueForm');
     editIssueForm.addEventListener('submit', function(event) {
         let errors = [];
-        if (!locationSelect.value) {
-            errors.push('Please select a location.');
+        if (!buildingSelect.value) {
+            errors.push('Please select a building.');
+        }
+        if (!floorSelect.value) {
+            errors.push('Please select a floor.');
+        }
+        if (!roomSelect.value) {
+            errors.push('Please select a room.');
         }
         if (!issueTypeInput.value) {
             errors.push('Please select an issue type.');

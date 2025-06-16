@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Issue;
 use App\Models\Comment;
+use App\Models\Building;
+use App\Models\Floor;
+use App\Models\Room;
 
 class StudentController extends Controller
 {
@@ -15,23 +18,27 @@ class StudentController extends Controller
 
         // Get search and status filters from request
         $search = $request->input('search');
-        $statuses = (array) $request->input('status', ['open', 'in progress']);
+        $statuses = (array) $request->input('status', ['Open', 'In Progress']);
 
         $issues = Issue::where('reporter_id', $userId)
             ->where(function($q) use ($statuses) {
-                $q->whereIn(\DB::raw('LOWER(issue_status)'), array_map('strtolower', $statuses));
+                $q->whereIn('issue_status', $statuses);
             })
             ->when($search, function($q) use ($search) {
                 $q->where(function($sub) use ($search) {
-                    $sub->where('issue_type', 'like', "%$search%")
-                        ->orWhere('issue_description', 'like', "%$search%")
-                        ->orWhereHas('location', function($loc) use ($search) {
-                            $loc->where('building_name', 'like', "%$search%")
-                                ->orWhere('room_number', 'like', "%$search%");
+                    $sub->whereRaw('LOWER(issue_type) LIKE ?', ["%" . strtolower($search) . "%"])
+                        ->orWhereRaw('LOWER(issue_description) LIKE ?', ["%" . strtolower($search) . "%"])
+                        ->orWhereHas('room', function($room) use ($search) {
+                            $room->whereHas('floor', function($floor) use ($search) {
+                                $floor->whereHas('building', function($building) use ($search) {
+                                    $building->whereRaw('LOWER(building_name) LIKE ?', ["%" . strtolower($search) . "%"]);
+                                });
+                            })
+                            ->orWhere('room_number', 'like', "%$search%");
                         });
                 });
             })
-            ->with('location')
+            ->with(['room.floor.building'])
             ->orderBy('updated_at', 'desc')
             ->paginate(5);
 

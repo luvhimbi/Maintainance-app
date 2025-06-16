@@ -1305,8 +1305,8 @@ async function calculateRoute({ origin, destination, profile }) {
 document.addEventListener('DOMContentLoaded', initMap);
 
 // Function to handle location selection
-function handleLocationSelection(lat, lng, name, isStartLocation) {
-    console.log('Handling location selection:', { lat, lng, name, isStartLocation });
+function handleLocationSelection(lat, lng, buildingName, floorNumber, roomNumber, isStartLocation) {
+    console.log('Handling location selection:', { lat, lng, buildingName, floorNumber, roomNumber, isStartLocation });
 
     // Validate coordinates
     if (isNaN(lat) || isNaN(lng)) {
@@ -1320,7 +1320,7 @@ function handleLocationSelection(lat, lng, name, isStartLocation) {
     el.innerHTML = `
         <div class="location-marker-content">
             <i class="fas ${isStartLocation ? 'fa-map-marker-alt' : 'fa-flag'}"></i>
-            <div class="location-marker-tooltip">${name}</div>
+            <div class="location-marker-tooltip">${buildingName}${floorNumber ? `, Floor ${floorNumber}` : ''}${roomNumber ? `, Room ${roomNumber}` : ''}</div>
         </div>
     `;
 
@@ -1334,7 +1334,7 @@ function handleLocationSelection(lat, lng, name, isStartLocation) {
             .addTo(map);
 
         // Update start location input
-        document.getElementById('start-location-input').value = name;
+        document.getElementById('start-location-input').value = `${buildingName}${floorNumber ? `, Floor ${floorNumber}` : ''}${roomNumber ? `, Room ${roomNumber}` : ''}`;
         document.getElementById('start-location-results').classList.add('d-none');
     } else {
         if (endLocationMarker) {
@@ -1345,7 +1345,7 @@ function handleLocationSelection(lat, lng, name, isStartLocation) {
             .addTo(map);
 
         // Update destination input
-        document.getElementById('destination-input').value = name;
+        document.getElementById('destination-input').value = `${buildingName}${floorNumber ? `, Floor ${floorNumber}` : ''}${roomNumber ? `, Room ${roomNumber}` : ''}`;
         document.getElementById('destination-results').classList.add('d-none');
     }
 
@@ -1377,33 +1377,29 @@ async function searchLocations(query, resultsContainer, isStartLocation) {
 
     try {
         const response = await fetch(`/technician/search-locations?query=${encodeURIComponent(query)}`);
-        const locations = await response.json();
+        const buildings = await response.json();
 
         resultsContainer.innerHTML = '';
 
-        if (locations.length === 0) {
+        if (buildings.length === 0) {
             resultsContainer.innerHTML = `
                 <div class="list-group-item text-muted">
-                    No locations found
+                    No buildings found
                 </div>
             `;
         } else {
-            locations.forEach(location => {
+            buildings.forEach(building => {
                 const item = document.createElement('div');
                 item.className = 'list-group-item';
                 item.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="mb-1">${location.building_name}</h6>
-                            <small class="text-muted">
-                                ${location.floor_number ? `Floor ${location.floor_number}` : ''}
-                                ${location.room_number ? `• Room ${location.room_number}` : ''}
-                            </small>
+                            <h6 class="mb-1">${building.building_name}</h6>
                         </div>
                         <button class="btn btn-sm btn-primary select-location"
-                                data-lat="${location.latitude}"
-                                data-lng="${location.longitude}"
-                                data-name="${location.building_name}">
+                                data-lat="${building.latitude}"
+                                data-lng="${building.longitude}"
+                                data-building="${building.building_name}">
                             Select
                         </button>
                     </div>
@@ -1414,8 +1410,14 @@ async function searchLocations(query, resultsContainer, isStartLocation) {
                 selectButton.addEventListener('click', () => {
                     const lat = parseFloat(selectButton.dataset.lat);
                     const lng = parseFloat(selectButton.dataset.lng);
-                    const name = selectButton.dataset.name;
-                    handleLocationSelection(lat, lng, name, isStartLocation);
+                    const buildingName = selectButton.dataset.building;
+
+                    if (isNaN(lat) || isNaN(lng)) {
+                        console.error('Invalid coordinates:', { lat, lng });
+                        return;
+                    }
+
+                    handleLocationSelection(lat, lng, buildingName, null, null, isStartLocation);
                 });
 
                 resultsContainer.appendChild(item);
@@ -1424,10 +1426,10 @@ async function searchLocations(query, resultsContainer, isStartLocation) {
 
         resultsContainer.classList.remove('d-none');
     } catch (error) {
-        console.error('Error searching locations:', error);
+        console.error('Error searching buildings:', error);
         resultsContainer.innerHTML = `
             <div class="list-group-item text-danger">
-                Error searching locations
+                Error searching buildings
             </div>
         `;
         resultsContainer.classList.remove('d-none');
@@ -1436,26 +1438,27 @@ async function searchLocations(query, resultsContainer, isStartLocation) {
 
 // Function to load all locations
 async function loadAllLocations() {
-    console.log('Loading all locations');
+    console.log('Loading all buildings');
     try {
         const response = await fetch('/technician/search-locations?query=');
-        const locations = await response.json();
+        const buildings = await response.json();
 
         const allLocationsList = document.getElementById('all-locations-list');
         allLocationsList.innerHTML = '';
 
-        if (locations.length === 0) {
-            allLocationsList.innerHTML = `                <div class="list-group-item text-muted">
-                    No locations found
+        if (buildings.length === 0) {
+            allLocationsList.innerHTML = `
+                <div class="list-group-item text-muted">
+                    No buildings found
                 </div>
             `;
             return;
         }
 
-        locations.forEach(location => {
+        buildings.forEach(building => {
             // Validate coordinates before creating the item
-            if (!location.latitude || !location.longitude) {
-                console.error('Location missing coordinates:', location);
+            if (!building.latitude || !building.longitude) {
+                console.error('Building missing coordinates:', building);
                 return;
             }
 
@@ -1464,23 +1467,19 @@ async function loadAllLocations() {
             item.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="mb-1">${location.building_name}</h6>
-                        <small class="text-muted">
-                            ${location.floor_number ? `Floor ${location.floor_number}` : ''}
-                            ${location.room_number ? `• Room ${location.room_number}` : ''}
-                        </small>
+                        <h6 class="mb-1">${building.building_name}</h6>
                     </div>
                     <div class="btn-group">
                         <button class="btn btn-sm btn-outline-primary set-start-location"
-                                data-lat="${location.latitude}"
-                                data-lng="${location.longitude}"
-                                data-name="${location.building_name}">
+                                data-lat="${building.latitude}"
+                                data-lng="${building.longitude}"
+                                data-building="${building.building_name}">
                             <i class="fas fa-map-marker-alt"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-danger set-end-location"
-                                data-lat="${location.latitude}"
-                                data-lng="${location.longitude}"
-                                data-name="${location.building_name}">
+                                data-lat="${building.latitude}"
+                                data-lng="${building.longitude}"
+                                data-building="${building.building_name}">
                             <i class="fas fa-flag"></i>
                         </button>
                     </div>
@@ -1494,38 +1493,38 @@ async function loadAllLocations() {
             startButton.addEventListener('click', () => {
                 const lat = parseFloat(startButton.dataset.lat);
                 const lng = parseFloat(startButton.dataset.lng);
-                const name = startButton.dataset.name;
+                const buildingName = startButton.dataset.building;
 
                 if (isNaN(lat) || isNaN(lng)) {
                     console.error('Invalid coordinates from button:', { lat, lng });
                     return;
                 }
 
-                handleLocationSelection(lat, lng, name, true);
+                handleLocationSelection(lat, lng, buildingName, null, null, true);
             });
 
             endButton.addEventListener('click', () => {
                 const lat = parseFloat(endButton.dataset.lat);
                 const lng = parseFloat(endButton.dataset.lng);
-                const name = endButton.dataset.name;
+                const buildingName = endButton.dataset.building;
 
                 if (isNaN(lat) || isNaN(lng)) {
                     console.error('Invalid coordinates from button:', { lat, lng });
                     return;
                 }
 
-                handleLocationSelection(lat, lng, name, false);
+                handleLocationSelection(lat, lng, buildingName, null, null, false);
             });
 
             allLocationsList.appendChild(item);
         });
 
     } catch (error) {
-        console.error('Error loading locations:', error);
+        console.error('Error loading buildings:', error);
         const allLocationsList = document.getElementById('all-locations-list');
         allLocationsList.innerHTML = `
             <div class="list-group-item text-danger">
-                Error loading locations
+                Error loading buildings
             </div>
         `;
     }

@@ -6,16 +6,12 @@ use App\Http\Controllers\Controller;
 
 use App\Models\Task;
 use App\Models\User;
-use App\Models\Issue;
-use App\Models\MaintenanceStaff;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\TechnicianPerformanceExport;
-use App\Exports\TaskReportExport;
+use App\Exports\TaskExport;
+use App\Exports\StudentsAndStaffExport;
 use App\Exports\TechnicianReportExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpWord\IOFactory;
@@ -219,111 +215,128 @@ class ReportController extends Controller
         $endDate = $data['endDate'];
         $searchTerm = $data['searchTerm'];
 
-        // 2. Create a new PhpWord object
+        // 2. Create a new PhpWord object with proper page setup
         $phpWord = new PhpWord();
+        $section = $phpWord->addSection([
+            'marginTop' => 600,
+            'marginBottom' => 600,
+            'marginLeft' => 800,
+            'marginRight' => 800,
+        ]);
 
-        // 3. Add General Report Information Section
-        $section = $phpWord->addSection();
+        // 3. Define styles
+        $fontStyleTitle = ['name' => 'Arial', 'size' => 16, 'bold' => true, 'color' => '2C3E50'];
+        $fontStyleSub = ['name' => 'Arial', 'size' => 12, 'bold' => true, 'color' => '34495E'];
+        $fontStyleNormal = ['name' => 'Arial', 'size' => 10, 'color' => '333333'];
+        $fontStyleSmall = ['name' => 'Arial', 'size' => 9, 'color' => '555555'];
+        $paraStyleCenter = ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER];
+        $paraStyleLeft = ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT];
 
-        // System Name & Report Title
-        $section->addText('OCM - Online Campus Management', ['size' => 10, 'color' => '888888'], ['align' => 'center']);
-        $section->addText('Students & Staff Report', ['name' => 'Arial', 'size' => 16, 'bold' => true], ['align' => 'center']);
-        $section->addText('Report Generated: ' . now()->format('F j, Y \a\t H:i A T'), ['size' => 10, 'color' => '888888'], ['align' => 'center']);
-        $section->addTextBreak(1); // Add a line break
-
-        // Filter & Summary Information
-        $section->addText('Report Parameters:', ['size' => 12, 'bold' => true]);
-        if ($startDate && $endDate) {
-            $section->addText('Date Range: ' . \Carbon\Carbon::parse($startDate)->format('F j, Y') . ' to ' . \Carbon\Carbon::parse($endDate)->format('F j, Y'));
-        }
-        if ($searchTerm) {
-            $section->addText('Search Term: "' . $searchTerm . '"');
-        }
-        $section->addText('Total Students (filtered): ' . $students->count());
-        $section->addText('Total Staff (filtered): ' . $staffMembers->count());
-        $section->addText('Total Issues Reported (overall): ' . ($totalStudentIssues + $totalStaffIssues));
+        // 4. Add General Report Information Section
+        $section->addText('OCM - Online Campus Management', $fontStyleSmall, $paraStyleCenter);
+        $section->addText('Students & Staff Report', $fontStyleTitle, $paraStyleCenter);
+        $section->addText('Report Generated: ' . now()->format('F j, Y \a\t H:i A T'), $fontStyleSmall, $paraStyleCenter);
         $section->addTextBreak(1);
 
-        // 4. Add Students Section
-        $section->addText('Students Overview', ['name' => 'Arial', 'size' => 14, 'bold' => true]);
+        // 5. Add Report Parameters
+        $section->addText('Report Parameters:', $fontStyleSub, $paraStyleLeft);
+        if ($startDate && $endDate) {
+            $section->addText('Date Range: ' . \Carbon\Carbon::parse($startDate)->format('F j, Y') . ' to ' . \Carbon\Carbon::parse($endDate)->format('F j, Y'), $fontStyleNormal);
+        }
+        if ($searchTerm) {
+            $section->addText('Search Term: "' . $searchTerm . '"', $fontStyleNormal);
+        }
+        $section->addText('Total Students (filtered): ' . $students->count(), $fontStyleNormal);
+        $section->addText('Total Staff (filtered): ' . $staffMembers->count(), $fontStyleNormal);
+        $section->addText('Total Issues Reported (overall): ' . ($totalStudentIssues + $totalStaffIssues), $fontStyleNormal);
+        $section->addTextBreak(1);
+
+        // 6. Define table styles
+        $tableStyle = [
+            'borderColor' => 'D0D0D0',
+            'borderSize'  => 6,
+            'cellMargin'  => 80,
+            'alignment'   => \PhpOffice\PhpWord\SimpleType\JcTable::CENTER,
+            'width'       => 100 * 50,
+            'unit'        => \PhpOffice\PhpWord\SimpleType\TblWidth::PERCENT,
+        ];
+        $headerCellStyle = ['bgColor' => 'F5F5F5', 'valign' => 'center'];
+        $headerFont = ['bold' => true, 'size' => 10, 'color' => '555555'];
+
+        // 7. Add Students Section
+        $section->addText('Students Overview', $fontStyleSub, $paraStyleLeft);
         $section->addTextBreak(1);
 
         if ($students->isNotEmpty()) {
-            $tableStyle = [
-                'borderColor' => '000000',
-                'borderSize' => 6,
-                'cellMargin' => 80,
-                'valign' => 'center',
-            ];
-            $firstRowStyle = ['bgColor' => 'EEEEEE'];
-            $cellStyle = ['valign' => 'center'];
-            $fontStyle = ['bold' => true, 'size' => 10];
-            $paragraphStyle = ['align' => 'center'];
+            $phpWord->addTableStyle('StudentTable', $tableStyle, $headerCellStyle);
+            $table = $section->addTable('StudentTable');
+            
+            // Add header row
+            $table->addRow(400);
+            $table->addCell(2000, $headerCellStyle)->addText('Name', $headerFont, $paraStyleCenter);
+            $table->addCell(2500, $headerCellStyle)->addText('Email', $headerFont, $paraStyleCenter);
+            $table->addCell(1500, $headerCellStyle)->addText('Student No.', $headerFont, $paraStyleCenter);
+            $table->addCell(1500, $headerCellStyle)->addText('Course', $headerFont, $paraStyleCenter);
+            $table->addCell(1000, $headerCellStyle)->addText('Issues', $headerFont, $paraStyleCenter);
 
-            $table = $section->addTable($tableStyle);
-            $table->addRow(400, $firstRowStyle); // Row height
-            $table->addCell(1500, $cellStyle)->addText('Name', $fontStyle, $paragraphStyle);
-            $table->addCell(2500, $cellStyle)->addText('Email', $fontStyle, $paragraphStyle);
-            $table->addCell(1500, $cellStyle)->addText('Student No.', $fontStyle, $paragraphStyle);
-            $table->addCell(1500, $cellStyle)->addText('Course', $fontStyle, $paragraphStyle);
-            $table->addCell(1500, $cellStyle)->addText('Issues Reported', $fontStyle, $paragraphStyle);
-
+            // Add data rows
             foreach ($students as $student) {
                 $table->addRow();
-                $table->addCell(1500)->addText($student->first_name . ' ' . $student->last_name);
-                $table->addCell(2500)->addText($student->email);
-                $table->addCell(1500)->addText($student->studentDetail->student_number ?? 'N/A');
-                $table->addCell(1500)->addText($student->studentDetail->course ?? 'N/A');
-                $table->addCell(1500)->addText($student->issues->count(), ['align' => 'center']);
+                $table->addCell(2000)->addText($student->first_name . ' ' . $student->last_name, null, $paraStyleLeft);
+                $table->addCell(2500)->addText($student->email, null, $paraStyleLeft);
+                $table->addCell(1500)->addText($student->studentDetail->student_number ?? 'N/A', null, $paraStyleLeft);
+                $table->addCell(1500)->addText($student->studentDetail->course ?? 'N/A', null, $paraStyleLeft);
+                $table->addCell(1000)->addText($student->issues->count(), null, $paraStyleCenter);
             }
         } else {
-            $section->addText('No student accounts found matching your criteria.');
+            $section->addText('No student accounts found matching your criteria.', $fontStyleNormal);
         }
 
-        $section->addTextBreak(2); // Add more space between sections
+        $section->addTextBreak(2);
 
-        // 5. Add Staff Members Section
-        $section->addText('Staff Members Overview', ['name' => 'Arial', 'size' => 14, 'bold' => true]);
+        // 8. Add Staff Members Section
+        $section->addText('Staff Members Overview', $fontStyleSub, $paraStyleLeft);
         $section->addTextBreak(1);
 
         if ($staffMembers->isNotEmpty()) {
-            // Re-use table styles or define new ones if needed
-            $table = $section->addTable($tableStyle);
-            $table->addRow(400, $firstRowStyle);
-            $table->addCell(1500, $cellStyle)->addText('Name', $fontStyle, $paragraphStyle);
-            $table->addCell(2500, $cellStyle)->addText('Email', $fontStyle, $paragraphStyle);
-            $table->addCell(1500, $cellStyle)->addText('Department', $fontStyle, $paragraphStyle);
-            $table->addCell(1500, $cellStyle)->addText('Position', $fontStyle, $paragraphStyle);
-            $table->addCell(1500, $cellStyle)->addText('Issues Reported', $fontStyle, $paragraphStyle);
+            $phpWord->addTableStyle('StaffTable', $tableStyle, $headerCellStyle);
+            $table = $section->addTable('StaffTable');
+            
+            // Add header row
+            $table->addRow(400);
+            $table->addCell(2000, $headerCellStyle)->addText('Name', $headerFont, $paraStyleCenter);
+            $table->addCell(2500, $headerCellStyle)->addText('Email', $headerFont, $paraStyleCenter);
+            $table->addCell(1500, $headerCellStyle)->addText('Department', $headerFont, $paraStyleCenter);
+            $table->addCell(1500, $headerCellStyle)->addText('Position', $headerFont, $paraStyleCenter);
+            $table->addCell(1000, $headerCellStyle)->addText('Issues', $headerFont, $paraStyleCenter);
 
+            // Add data rows
             foreach ($staffMembers as $staff) {
                 $table->addRow();
-                $table->addCell(1500)->addText($staff->first_name . ' ' . $staff->last_name);
-                $table->addCell(2500)->addText($staff->email);
-                $table->addCell(1500)->addText($staff->staffDetail->department ?? 'N/A');
-                $table->addCell(1500)->addText($staff->staffDetail->position_title ?? 'N/A');
-                $table->addCell(1500)->addText($staff->issues->count(), ['align' => 'center']);
+                $table->addCell(2000)->addText($staff->first_name . ' ' . $staff->last_name, null, $paraStyleLeft);
+                $table->addCell(2500)->addText($staff->email, null, $paraStyleLeft);
+                $table->addCell(1500)->addText($staff->staffDetail->department ?? 'N/A', null, $paraStyleLeft);
+                $table->addCell(1500)->addText($staff->staffDetail->position_title ?? 'N/A', null, $paraStyleLeft);
+                $table->addCell(1000)->addText($staff->issues->count(), null, $paraStyleCenter);
             }
         } else {
-            $section->addText('No staff member accounts found matching your criteria.');
+            $section->addText('No staff member accounts found matching your criteria.', $fontStyleNormal);
         }
 
-        // 6. Save the document and send as download
+        // 9. Save and download the document
         try {
-            $objWriter = IOFactory::createWriter($phpWord, 'Word2007'); // Creates a Word2007 writer (DOCX)
+            $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
             $fileName = 'students_and_staff_report_' . now()->format('Ymd_His') . '.docx';
 
-            // Set headers for download
-            header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-            header('Content-Disposition: attachment;filename="' . $fileName . '"');
-            header('Cache-Control: max-age=0');
+            // Create a temporary file
+            $tempFile = storage_path('app/public/' . $fileName);
+            $objWriter->save($tempFile);
 
-            // Output the document directly to the browser
-            $objWriter->save('php://output');
-            exit; // Important to exit after sending file
+            // Return the file as a download
+            return response()->download($tempFile)->deleteFileAfterSend(true);
         } catch (\Exception $e) {
             \Log::error('Word export failed: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to generate Word report. ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate Word report. Please try again or contact support if the issue persists.');
         }
     }
 
@@ -356,46 +369,31 @@ class ReportController extends Controller
      */
     private function getFilteredTaskReportData(Request $request, bool $paginate = false): array
     {
-        // Validate inputs
-        $validatedData = $request->validate([
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => ['nullable', 'string', Rule::in(['all', 'completed', 'pending', 'in progress', 'overdue'])],
-            'priority' => ['nullable', 'string', Rule::in(['all', 'high', 'medium', 'low'])],
+        $query = Task::with([
+            'issue' => function($q) {
+                $q->with(['location' => function($q) {
+                    $q->with(['building', 'floor', 'room']);
+                }]);
+            },
+            'assignee'
         ]);
 
-        // Ensure start_date and end_date are Carbon instances, with defaults if not provided
-        $startDateInput = $validatedData['start_date'] ?? null;
-        $endDateInput = $validatedData['end_date'] ?? null;
-
-        // Convert to Carbon instances. If null, use default range.
-        $startDate = $startDateInput ? Carbon::parse($startDateInput)->startOfDay() : Carbon::today()->subMonths(1)->startOfDay();
-        $endDate = $endDateInput ? Carbon::parse($endDateInput)->endOfDay() : Carbon::today()->endOfDay();
-
-        $statusFilter = $validatedData['status'] ?? 'all';
-        $priorityFilter = $validatedData['priority'] ?? 'all';
-
-        // Base query for Maintenance Tasks
-        $query = Task::with(['issue.location', 'assignee'])
-            ->whereBetween('created_at', [$startDate, $endDate]); // Use Carbon instances directly
+        // Apply date filters
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
 
         // Apply status filter
-        if ($statusFilter !== 'all') {
-            if ($statusFilter === 'overdue') {
-                $query->where('expected_completion', '<', now())
-                    ->where('issue_status', '!=', 'Completed'); // Assuming 'Completed' is capitalized in DB
-            } else {
-                // Convert to capitalized format for DB comparison
-                $query->where('issue_status', ucfirst(str_replace('_', ' ', $statusFilter)));
-            }
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('issue_status', $request->status);
         }
 
         // Apply priority filter
-        if ($priorityFilter !== 'all') {
-            $query->whereHas('issue', function ($q) use ($priorityFilter) {
-                // Convert to capitalized format for DB comparison
-                $q->where('urgency_level', ucfirst($priorityFilter));
-            });
+        if ($request->filled('priority') && $request->priority !== 'all') {
+            $query->where('priority', $request->priority);
         }
 
         // Get all tasks for stats calculation (without pagination)
@@ -404,27 +402,36 @@ class ReportController extends Controller
         // Calculate statistics
         $stats = [
             'total' => $allFilteredTasks->count(),
-            'completed' => $allFilteredTasks->where('issue_status', 'Completed')->count(), // Use capitalized
-            'pending' => $allFilteredTasks->where('issue_status', 'Pending')->count(),     // Use capitalized
-            'in progress' => $allFilteredTasks->where('issue_status', 'In Progress')->count(), // Use capitalized
+            'completed' => $allFilteredTasks->where('issue_status', 'Completed')->count(),
+            'pending' => $allFilteredTasks->where('issue_status', 'Pending')->count(),
+            'in_progress' => $allFilteredTasks->where('issue_status', 'In Progress')->count(),
             'overdue' => $allFilteredTasks->filter(function ($task) {
-                return $task->expected_completion < now() && $task->issue_status != 'Completed'; // Use capitalized
+                return $task->expected_completion < now() && $task->issue_status != 'Completed';
             })->count(),
         ];
 
         // Apply pagination if requested
-        $tasks = $paginate ? $query->paginate(10) : $query->get(); // Paginate for display, get all for export
+        $tasks = $paginate ? $query->paginate(10) : $query->get();
+
+        // Set default dates if no tasks found
+        $startDate = $request->filled('start_date')
+            ? Carbon::parse($request->start_date)->startOfDay()
+            : Carbon::now()->subMonth()->startOfDay();
+
+        $endDate = $request->filled('end_date')
+            ? Carbon::parse($request->end_date)->endOfDay()
+            : Carbon::now()->endOfDay();
 
         return [
             'tasks' => $tasks,
             'stats' => $stats,
-            'startDate' => $startDate, // Carbon instance (will never be null now)
-            'endDate' => $endDate,     // Carbon instance (will never be null now)
+            'startDate' => $startDate,
+            'endDate' => $endDate,
             'filters' => [
-                'start_date' => $startDateInput, // Original string for form input value
-                'end_date' => $endDateInput,     // Original string for form input value
-                'status' => $statusFilter,
-                'priority' => $priorityFilter,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'status' => $request->status,
+                'priority' => $request->priority,
             ],
         ];
     }
@@ -619,11 +626,11 @@ class ReportController extends Controller
      */
     private function getFilteredTechnicianReportData(Request $request): array
     {
-        // Validate inputs
+        // 1. Validate Inputs
         $validatedData = $request->validate([
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => ['nullable', 'string', Rule::in(['all', 'completed', 'pending', 'in progress'])], // 'overdue' not applicable here as it's a derived status
+            'status' => ['nullable', 'string', Rule::in(['all', 'completed', 'pending', 'in_progress'])],
             'priority' => ['nullable', 'string', Rule::in(['all', 'high', 'medium', 'low'])],
         ]);
 
@@ -638,35 +645,61 @@ class ReportController extends Controller
         $priorityFilter = $validatedData['priority'] ?? 'all';
 
         $technicians = User::where('user_role', 'Technician')
+            ->whereHas('tasks', function($query) use ($startDate, $endDate, $statusFilter, $priorityFilter) {
+                $query->whereBetween('assignment_date', [$startDate, $endDate])
+                    ->when($statusFilter !== 'all', function ($q) use ($statusFilter) {
+                        $status = match($statusFilter) {
+                            'completed' => 'Completed',
+                            'pending' => 'Pending',
+                            'in_progress' => 'In Progress',
+                            default => $statusFilter
+                        };
+                        $q->where('issue_status', $status);
+                    })
+                    ->when($priorityFilter !== 'all', function ($q) use ($priorityFilter) {
+                        $priority = match($priorityFilter) {
+                            'high' => 'High',
+                            'medium' => 'Medium',
+                            'low' => 'Low',
+                            default => $priorityFilter
+                        };
+                        $q->where('priority', $priority);
+                    });
+            })
             ->with(['maintenanceStaff', 'tasks' => function ($query) use ($startDate, $endDate, $statusFilter, $priorityFilter) {
                 $query->whereBetween('assignment_date', [$startDate, $endDate])
                     ->when($statusFilter !== 'all', function ($q) use ($statusFilter) {
-                        // Assuming issue_status in DB is 'Completed', 'Pending', 'In Progress'
-                        $q->where('issue_status', ucfirst(str_replace('_', ' ', $statusFilter)));
+                        $status = match($statusFilter) {
+                            'completed' => 'Completed',
+                            'pending' => 'Pending',
+                            'in_progress' => 'In Progress',
+                            default => $statusFilter
+                        };
+                        $q->where('issue_status', $status);
                     })
                     ->when($priorityFilter !== 'all', function ($q) use ($priorityFilter) {
-                        // Assuming priority in DB is 'High', 'Medium', 'Low'
-                        $q->whereHas('issue', function($issueQuery) use ($priorityFilter) {
-                            $issueQuery->where('urgency_level', ucfirst($priorityFilter));
-                        });
+                        $priority = match($priorityFilter) {
+                            'high' => 'High',
+                            'medium' => 'Medium',
+                            'low' => 'Low',
+                            default => $priorityFilter
+                        };
+                        $q->where('priority', $priority);
                     });
             }])
             ->get()
             ->map(function ($technician) use ($startDate, $endDate) {
-                // Filter tasks again to ensure only those within the date range and status/priority apply to counts
                 $filteredTasks = $technician->tasks->filter(function($task) use ($startDate, $endDate) {
                     return $task->assignment_date->between($startDate, $endDate);
                 });
 
-                $completedTasks = $filteredTasks->where('issue_status', 'Completed'); // Assuming 'Completed' is capitalized in DB
+                $completedTasks = $filteredTasks->where('issue_status', 'Completed');
                 $totalTasks = $filteredTasks->count();
 
                 $avgCompletionTime = null;
                 if ($completedTasks->isNotEmpty()) {
                     $totalCompletionTimeInDays = 0;
                     foreach ($completedTasks as $task) {
-                        // Calculate time from assignment_date to actual_completion_date
-                        // If actual_completion_date is null, use expected_completion or current time
                         $completionDate = $task->actual_completion_date ?? $task->expected_completion ?? Carbon::now();
                         $totalCompletionTimeInDays += Carbon::parse($task->assignment_date)->diffInDays($completionDate);
                     }
@@ -676,39 +709,29 @@ class ReportController extends Controller
                 return [
                     'id' => $technician->id,
                     'name' => $technician->first_name . ' ' . $technician->last_name,
-                    'email' => $technician->email, // Include email for Excel/Word
-                    'phone_number' => $technician->phone_number, // Include phone for Excel/Word
-                    'address' => $technician->address, // Include address for Excel/Word
+                    'email' => $technician->email,
+                    'phone_number' => $technician->phone_number,
+                    'address' => $technician->address,
                     'specialization' => $technician->maintenanceStaff->specialization ?? 'N/A',
                     'availability' => $technician->maintenanceStaff->availability_status ?? 'Unknown',
                     'workload' => $technician->maintenanceStaff->current_workload ?? 0,
                     'total_tasks' => $totalTasks,
                     'completed_tasks' => $completedTasks->count(),
-                    'completion_rate' => $totalTasks > 0
-                        ? round(($completedTasks->count() / $totalTasks) * 100, 2)
-                        : 0,
-                    'avg_completion_time' => $avgCompletionTime ? round($avgCompletionTime, 1) : 0,
+                    'completion_rate' => $totalTasks > 0 ? round(($completedTasks->count() / $totalTasks) * 100, 2) : 0,
+                    'avg_completion_time' => $avgCompletionTime ? round($avgCompletionTime, 1) : 0
                 ];
             })
             ->filter(function($technician) {
-                // Only include technicians who have tasks after filtering
                 return $technician['total_tasks'] > 0;
             });
 
-
         // Calculate overall statistics
-        $totalTechnicians = $technicians->count();
-        $totalTasksOverall = $technicians->sum('total_tasks');
-        $completedTasksOverall = $technicians->sum('completed_tasks');
-        $avgCompletionRateOverall = $totalTasksOverall > 0
-            ? round(($completedTasksOverall / $totalTasksOverall) * 100, 2)
-            : 0;
-
         $stats = [
-            'total_technicians' => $totalTechnicians,
-            'total_tasks' => $totalTasksOverall,
-            'completed_tasks' => $completedTasksOverall,
-            'avg_completion_rate' => $avgCompletionRateOverall,
+            'total_technicians' => $technicians->count(),
+            'total_tasks' => $technicians->sum('total_tasks'),
+            'completed_tasks' => $technicians->sum('completed_tasks'),
+            'avg_completion_rate' => $technicians->avg('completion_rate'),
+            'avg_completion_time' => $technicians->filter(function($t) { return $t['avg_completion_time'] !== null; })->avg('avg_completion_time')
         ];
 
         return [
@@ -720,8 +743,8 @@ class ReportController extends Controller
                 'start_date' => $startDateInput,
                 'end_date' => $endDateInput,
                 'status' => $statusFilter,
-                'priority' => $priorityFilter,
-            ],
+                'priority' => $priorityFilter
+            ]
         ];
     }
 

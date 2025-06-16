@@ -97,17 +97,17 @@ public function staffDetail()
 
 public function isAdmin()
 {
-    return $this->role === 'Admin';
+    return $this->user_role === 'Admin';
 }
 
 public function isMaintenanceStaff()
 {
-    return $this->role === 'Technician';
+    return $this->user_role === 'Technician';
 }
 
 public function isStudent()
 {
-    return $this->role === 'Student';
+    return $this->user_role === 'Student';
 }
 public function maintenanceStaff()
 {

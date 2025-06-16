@@ -30,23 +30,23 @@ class AdminSeeder extends Seeder
             'department' => 'Faculty Affairs',
             ],
             [
-            'email' => 'registrar@university.edu',
-            'first_name' => 'Registrar',
-            'last_name' => 'Office',
+            'email' => 'Mulweli@tut4life.ac.za',
+            'first_name' => 'Mulweli',
+            'last_name' => 'Magoma',
             'phone' => '01122334477',
             'department' => 'Registrar',
             ],
             [
-            'email' => 'finance@university.edu',
-            'first_name' => 'Finance',
-            'last_name' => 'Manager',
+            'email' => 'Lethabo@tut4life.ac.za',
+            'first_name' => 'Lethabo',
+            'last_name' => 'Maputla',
             'phone' => '01122334488',
             'department' => 'Finance',
             ],
             [
-            'email' => 'it@university.edu',
-            'first_name' => 'IT',
-            'last_name' => 'Support',
+            'email' => 'abuti@tut4life.ac.za',
+            'first_name' => 'abuti',
+            'last_name' => 'Mthembu',
             'phone' => '01122334499',
             'department' => 'IT Support',
             ],
@@ -62,8 +62,8 @@ class AdminSeeder extends Seeder
                     'first_name' => $admin['first_name'],
                     'last_name' => $admin['last_name'],
                     'address' => 'Administration Building, Main Campus',
-                    'created_at' => Carbon::now(), // Account created 1 year ago
-                    'updated_at' => Carbon::now(), // Last updated 1 month ago
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
                 ]
             );
 

@@ -22,21 +22,47 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Arr;
 use App\Models\HistoryLog;
+use App\Models\Building;
+use App\Models\Floor;
+use App\Models\Room;
 
 class IssueController extends Controller
 {
+    public function __construct()
+    {
+        // No configuration needed
+    }
 
-
-   //this is called when the user  clicks on create or report an issue
+    //this is called when the user  clicks on create or report an issue
     public function create()
     {
-        // Fetch locations to populate a dropdown in the form
-        $locations = Location::all();
+        // Fetch buildings to populate the dropdown
+        $buildings = Building::orderBy('building_name')->get();
+
         // Retrieve session data if it exists (for going back to the form)
         $formData = session()->get('formData', []);
         $attachments = session()->get('attachments', []);
 
-        return view('Student.createissue', compact('locations', 'formData', 'attachments'));
+        // If we have a building_id in the form data, fetch the floors
+        if (!empty($formData['building_id'])) {
+            $floors = Floor::where('building_id', $formData['building_id'])->get();
+        } else {
+            $floors = collect();
+        }
+
+        // If we have a floor_id in the form data, fetch the rooms
+        if (!empty($formData['floor_id'])) {
+            $rooms = Room::where('floor_id', $formData['floor_id'])->get();
+        } else {
+            $rooms = collect();
+        }
+
+        // Debug session data
+        \Log::info('Form Data in Create:', $formData);
+        \Log::info('Floors:', $floors->toArray());
+        \Log::info('Rooms:', $rooms->toArray());
+
+        return view('Student.createissue', compact('buildings', 'floors', 'rooms', 'formData', 'attachments'));
     }
 
 
@@ -51,11 +77,10 @@ class IssueController extends Controller
     private function processIssueForm(Request $request)
     {
         // Validate the form data
-        /*
-         *
-         */
         $validated = $request->validate([
-            'location_id' => 'required|integer',
+            'building_id' => 'required|exists:buildings,id',
+            'floor_id' => 'required|exists:floors,id',
+            'room_id' => 'required|exists:rooms,id',
             'issue_type' => 'required|string|max:50',
             'issue_description' => 'required|string',
             'safety_hazard' => 'required|boolean',
@@ -63,10 +88,9 @@ class IssueController extends Controller
             'pc_number' => 'nullable|required_if:issue_type,PC|integer|min:1|max:100',
             'pc_issue_type' => 'nullable|required_if:issue_type,PC|string|max:50',
             'critical_work_affected' => 'nullable|boolean',
-            'affects_operations' => 'required|boolean', // Added affects_operations validation
+            'affects_operations' => 'required|boolean',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,pdf,doc,docx|max:2048',
         ]);
-
 
         $validated['safety_hazard'] = filter_var($validated['safety_hazard'], FILTER_VALIDATE_BOOLEAN);
         $validated['critical_work_affected'] = filter_var(
@@ -75,24 +99,27 @@ class IssueController extends Controller
         );
         $validated['affects_operations'] = filter_var($validated['affects_operations'], FILTER_VALIDATE_BOOLEAN);
 
-
         // Fetch the authenticated user's ID
         $reporterId = auth()->id();
 
         // Fetch the selected location details
-        $location = Location::find($validated['location_id']);
+        $building = Building::find($validated['building_id']);
+        $floor = Floor::find($validated['floor_id']);
+        $room = Room::find($validated['room_id']);
 
         // Prepare form data for session
         $formData = [
-            'location_id' => $validated['location_id'],
+            'building_id' => $validated['building_id'],
+            'floor_id' => $validated['floor_id'],
+            'room_id' => $validated['room_id'],
             'issue_type' => $validated['issue_type'],
             'issue_description' => $validated['issue_description'],
             'safety_hazard' => $validated['safety_hazard'],
             'affected_areas' => $validated['affected_areas'],
             'reporter_id' => $reporterId,
-            'building' => $location->building_name,
-            'floor' => $location->floor_number,
-            'room' => $location->room_number,
+            'building' => $building->building_name,
+            'floor' => $floor->floor_number,
+            'room' => $room->room_number,
             'affects_operations' => $validated['affects_operations'],
             'urgency_level' => $this->determineUrgencyLevel($this->calculateUrgencyScore($validated)),
             'urgency_score' => $this->calculateUrgencyScore($validated)
@@ -112,13 +139,18 @@ class IssueController extends Controller
         if ($request->hasFile('attachments')) {
             $attachments = [];
             foreach ($request->file('attachments') as $file) {
-                $path = $file->store('issues/attachments', 'public');
-                $attachments[] = [
-                    'path' => $path,
-                    'original_name' => $file->getClientOriginalName(),
-                    'mime_type' => $file->getClientMimeType(),
-                    'size' => $file->getSize()
-                ];
+                try {
+                    $path = $file->store('issue-attachments', 'public');
+                    $attachments[] = [
+                        'path' => $path,
+                        'original_name' => $file->getClientOriginalName(),
+                        'mime_type' => $file->getClientMimeType(),
+                        'size' => $file->getSize()
+                    ];
+                } catch (\Exception $e) {
+                    Log::error('File upload failed: ' . $e->getMessage());
+                    throw new \RuntimeException('Failed to upload file: ' . $e->getMessage());
+                }
             }
             session()->put('attachments', $attachments);
         }
@@ -148,9 +180,11 @@ class IssueController extends Controller
         // 3. Affected Areas
         if ($data['affected_areas'] > 3) {
             $urgencyScore += 2;
+
         } elseif ($data['affected_areas'] > 1) {
             $urgencyScore += 1;
         }
+
 
         // 4. PC-specific factors
         if ($data['issue_type'] === 'PC') {
@@ -184,22 +218,30 @@ class IssueController extends Controller
 
     public function confirm()
     {
-        // Retrieve session data
         $formData = session()->get('formData', []);
         $attachments = session()->get('attachments', []);
 
-        if (empty($formData) || empty($attachments)) {
-            throw new MissingIssueFormDataException('Form data or attachments are missing. Please return to the Create Issue page and fill out the form.');
+        if (empty($formData)) {
+            return redirect()->route('Student.createissue')->with('error', 'Please fill out the form first.');
         }
 
+        // Get the building, floor, and room details
+        $building = Building::find($formData['building_id']);
+        $floor = Floor::find($formData['floor_id']);
+        $room = Room::find($formData['room_id']);
 
-        // Fetch location details for display
-        $location = Location::find($formData['location_id']);
+        // Create a location object for the view
+        $location = (object)[
+            'building_name' => $building->building_name,
+            'floor_number' => $floor->floor_number,
+            'room_number' => $room->room_number
+        ];
 
-        // Get reporter details
-        $reporter = User::find($formData['reporter_id']);
-
-        return view('Student.confirmissue', compact('formData', 'attachments', 'location', 'reporter'));
+        return view('Student.confirmissue', [
+            'formData' => $formData,
+            'attachments' => $attachments,
+            'location' => $location
+        ]);
     }
 /*
  * update the created_at here also
@@ -230,7 +272,6 @@ class IssueController extends Controller
                 'existing_issue_id' => $existingIssue->issue_id
             ]);
         }
-//        dd($formData['urgency_score']);
 
         try {
             DB::beginTransaction();
@@ -238,11 +279,13 @@ class IssueController extends Controller
             // Save the issue to the database with all fields
             $issue = Issue::create([
                 'reporter_id' => $formData['reporter_id'],
-                'location_id' => $formData['location_id'],
+                'building_id' => $formData['building_id'],
+                'floor_id' => $formData['floor_id'],
+                'room_id' => $formData['room_id'],
                 'issue_type' => $formData['issue_type'],
                 'issue_description' => $formData['issue_description'],
                 'urgency_level' => $formData['urgency_level'],
-                'urgency_score' => $formData['urgency_score'] ?? null, // Add score if available
+                'urgency_score' => $formData['urgency_score'] ?? null,
                 'safety_hazard' => $formData['safety_hazard'] ?? false,
                 'affects_operations' => $formData['affects_operations'] ?? false,
                 'affected_areas' => $formData['affected_areas'] ?? 1,
@@ -253,7 +296,7 @@ class IssueController extends Controller
                 'created_at' => now()
             ]);
 
-            Log::error("$issue->issue_id");
+            Log::info("Created issue with ID: $issue->issue_id");
             session()->put('reported_issue_id', $issue->issue_id);
 
             // Create the task
@@ -280,15 +323,17 @@ class IssueController extends Controller
             }
 
             // Get related data
-
             $reporter = User::find($formData['reporter_id']);
+            $building = Building::find($formData['building_id']);
+            $floor = Floor::find($formData['floor_id']);
+            $room = Room::find($formData['room_id']);
 
-            // Send a success message notification to the reportertert
-            $this->sendReporterNotification($issue, $reporter, $assignedTechnician);
+            // Send a success message notification to the reporter
+            $this->sendReporterNotification($issue, $reporter, $assignedTechnician, $building, $floor, $room);
 
             if ($assignedTechnician) {
-                $this->sendTechnicianEmail($issue, $task, $reporter, $assignedTechnician);
-                $this->sendTechnicianNotification($issue, $task, $reporter, $assignedTechnician);
+                $this->sendTechnicianEmail($issue, $task, $reporter, $assignedTechnician, $building, $floor, $room);
+                $this->sendTechnicianNotification($issue, $task, $reporter, $assignedTechnician, $building, $floor, $room);
             }
 
             DB::commit();
@@ -312,31 +357,40 @@ class IssueController extends Controller
     /**
      * Send email notification to assigned technician
      */
-    protected function sendTechnicianEmail($issue, $task, $reporter, $technician)
+    protected function sendTechnicianEmail($issue, $task, $reporter, $technician, $building, $floor, $room)
     {
-        $location = Location::find($issue->location_id);
+        try {
+            $taskUrl = route('technician.task_details', $issue->issue_id);
 
-        Mail::to($technician->email)
-            ->send(new TechnicianAssignmentEmail(
-                $issue,
-                $task,
-                $technician,
-                $reporter
-            ));
+            Mail::to($technician->email)
+                ->send(new TechnicianAssignmentEmail(
+                    $issue,
+                    $task,
+                    $technician,
+                    $reporter,
+                    $building,
+                    $floor,
+                    $room,
+                    $taskUrl
+                ));
+        } catch (\Exception $e) {
+            Log::error('Failed to send technician assignment email: ' . $e->getMessage());
+        }
     }
 
     /**
      * Send database notification to reporter
      */
-    public function sendReporterNotification($issue, $reporter, $technician)
+    public function sendReporterNotification($issue, $reporter, $technician, $building, $floor, $room)
     {
         $message = sprintf(
-            "New Issue #%s\n\nType: %s\nUrgency: %s\nLocation: Building - %s, Floor - %s\nSubmitted: %s\nStatus: %s\n\n%s",
+            "New Issue #%s\n\nType: %s\nUrgency: %s\nLocation: Building - %s, Floor - %s, Room - %s\nSubmitted: %s\nStatus: %s\n\n%s",
             $issue->issue_id,
             $issue->issue_type,
             $issue->urgency_level,
-            $issue->location->building_name ?? 'N/A',
-            $issue->location->floor_number ?? 'N/A',
+            $building->building_name,
+            $floor->floor_number,
+            $room->room_number,
             $issue->created_at,
             $issue->issue_status,
             $technician
@@ -355,15 +409,18 @@ class IssueController extends Controller
     /**
      * Send database notification to technician
      */
-    public function sendTechnicianNotification($issue, $task, $reporter, $technician)
+    public function sendTechnicianNotification($issue, $task, $reporter, $technician, $building, $floor, $room)
     {
         $message = sprintf(
-            "New Assignment #%s\n\nPriority: %s\nExpected Completion: %s\nReporter: %s\nUrgency: %s\n\n%s",
+            "New Assignment #%s\n\nPriority: %s\nExpected Completion: %s\nReporter: %s\nUrgency: %s\nLocation: Building - %s, Floor - %s, Room - %s\n\n%s",
             $issue->issue_id,
             $task->priority,
             $task->expected_completion,
             $reporter->first_name,
             $issue->urgency_level,
+            $building->building_name,
+            $floor->floor_number,
+            $room->room_number,
             $issue->issue_description
         );
 
@@ -401,10 +458,17 @@ class IssueController extends Controller
                 ->route('Student.issue_details', $issue->issue_id)
                 ->with('swal_error', 'Only Open issues can be edited.');
         }
-         // pass campus location to the edit Issue page
-        $locations = Location::all();
-        // redirect to the edit issue page
-        return view('Student.editissue', compact('issue', 'locations'));
+
+        // Fetch buildings, floors, and rooms
+        $buildings = Building::orderBy('building_name')->get();
+
+        // Get floors for the current building
+        $floors = Floor::where('building_id', $issue->building_id)->get();
+
+        // Get rooms for the current floor
+        $rooms = Room::where('floor_id', $issue->floor_id)->get();
+
+        return view('Student.editissue', compact('issue', 'buildings', 'floors', 'rooms'));
     }
 
 
@@ -469,214 +533,24 @@ class IssueController extends Controller
      }
 
 
-public function update(Request $request, Issue $issue)
-{
-    // Validate the request
-    $validated = $request->validate([
-        'location_id' => 'required|exists:location,location_id',
-        'issue_type' => 'required|string|max:255',
-        'issue_description' => 'required|string',
-        'safety_hazard' => 'required|boolean',
-        'affected_areas' => 'required|integer|min:1',
-        'affects_operations' => 'required|boolean',
-        'pc_number' => 'nullable|integer|min:1|max:100',
-        'pc_issue_type' => 'nullable|string|max:255',
-        'critical_work_affected' => 'nullable|boolean',
-        'attachments.*' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx,mp4',
-    ]);
-
-
-    // Authorization checks
-    if (Auth::id() !== $issue->reporter_id) {
-        Log::warning('Unauthorized update attempt by user ID: ' . Auth::id());
-        abort(403, 'Unauthorized action.');
-    }
-
-
-    // Store old values for comparison and notification logic
-    $oldIssueType = $issue->issue_type;
-    $oldUrgencyLevel = $issue->urgency_level;
-    $oldAssigneeId = $issue->task->assignee_id ?? null;
-
-    // Calculate new urgency score and determine urgency level
-    $urgencyScore = $this->calculateUrgencyScore($validated);
-    $newUrgencyLevel = $this->determineUrgencyLevel($urgencyScore);
-
-
-    // Reassignment is needed if issue type changes OR urgency level changes AND a task exists
-    $needsReassignment = $issue->task && ($oldIssueType !== $validated['issue_type'] || $oldUrgencyLevel !== $newUrgencyLevel);
-
-    $oldTechnician = null;
-    if ($oldAssigneeId) {
-        $oldTechnician = User::find($oldAssigneeId);
-    }
-
-    // If reassignment is needed, clear the current assignment first
-    if ($needsReassignment) {
-        if ($oldTechnician) {
-            // Decrease the current technician's workload
-            DB::table('Technicians')
-                ->where('user_id', $oldTechnician->id)
-                ->decrement('current_workload');
-
-            // Mark technician as Available if workload is less than 6
-            $technicianRecord = DB::table('Technicians')
-                ->where('user_id', $oldTechnician->id)
-                ->first();
-
-            if ($technicianRecord && $technicianRecord->current_workload < 6) {
-                DB::table('Technicians')
-                    ->where('user_id', $oldTechnician->id)
-                    ->update(['availability_status' => 'Available']);
-            }
-        }
-
-        // Clear the task's assignee while maintaining assignment_date if it was already set
-        $issue->task->update([
-            'assignee_id' => null
-        ]);
-    }
-
-    // Prepare PC-specific fields, setting to null if issue type is not 'PC'
-    $pcData = [];
-    if ($validated['issue_type'] === 'PC') {
-        $pcData['pc_number'] = $validated['pc_number'] ?? null;
-        $pcData['pc_issue_type'] = $validated['pc_issue_type'] ?? null;
-        $pcData['critical_work_affected'] = $validated['critical_work_affected'] ?? false;
-    } else {
-        $pcData['pc_number'] = null;
-        $pcData['pc_issue_type'] = null;
-        $pcData['critical_work_affected'] = false;
-    }
-
-    // Update the issue
-    $issue->update(array_merge([
-        'location_id' => $validated['location_id'],
-        'issue_type' => $validated['issue_type'],
-        'issue_description' => $validated['issue_description'],
-        'safety_hazard' => $validated['safety_hazard'],
-        'affected_areas' => $validated['affected_areas'],
-        'affects_operations' => $validated['affects_operations'],
-        'urgency_level' => $newUrgencyLevel,
-        'updated_at' => now()
-    ], $pcData));
-    Log::info('Issue updated', $validated);
-    $reporter = Auth::user();
-
-    $assignedTechnician = null;
-
-    // Reassign if needed after issue update, or update existing task details
-    if ($needsReassignment) {
-        // Reassign the task to a new technician
-        $assignedTechnicianRecord = $this->assignOrQueueTask($issue->task);
-        if ($assignedTechnicianRecord) {
-            $assignedTechnician = User::find($assignedTechnicianRecord->user_id);
-            // Update task priority with new urgency level
-            $issue->task->update([
-                'priority' => $this->mapUrgencyToPriority($newUrgencyLevel)
-            ]);
-        }
-        // Notify the old technician if reassigned
-        if ($oldTechnician) {
-            // In-app notification
-            $oldType = $oldIssueType;
-            $newType = $validated['issue_type'];
-            $oldTechnician->notify(new DatabaseNotification(
-                "You have been unassigned from Issue #{$issue->issue_id}. The issue type has changed from '{$oldType}' to '{$newType}'. The task has been reassigned to another technician.",
-                null, // No link
-                'Task Reassignment'
-            ));
-            // Email notification
-            try {
-                Mail::to($oldTechnician->email)->send(new TechnicianReassignmentMail($issue, $oldTechnician, $oldType, $newType));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send reassignment email to old technician: ' . $e->getMessage());
-            }
-        }
-        // Notify the new technician if assigned
-        if ($assignedTechnician) {
-            // In-app notification
-            $assignedTechnician->notify(new DatabaseNotification(
-                "You have been assigned a new task for Issue #{$issue->issue_id} ({$issue->issue_type}).",
-                route('technician.task_details', $issue->issue_id),
-                'New Task Assignment'
-            ));
-            // Email notification (reuse assignment email)
-            try {
-                $location = $issue->location;
-                $reporter = Auth::user();
-                $task = $issue->task;
-                $taskUrl = route('technician.task_details', $issue->issue_id);
-                Mail::to($assignedTechnician->email)->send(new TechnicianAssignmentEmail(
-                    $issue,
-                    $task,
-                    $assignedTechnician,
-                    $reporter,
-                    $location,
-                    $taskUrl
-                ));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send assignment email to new technician: ' . $e->getMessage());
-            }
-        }
-        // If assignedTechnician is null here, it means the task was queued.
-    } else {
-        // No reassignment, but issue details might have changed for the current assignee.
-        // Check if the task is currently assigned.
-        if ($issue->task && $issue->task->assignee_id) {
-            $assignedTechnician = User::find($issue->task->assignee_id);
-            // Update task priority if urgency level changed (even if type didn't)
-            $issue->task->update([
-                'priority' => $this->mapUrgencyToPriority($newUrgencyLevel)
-            ]);
-        }
-    }
-
-    // Send notifications if a technician is assigned
-    if ($assignedTechnician) {
-        $this->sendTechnicianUpdateNotification($issue, $issue->task, $reporter, $assignedTechnician);
-
-    }
-
-
-    // Handle attachments: Delete all old attachments if new ones are uploaded
-    if ($request->hasFile('attachments')) {
-        // Delete all old attachments
-        foreach ($issue->attachments as $attachment) {
-            Storage::disk($attachment->storage_disk)->delete($attachment->file_path);
-            $attachment->delete();
-        }
-
-        // Add new attachments
-        foreach ($request->file('attachments') as $file) {
-            $path = $file->store('attachments', 'public');
-
-            IssueAttachment::create([
-                'issue_id' => $issue->issue_id,
-                'file_path' => $path,
-                'original_name' => $file->getClientOriginalName(),
-                'mime_type' => $file->getMimeType(),
-                'file_size' => $file->getSize(),
-                'storage_disk' => 'public',
-            ]);
-        }
-    }
-
-    // Return with a custom session flash for SweetAlert2 modal
-    return redirect()->route('Student.editissue', $issue->issue_id)
-        ->with('swal_success_update', $issue->issue_id);
-}
 
 public function sendTechnicianUpdateNotification($issue, $task, $reporter, $technician)
 {
+    // Get the location details
+    $building = Building::find($issue->building_id);
+    $floor = Floor::find($issue->floor_id);
+    $room = Room::find($issue->room_id);
+
     $message = sprintf(
-        "Issue #%s Updated\n\nPriority: %s\nExpected Completion: %s\nReporter: %s\nUrgency: %s\n\nDescription: %s",
+        "Issue #%s Updated\n\nPriority: %s\nExpected Completion: %s\nReporter: %s\nUrgency: %s\nLocation: Building - %s, Floor - %s, Room - %s\n\nDescription: %s",
         $issue->issue_id,
         $task->priority,
-        $task->expected_completion ? $task->expected_completion->format('Y-m-d H:i') : 'N/A', // Format date
-        $reporter->first_name . ' ' . $reporter->last_name, // Full name
+        $task->expected_completion ? $task->expected_completion->format('Y-m-d H:i') : 'N/A',
+        $reporter->first_name . ' ' . $reporter->last_name,
         $issue->urgency_level,
-        $issue->location->building_name,
+        $building->building_name,
+        $floor->floor_number,
+        $room->room_number,
         $issue->issue_description
     );
 
@@ -687,22 +561,6 @@ public function sendTechnicianUpdateNotification($issue, $task, $reporter, $tech
     ));
 }
 
-
-
-    public function assignQueuedTasks($technicianId)
-    {
-        $technician = User::find($technicianId);
-        $availableSlots = 3 - $technician->maintenanceStaff->current_workload;
-
-        $queuedTasks = Task::whereNull('assignee_id')
-            ->orderBy('created_at', 'asc')
-            ->limit($availableSlots)
-            ->get();
-
-        foreach ($queuedTasks as $queuedTask) {
-            $this->assignOrQueueTask($queuedTask);
-        }
-    }
 
     public function edit()
     {
@@ -740,6 +598,214 @@ public function sendTechnicianUpdateNotification($issue, $task, $reporter, $tech
             ->findOrFail($id);
 
         return view('Student.issue_details', compact('issue'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $issue = Issue::findOrFail($id);
+
+        // Check if the user is the reporter of the issue
+        if ($issue->reporter_id !== auth()->id()) {
+            return redirect()->back()->with('error', 'You are not authorized to edit this issue.');
+        }
+
+        // Check if the issue is still open
+        if ($issue->issue_status !== 'Open') {
+            return redirect()->back()->with('error', 'You can only edit open issues.');
+        }
+
+        $validated = $request->validate([
+            'building_id' => 'required|exists:buildings,id',
+            'floor_id' => 'required|exists:floors,id',
+            'room_id' => 'required|exists:rooms,id',
+            'issue_type' => 'required|in:Electrical,Plumbing,Structural,HVAC,Furniture,PC,General',
+            'issue_description' => 'required|string',
+            'safety_hazard' => 'required|boolean',
+            'affected_areas' => 'required|integer|min:1',
+            'affects_operations' => 'required|boolean',
+            'pc_number' => 'nullable|required_if:issue_type,PC|integer|min:1|max:100',
+            'pc_issue_type' => 'nullable|required_if:issue_type,PC|string|max:50',
+            'critical_work_affected' => 'nullable|boolean',
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,pdf,doc,docx|max:2048'
+        ]);
+
+        // Store old values for comparison and notification logic
+        $oldIssueType = $issue->issue_type;
+        $oldUrgencyLevel = $issue->urgency_level;
+        $oldAssigneeId = $issue->task->assignee_id ?? null;
+
+        // Calculate new urgency score and determine urgency level
+        $urgencyScore = $this->calculateUrgencyScore($validated);
+        $newUrgencyLevel = $this->determineUrgencyLevel($urgencyScore);
+
+        // Reassignment is needed if issue type changes OR urgency level changes AND a task exists
+        $needsReassignment = $issue->task && ($oldIssueType !== $validated['issue_type'] || $oldUrgencyLevel !== $newUrgencyLevel);
+
+        $oldTechnician = null;
+        if ($oldAssigneeId) {
+            $oldTechnician = User::find($oldAssigneeId);
+        }
+
+        // If reassignment is needed, clear the current assignment first
+        if ($needsReassignment) {
+            if ($oldTechnician) {
+                // Decrease the current technician's workload
+                DB::table('Technicians')
+                    ->where('user_id', $oldTechnician->id)
+                    ->decrement('current_workload');
+
+                // Mark technician as Available if workload is less than 6
+                $technicianRecord = DB::table('Technicians')
+                    ->where('user_id', $oldTechnician->id)
+                    ->first();
+
+                if ($technicianRecord && $technicianRecord->current_workload < 6) {
+                    DB::table('Technicians')
+                        ->where('user_id', $oldTechnician->id)
+                        ->update(['availability_status' => 'Available']);
+                }
+            }
+
+            // Clear the task's assignee while maintaining assignment_date if it was already set
+            $issue->task->update([
+                'assignee_id' => null
+            ]);
+        }
+
+        // Prepare PC-specific fields, setting to null if issue type is not 'PC'
+        $pcData = [];
+        if ($validated['issue_type'] === 'PC') {
+            $pcData['pc_number'] = $validated['pc_number'] ?? null;
+            $pcData['pc_issue_type'] = $validated['pc_issue_type'] ?? null;
+            $pcData['critical_work_affected'] = $validated['critical_work_affected'] ?? false;
+        } else {
+            $pcData['pc_number'] = null;
+            $pcData['pc_issue_type'] = null;
+            $pcData['critical_work_affected'] = false;
+        }
+
+        // Update the issue
+        $issue->update(array_merge([
+            'building_id' => $validated['building_id'],
+            'floor_id' => $validated['floor_id'],
+            'room_id' => $validated['room_id'],
+            'issue_type' => $validated['issue_type'],
+            'issue_description' => $validated['issue_description'],
+            'safety_hazard' => $validated['safety_hazard'],
+            'affected_areas' => $validated['affected_areas'],
+            'affects_operations' => $validated['affects_operations'],
+            'urgency_level' => $newUrgencyLevel,
+            'urgency_score' => $urgencyScore,
+            'updated_at' => now()
+        ], $pcData));
+
+        $reporter = Auth::user();
+        $assignedTechnician = null;
+
+        // Reassign if needed after issue update, or update existing task details
+        if ($needsReassignment) {
+            // Reassign the task to a new technician
+            $assignedTechnicianRecord = $this->assignOrQueueTask($issue->task);
+            if ($assignedTechnicianRecord) {
+                $assignedTechnician = User::find($assignedTechnicianRecord->user_id);
+                // Update task priority with new urgency level
+                $issue->task->update([
+                    'priority' => $this->mapUrgencyToPriority($newUrgencyLevel)
+                ]);
+            }
+            // Notify the old technician if reassigned
+            if ($oldTechnician) {
+                // In-app notification
+                $oldType = $oldIssueType;
+                $newType = $validated['issue_type'];
+                $oldTechnician->notify(new DatabaseNotification(
+                    "You have been unassigned from Issue #{$issue->issue_id}. The issue type has changed from '{$oldType}' to '{$newType}'. The task has been reassigned to another technician.",
+                    null,
+                    'Task Reassignment'
+                ));
+                // Email notification
+                try {
+                    Mail::to($oldTechnician->email)->send(new TechnicianReassignmentMail($issue, $oldTechnician, $oldType, $newType));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send reassignment email to old technician: ' . $e->getMessage());
+                }
+            }
+            // Notify the new technician if assigned
+            if ($assignedTechnician) {
+                // Get the building, floor, and room details
+                $building = Building::find($validated['building_id']);
+                $floor = Floor::find($validated['floor_id']);
+                $room = Room::find($validated['room_id']);
+
+                // In-app notification
+                $assignedTechnician->notify(new DatabaseNotification(
+                    "You have been assigned a new task for Issue #{$issue->issue_id} ({$issue->issue_type}).",
+                    route('technician.task_details', $issue->issue_id),
+                    'New Task Assignment'
+                ));
+                // Email notification
+                try {
+                    $taskUrl = route('technician.task_details', $issue->issue_id);
+                    Mail::to($assignedTechnician->email)->send(new TechnicianAssignmentEmail(
+                        $issue,
+                        $issue->task,
+                        $assignedTechnician,
+                        $reporter,
+                        $building,
+                        $floor,
+                        $room,
+                        $taskUrl
+                    ));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send assignment email to new technician: ' . $e->getMessage());
+                }
+            }
+        } else {
+            // No reassignment, but issue details might have changed for the current assignee
+            if ($issue->task && $issue->task->assignee_id) {
+                $assignedTechnician = User::find($issue->task->assignee_id);
+                // Update task priority if urgency level changed
+                $issue->task->update([
+                    'priority' => $this->mapUrgencyToPriority($newUrgencyLevel)
+                ]);
+            }
+        }
+
+        // Send notifications if a technician is assigned
+        if ($assignedTechnician) {
+            $this->sendTechnicianUpdateNotification($issue, $issue->task, $reporter, $assignedTechnician);
+        }
+
+        // Handle attachments
+        if ($request->hasFile('attachments')) {
+            // Delete old attachments from storage
+            foreach ($issue->attachments as $attachment) {
+                Storage::disk('public')->delete($attachment->file_path);
+                $attachment->delete();
+            }
+
+            // Add new attachments
+            foreach ($request->file('attachments') as $file) {
+                try {
+                    $path = $file->store('issue-attachments', 'public');
+                    IssueAttachment::create([
+                        'issue_id' => $issue->issue_id,
+                        'file_path' => $path,
+                        'original_name' => $file->getClientOriginalName(),
+                        'mime_type' => $file->getClientMimeType(),
+                        'file_size' => $file->getSize(),
+                        'storage_disk' => 'public'
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('File upload failed: ' . $e->getMessage());
+                    throw new \RuntimeException('Failed to upload file: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // Return with a custom session flash for SweetAlert2 modal
+        return redirect()->route('Student.editissue', $issue->issue_id)
+            ->with('swal_success_update', $issue->issue_id);
     }
 
 }

@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Issue;
 use App\Models\Feedback;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Excel;
 use App\Exports\FeedbacksExport;
+use App\Notifications\DatabaseNotification;
+
 class FeedbackController extends Controller
 {
     public function store(Request $request, $issueId)
@@ -37,6 +40,15 @@ class FeedbackController extends Controller
             'rating' => $request->input('rating'),
             'comments' => $request->input('comments'),
         ]);
+
+        // Notify all admin users
+        $admins = User::where('user_role', 'Admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new DatabaseNotification(
+                'New feedback submitted for issue #' . $issueId . ' by ' . $user->first_name . ' ' . $user->last_name,
+                route('admin.feedbacks.index')
+            ));
+        }
 
         return response()->json([
             'message' => 'Feedback submitted successfully.',

@@ -148,7 +148,7 @@
         </tr>
         <tr>
           <td class="label">Location:</td>
-          <td class="value">{{ $location->building_name }}, Floor {{ $location->floor_number }}, Room {{ $location->room_number }}</td>
+          <td class="value">{{ $building->building_name ?? 'Not specified' }}, Floor {{ $floor->floor_number ?? 'Not specified' }}, Room {{ $room->room_number ?? 'Not specified' }}</td>
         </tr>
         <tr>
           <td class="label">Reporter:</td>

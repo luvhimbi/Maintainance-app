@@ -21,50 +21,50 @@ class StudentSeeder extends Seeder
                 'faculty' => 'ICT',
             ],
             [
-                'email' => '221857887@tut4life.ac.zAT',
+                'email' => '221857887@tut4life.ac.za',
                 'first_name' => 'Brilliant',
                 'last_name' => 'Matlala',
-                'course' => 'Business Administration',
-                'faculty' => 'Business',
+                'course' => 'Informatics',
+                'faculty' => 'ICT',
             ],
             [
-                'email' => 'student3@university.edu',
+                'email' => '22000000@tut4life.ac.za',
                 'first_name' => 'John',
-                'last_name' => 'Doe',
-                'course' => 'Mechanical Engineering',
-                'faculty' => 'Engineering',
+                'last_name' => 'Mapulta',
+                'course' => 'Computer Science',
+                'faculty' => 'ICT',
             ],
             [
-                'email' => 'student4@university.edu',
+                'email' => '221456789@tut4life.ac.za',
                 'first_name' => 'Emma',
                 'last_name' => 'Brown',
-                'course' => 'Psychology',
-                'faculty' => 'Social Sciences',
+                'course' => 'Computer systems',
+                'faculty' => 'ICT',
             ],
             [
-                'email' => 'student5@university.edu',
+                'email' => '23456789@tut4life.ac.za',
                 'first_name' => 'Liam',
                 'last_name' => 'Smith',
-                'course' => 'Mathematics',
-                'faculty' => 'Sciences',
+                'course' => 'Information Technology',
+                'faculty' => 'ICT',
             ],
             [
-                'email' => 'student6@university.edu',
+                'email' => '23456789@tut4life.ac.za',
                 'first_name' => 'Sophia',
                 'last_name' => 'Williams',
-                'course' => 'Architecture',
-                'faculty' => 'Design',
+                'course' => 'Information Technology',
+                'faculty' => 'ICT',
             ],
             [
-                'email' => 'student7@university.edu',
+                'email' => '22678965@tut4life.ac.za',
                 'first_name' => 'James',
                 'last_name' => 'Taylor',
-                'course' => 'Law',
-                'faculty' => 'Law',
+                'course' => 'Information Technology',
+                'faculty' => 'ICT',
             ],
         ];
 
-        $phoneCounter = 1000; // Initialize a counter for unique phone numbers
+        $phoneCounter = 1000;
 
         foreach ($students as $student) {
             $user = User::firstOrCreate(
@@ -75,7 +75,7 @@ class StudentSeeder extends Seeder
                     'user_role' => UserRole::STUDENT->value,
                     'first_name' => $student['first_name'],
                     'last_name' => $student['last_name'],
-                    'address' => 'Student Dormitory, Main Campus',
+                    'address' => 'Student Dormitory, Sosh south Campus',
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]

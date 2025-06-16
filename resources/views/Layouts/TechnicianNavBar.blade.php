@@ -125,10 +125,15 @@
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm" style="font-family: 'Poppins', sans-serif;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
+            <a class="navbar-brand" href="#" style="font-size: 1.5rem; color: #2563eb;">
+                <x-cloudinary-image 
+                    public-id="images" 
+                    alt="Company Logo"
+                    class="me-2"
+                    style="height: 30px; width: auto;"
+                />
                 <i class="fas fa-tools me-2"></i>OCM
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -137,17 +142,17 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('technician.dashboard') }}">
+                        <a class="nav-link" href="{{ route('technician.dashboard') }}" style="font-weight: 500; color: #4b5563; padding: 0.5rem 1rem; transition: all 0.3s ease; border-radius: 0.5rem;">
                             <i class="fas fa-home"></i>Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('technician.directions') }}">
-                            <i class="fa-solid fa-map-pin "></i>SmartNav
+                        <a class="nav-link" href="{{ route('technician.directions') }}" style="font-weight: 500; color: #4b5563; padding: 0.5rem 1rem; transition: all 0.3s ease; border-radius: 0.5rem;">
+                            <i class="fa-solid fa-map-pin"></i>SmartNav
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('completed.tasks') }}">
+                        <a class="nav-link" href="{{ route('completed.tasks') }}" style="font-weight: 500; color: #4b5563; padding: 0.5rem 1rem; transition: all 0.3s ease; border-radius: 0.5rem;">
                             <i class="fas fa-history"></i>Task History
                         </a>
                     </li>

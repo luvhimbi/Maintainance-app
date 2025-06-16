@@ -47,7 +47,9 @@ class TechnicianAssignmentEmail extends Mailable
                 'task' => $this->task,
                 'technician' => $this->technician,
                 'reporter' => $this->reporter,
-                'location' => $this->issue->location,
+                'building' => $this->issue->building,
+                'floor' => $this->issue->floor,
+                'room' => $this->issue->room,
                 'taskUrl' => route('technician.task_details', $this->issue->issue_id),
             ]);
     }

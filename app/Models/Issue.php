@@ -20,7 +20,9 @@ class Issue extends Model
     // Define fillable fields for mass assignment
     protected $fillable = [
         'reporter_id',
-        'location_id',
+        'building_id',
+        'floor_id',
+        'room_id',
         'issue_type',
         'issue_description',
         'report_date',
@@ -41,38 +43,51 @@ class Issue extends Model
         return $this->belongsTo(Location::class, 'location_id', 'location_id');
     }
 
-
-public function feedback()
-{
-    return $this->hasMany(Feedback::class);
-}
-
-public function hasFeedbackFrom(User $user)
-{
-  return Feedback::where('issue_id', $this->issue_id)
-        ->where('user_id', $user->user_id)
-        ->exists();
-}
-    public function task()
-{
-    return $this->hasOne(Task::class, 'issue_id');
-} public function reporter()
-{
-    return $this->belongsTo(User::class, 'reporter_id', 'user_id'); // assuming 'reported_by' is the foreign key
-
-}
-
-
-
-
-public function tasks()
+    public function building()
     {
-        return $this->hasMany(Task::class, 'issue_id');
+        return $this->belongsTo(Building::class, 'building_id');
     }
+
+    public function floor()
+    {
+        return $this->belongsTo(Floor::class, 'floor_id');
+    }
+
+    public function room()
+    {
+        return $this->belongsTo(Room::class, 'room_id');
+    }
+
+    public function feedback()
+    {
+        return $this->hasMany(Feedback::class);
+    }
+
+    public function hasFeedbackFrom(User $user)
+    {
+        return Feedback::where('issue_id', $this->issue_id)
+            ->where('user_id', $user->user_id)
+            ->exists();
+    }
+
+    public function task()
+    {
+        return $this->hasOne(Task::class, 'issue_id', 'issue_id');
+    }
+
+    public function reporter()
+    {
+        return $this->belongsTo(User::class, 'reporter_id', 'user_id');
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, 'issue_id', 'issue_id');
+    }
+
     // Define relationship with the IssueAttachment model
     public function attachments()
     {
         return $this->hasMany(IssueAttachment::class, 'issue_id', 'issue_id');
     }
-
 }

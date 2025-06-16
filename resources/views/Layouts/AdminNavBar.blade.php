@@ -287,9 +287,14 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <a href="{{ route('admin.dashboard') }}" class="sidebar-brand">
-                <img src="{{ asset('images/images.png') }}" alt="Company Logo">
-                <span>OCM</span>
+            <a class="navbar-brand" href="#" style="font-size: 1.5rem; color: #2563eb;">
+                <x-cloudinary-image
+                    public-id="images"
+                    alt="Company Logo"
+                    class="me-2"
+                    style="height: 30px; width: auto;"
+                />
+                <i class="fas fa-tools me-2"></i>OCM
             </a>
         </div>
         <ul class="sidebar-menu">
@@ -316,9 +321,15 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('admin.locations.index') }}" class="sidebar-link {{ request()->routeIs('admin.locations.*') ? 'active' : '' }}">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Manage Locations</span>
+                        <a href="{{ route('admin.buildings.index') }}" class="sidebar-link {{ request()->routeIs('admin.buildings.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-building"></i>
+                            <span>Manage Buildings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.floors.index') }}" class="sidebar-link {{ request()->routeIs('admin.floors.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>Manage Floors</span>
                         </a>
                     </li>
                 </ul>

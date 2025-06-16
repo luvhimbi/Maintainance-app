@@ -35,7 +35,7 @@ class MaintenanceStaffSeeder extends Seeder
             'phone' => '0998877612'
             ],
             [
-            'email' => 'electrician3@example.com',
+            'email' => '22145678@tut4life.ac.za',
             'first_name' => 'Jane',
             'last_name' => 'Smith',
             'specialization' => Specialization::ELECTRICAL,
@@ -44,21 +44,21 @@ class MaintenanceStaffSeeder extends Seeder
 
             // Plumbing Technicians
             [
-            'email' => 'plumber1@example.com',
+            'email' => '267890467@tut4life.ac.za',
             'first_name' => 'Sarah',
             'last_name' => 'Williams',
             'specialization' => Specialization::PLUMBING,
             'phone' => '0998877621'
             ],
             [
-            'email' => 'plumber2@example.com',
+            'email' => '23456678@tut4life.ac.za',
             'first_name' => 'Emily',
             'last_name' => 'Davis',
             'specialization' => Specialization::PLUMBING,
             'phone' => '0998877622'
             ],
             [
-            'email' => 'plumber3@example.com',
+            'email' => '245675678@tut4life.ac.za',
             'first_name' => 'Chris',
             'last_name' => 'Taylor',
             'specialization' => Specialization::PLUMBING,
@@ -67,21 +67,21 @@ class MaintenanceStaffSeeder extends Seeder
 
             // General Technicians
             [
-            'email' => 'general_tech1@example.com',
+            'email' => 'davidbrown@tut.ac.za',
             'first_name' => 'David',
             'last_name' => 'Brown',
             'specialization' => Specialization::GENERAL,
             'phone' => '0998877631'
             ],
             [
-            'email' => 'general_tech2@example.com',
+            'email' => 'annawhite@tut.ac.za',
             'first_name' => 'Anna',
             'last_name' => 'White',
             'specialization' => Specialization::GENERAL,
             'phone' => '0998877632'
             ],
             [
-            'email' => 'general_tech3@example.com',
+            'email' => 'tomgreen@tut.ac.za',
             'first_name' => 'Tom',
             'last_name' => 'Green',
             'specialization' => Specialization::GENERAL,
@@ -90,21 +90,21 @@ class MaintenanceStaffSeeder extends Seeder
 
             // Structural Technicians
             [
-            'email' => 'structural1@example.com',
+            'email' => 'laurahill@tut.ac.za',
             'first_name' => 'Laura',
             'last_name' => 'Hill',
             'specialization' => Specialization::STRUCTURAL,
             'phone' => '0998877641'
             ],
             [
-            'email' => 'structural2@example.com',
+            'email' => 'markadams@tut.ac.za',
             'first_name' => 'Mark',
             'last_name' => 'Adams',
             'specialization' => Specialization::STRUCTURAL,
             'phone' => '0998877642'
             ],
             [
-            'email' => 'structural3@example.com',
+            'email' => 'sophiaclark@tut.ac.za',
             'first_name' => 'Sophia',
             'last_name' => 'Clark',
             'specialization' => Specialization::STRUCTURAL,
@@ -113,14 +113,14 @@ class MaintenanceStaffSeeder extends Seeder
 
             // PC Technicians
             [
-                'email' => 'pc1@example.com',
+                'email' => 'peternguyen@tut.ac.za',
                 'first_name' => 'Peter',
                 'last_name' => 'Nguyen',
                 'specialization' => Specialization::PC,
                 'phone' => '0998877651'
             ],
             [
-                'email' => 'pc2@example.com',
+                'email' => 'lindamartinez@tut.ac.za',
                 'first_name' => 'Linda',
                 'last_name' => 'Martinez',
                 'specialization' => Specialization::PC,
@@ -129,14 +129,14 @@ class MaintenanceStaffSeeder extends Seeder
 
             // HVAC Technicians
             [
-                'email' => 'hvac1@example.com',
+                'email' => 'carloslopez@tut.ac.za',
                 'first_name' => 'Carlos',
                 'last_name' => 'Lopez',
                 'specialization' => Specialization::HVAC,
                 'phone' => '0998877661'
             ],
             [
-                'email' => 'hvac2@example.com',
+                'email' => 'gracekim@tut.ac.za',
                 'first_name' => 'Grace',
                 'last_name' => 'Kim',
                 'specialization' => Specialization::HVAC,
@@ -145,14 +145,14 @@ class MaintenanceStaffSeeder extends Seeder
 
             // Furniture Technicians
             [
-                'email' => 'furniture1@example.com',
+                'email' => 'samuelwright@tut.ac.za',
                 'first_name' => 'Samuel',
                 'last_name' => 'Wright',
                 'specialization' => Specialization::FURNITURE,
                 'phone' => '0998877671'
             ],
             [
-                'email' => 'furniture2@example.com',
+                'email' => 'oliviabaker@tut.ac.za',
                 'first_name' => 'Olivia',
                 'last_name' => 'Baker',
                 'specialization' => Specialization::FURNITURE,

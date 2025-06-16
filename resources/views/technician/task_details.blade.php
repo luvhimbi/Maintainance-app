@@ -29,7 +29,7 @@
                         <h2 class="h5 mb-0 text-dark fw-bold">Task #{{ $task->task_id }}</h2>
                     </div>
                     <div class="text-muted small">
-                        
+
                         <span class="ms-3">
                 <i class="fas fa-clock me-1"></i>
                 Created: {{ $task->created_at ? \Carbon\Carbon::parse($task->created_at)->format('M d, Y H:i') : 'N/A' }}
@@ -218,20 +218,16 @@
                                     <h3 class="h6 text-uppercase text-muted fw-bold mb-0">Location Details</h3>
                                 </div>
 
-                                @if ($task->issue->location)
+                                @if ($task->issue->building)
                                     <div class="d-flex align-items-start mb-3">
                                         <i class="fas fa-building text-muted mt-1 me-2"></i>
                                         <div>
-                                            <h4 class="h6 mb-0 text-dark fw-semibold">{{ $task->issue->location->building_name }}</h4>
-                                            <small class="text-muted">Room {{ $task->issue->location->room_number }}</small>
+                                            <h4 class="h6 mb-0 text-dark fw-semibold">{{ $task->issue->building->building_name }}</h4>
+                                            <small class="text-muted">floor {{ $task->issue->floor->floor_number }}</small>
+                                            <small class="text-muted">Room {{ $task->issue->room->room_number }}</small>
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-start">
-                                        <i class="fas fa-location-dot text-muted mt-1 me-2"></i>
-                                        <div>
-                                            <p class="mb-0 text-dark">{{ $task->issue->location->location_name }}</p>
-                                        </div>
-                                    </div>
+
                                 @else
                                     <div class="alert alert-light py-2 mb-0 rounded-3">
                                         <i class="fas fa-info-circle me-1"></i> No location specified
@@ -271,7 +267,7 @@
                                     } elseif (in_array($fileExtension, ['xls', 'xlsx'])) {
                                         $iconClass = 'fa-file-excel';
                                         $iconColor = 'text-success';
-                                    } elseif (in_array($fileExtension, ['mp4', 'mov', 'avi'])) { // Added video types
+                                    } elseif (in_array($fileExtension, ['mp4', 'mov', 'avi'])) {
                                         $iconClass = 'fa-file-video';
                                         $iconColor = 'text-info';
                                     }
@@ -287,13 +283,12 @@
                                                 </div>
                                             </div>
                                             <div class="d-flex gap-2">
-                                                <a href="{{ asset('storage/' . $attachment->file_path) }}"
+                                                <a href="{{ route('files.view', ['id' => $attachment->attachment_id]) }}"
                                                    target="_blank"
                                                    class="btn btn-sm btn-outline-primary flex-grow-1 rounded-pill">
                                                     <i class="fas fa-eye me-1"></i> View
                                                 </a>
-                                                <a href="{{ asset('storage/' . $attachment->file_path) }}"
-                                                   download="{{ $attachment->original_name }}"
+                                                <a href="{{ route('files.download', ['id' => $attachment->attachment_id]) }}"
                                                    class="btn btn-sm btn-outline-success flex-grow-1 rounded-pill">
                                                     <i class="fas fa-download me-1"></i> Download
                                                 </a>

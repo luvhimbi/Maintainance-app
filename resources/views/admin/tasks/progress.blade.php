@@ -51,23 +51,23 @@
                         <h5 class="text-muted fs-6">
                             <i class="fas fa-map-marker-alt me-2"></i>Location
                         </h5>
-                        @if($task->issue->location)
+                        @if($task->issue->building)
                         <div class="card bg-light border-0 rounded-3">
                             <div class="card-body">
                                 <p class="mb-1">
-                                    {{ $task->issue->location->building_name ?? 'Unknown Building' }}
+                                    {{ $task->issue->building->building_name ?? 'Unknown Building' }}
                                 </p>
                                 <div class="row g-2">
                                     <div class="col-6">
                                         <small class="text-muted">
                                             <i class="fas fa-layer-group me-1"></i>
-                                            Floor: {{ $task->issue->location->floor_number ?? 'N/A' }}
+                                            Floor: {{ $task->issue->floor->floor_number ?? 'N/A' }}
                                         </small>
                                     </div>
                                     <div class="col-6">
                                         <small class="text-muted">
                                             <i class="fas fa-door-open me-1"></i>
-                                            Room: {{ $task->issue->location->room_number ?? 'N/A' }}
+                                            Room: {{ $task->issue->room->room_number ?? 'N/A' }}
                                         </small>
                                     </div>
                                 </div>
@@ -102,7 +102,7 @@
                             </h5>
                             @if($task->assignee)
                             <div class="d-flex align-items-center mb-2">
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
                                      style="width: 40px; height: 40px; flex-shrink: 0;">
                                     {{ strtoupper(substr($task->assignee->first_name, 0, 1)) }}
                                 </div>
@@ -126,7 +126,7 @@
                             </h5>
                             @if($task->issue)
                             <div class="d-flex align-items-center mb-2">
-                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2"
                                      style="width: 40px; height: 40px; flex-shrink: 0;">
                                     {{ strtoupper(substr($task->issue->reporter->first_name, 0, 1)) }}
                                 </div>
@@ -151,7 +151,7 @@
             <h5 class="mb-3">
                 <i class="fas fa-history me-2"></i>Progress Updates
             </h5>
-            
+
            @if($task->updates->count() > 0)
     <div class="timeline ps-3">
         @foreach($task->updates->sortByDesc('update_timestamp') as $update)

@@ -136,7 +136,9 @@
         <tr>
             <th>Task ID</th>
             <th>Issue Type</th>
-            <th>Location</th>
+            <th>Building</th>
+            <th>Floor</th>
+            <th>Room</th>
             <th>Assignee</th>
             <th>Status</th>
             <th>Due Date</th>
@@ -147,13 +149,9 @@
             <tr>
                 <td>#{{ $task->task_id }}</td>
                 <td>{{ $task->issue->issue_type ?? 'N/A' }}</td>
-                <td>
-                    @if($task->issue->location)
-                        {{ $task->issue->location->building_name }} (Room {{ $task->issue->location->room_number }})
-                    @else
-                        N/A
-                    @endif
-                </td>
+                <td>{{ $task->issue->building->building_name ?? 'N/A' }}</td>
+                <td>{{ $task->issue->floor->floor_number ?? 'N/A' }}</td>
+                <td>{{ $task->issue->room->room_number ?? 'N/A' }}</td>
                 <td>
                     @if($task->assignee)
                         {{ $task->assignee->first_name }} {{ $task->assignee->last_name }}
@@ -162,19 +160,19 @@
                     @endif
                 </td>
                 <td>
-                            <span class="badge
-                                @if($task->issue_status == 'completed') bg-success
-                                @elseif($task->issue_status == 'pending') bg-warning
-                                @elseif($task->issue_status == 'in_progress') bg-primary
-                                @else bg-danger
-                                @endif">
-                                {{ ucfirst(str_replace('_', ' ', $task->issue_status)) }}
-                            </span>
+                    <span class="badge
+                        @if($task->issue_status == 'Completed') bg-success
+                        @elseif($task->issue_status == 'Pending') bg-warning
+                        @elseif($task->issue_status == 'In Progress') bg-primary
+                        @else bg-danger
+                        @endif">
+                        {{ $task->issue_status }}
+                    </span>
                 </td>
                 <td>
-                            <span class="{{ $task->expected_completion < now() && $task->issue_status != 'completed' ? 'text-danger-strong' : '' }}">
-                                {{ $task->expected_completion->format('M d, Y') }}
-                            </span>
+                    <span class="{{ $task->expected_completion < now() && $task->issue_status != 'Completed' ? 'text-danger-strong' : '' }}">
+                        {{ $task->expected_completion->format('M d, Y') }}
+                    </span>
                 </td>
             </tr>
         @endforeach

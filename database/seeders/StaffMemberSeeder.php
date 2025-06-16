@@ -28,30 +28,30 @@ class StaffMemberSeeder extends Seeder
             'position' => 'Department Head'
             ],
             [
-            'email' => 'lecturer1@example.com',
-            'first_name' => 'Alice',
-            'last_name' => 'Johnson',
+            'email' => '223922104@tut4life.ac.za',
+            'first_name' => 'Mlondile',
+            'last_name' => 'Mthembu',
             'department' => 'Computer Science',
             'position' => 'Lecturer'
             ],
             [
-            'email' => 'finance1@example.com',
-            'first_name' => 'Robert',
-            'last_name' => 'Brown',
+            'email' => '223691226@tut4life.ac.za',
+            'first_name' => 'Fortunate',
+            'last_name' => 'Malatji',
             'department' => 'Finance',
             'position' => 'Accountant'
             ],
             [
-            'email' => 'hr1@example.com',
+            'email' => '230000000@tut4life.ac.za',
             'first_name' => 'Emily',
             'last_name' => 'Davis',
             'department' => 'Human Resources',
             'position' => 'HR Manager'
             ],
             [
-            'email' => 'it1@example.com',
-            'first_name' => 'Michael',
-            'last_name' => 'Wilson',
+            'email' => '234567868@tut4life.ac.za',
+            'first_name' => 'Mukovhe',
+            'last_name' => 'Mamagau',
             'department' => 'IT Support',
             'position' => 'System Administrator'
             ],
@@ -64,11 +64,11 @@ class StaffMemberSeeder extends Seeder
                 ['email' => $staff['email']],
                 [
                     'password_hash' => Hash::make('password'),
-                    'phone_number' => '01122334' . $phoneCounter++, // Increment counter for unique phone numbers
+                    'phone_number' => '01122334' . $phoneCounter++,
                     'user_role' => UserRole::STAFF->value,
                     'first_name' => $staff['first_name'],
                     'last_name' => $staff['last_name'],
-                    'address' => rand(1, 100) . ' Admin Building, Main Campus',
+                    'address' => rand(1, 100) . ' Admin Building, sosh south Campus',
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]

@@ -123,7 +123,9 @@
                                 <tr>
                                     <th class="ps-3 py-2">Task ID</th>
                                     <th class="py-2">Issue Type</th>
-                                    <th class="py-2">Location</th>
+                                    <th class="py-2">Building</th>
+                                    <th class="py-2">Floor</th>
+                                    <th class="py-2">Room</th>
                                     <th class="py-2">Assignee</th>
                                     <th class="py-2">Status</th>
                                     <th class="py-2">Due Date</th>
@@ -135,8 +137,22 @@
                                         <td class="ps-3 fw-bold">#{{ $task->task_id }}</td>
                                         <td>{{ $task->issue->issue_type }}</td>
                                         <td>
-                                            @if($task->issue->location)
-                                                {{ $task->issue->location->building_name }} (Room {{ $task->issue->location->room_number }})
+                                            @if($task->issue->building)
+                                                {{ $task->issue->building->building_name }}
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($task->issue->floor)
+                                                {{ $task->issue->floor->floor_number }}
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($task->issue->room)
+                                                {{ $task->issue->room->room_number }}
                                             @else
                                                 <span class="text-muted">N/A</span>
                                             @endif
@@ -166,7 +182,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center py-5">
+                                        <td colspan="8" class="text-center py-5">
                                             <h5 class="text-muted">No tasks found</h5>
                                             <p class="text-muted mb-0">Try adjusting your filters or date range.</p>
                                         </td>

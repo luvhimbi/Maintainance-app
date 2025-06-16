@@ -220,7 +220,7 @@
         <div class="social-links mt-4">
             <a href="https://facebook.com/ocm-campus" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
             <a href="https://twitter.com/ocm-campus" target="_blank" title="Twitter"><i class="bi bi-twitter"></i></a>
-            <a href="https://instagram.com/ocm-campus" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="https://www.instagram.com/my_ocm?igsh=MWhpM2FwY2twNHp2cw%3D%3D&utm_source=qr" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
             <a href="mailto:support@ocm-campus.com" title="Email"><i class="bi bi-envelope"></i></a>
         </div>
     </div>
@@ -302,29 +302,19 @@
         <p class="mb-4">If you see something broken or unsafe, don’t ignore it. Help improve your campus.</p>
         <a href="/login" class="btn btn-primary btn-lg">Login to Report</a>
         <div class="social-links mt-4">
-            <a href="https://facebook.com/ocm-campus" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
-            <a href="https://twitter.com/ocm-campus" target="_blank" title="Twitter"><i class="bi bi-twitter"></i></a>
-            <a href="https://instagram.com/ocm-campus" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
-            <a href="mailto:support@ocm-campus.com" title="Email"><i class="bi bi-envelope"></i></a>
+            <a href="https://www.facebook.com/share/1AYstu5oQQ/?mibextid=wwXIfr" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="https://www.instagram.com/my_ocm?igsh=MWhpM2FwY2twNHp2cw%3D%3D&utm_source=qr" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+
         </div>
     </div>
 </section>
 
 <!-- Footer -->
 <footer>
-    <div class="footer-links mb-2">
-        <a href="#">About</a>
-        <a href="#">Contact</a>
-        <a href="#">Help Center</a>
-        <a href="#">Terms</a>
-        <a href="#">Privacy</a>
-    </div>
+
     <div class="footer-social mb-2">
-        <a href="https://facebook.com/ocm-campus" target="_blank"><i class="bi bi-facebook"></i></a>
-        <a href="https://twitter.com/ocm-campus" target="_blank"><i class="bi bi-twitter"></i></a>
-        <a href="https://instagram.com/ocm-campus" target="_blank"><i class="bi bi-instagram"></i></a>
-        <a href="mailto:support@ocm-campus.com"><i class="bi bi-envelope"></i></a>
-        <a href="#"><i class="bi bi-linkedin"></i></a>
+        <a href="https://www.facebook.com/share/1AYstu5oQQ/?mibextid=wwXIfr" target="_blank"><i class="bi bi-facebook"></i></a>
+        <a href="https://www.instagram.com/my_ocm?igsh=MWhpM2FwY2twNHp2cw%3D%3D&utm_source=qr" target="_blank"><i class="bi bi-instagram"></i></a>
     </div>
     <div class="footer-copyright">
         &copy; {{ date('Y') }} OCM - Online Campus Management. All rights reserved.

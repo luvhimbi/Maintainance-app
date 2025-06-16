@@ -122,6 +122,9 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/phpoffice/math" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/phpoffice/phpword" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/laravel/scout" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/cloudinary-labs/cloudinary-laravel" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/cloudinary/cloudinary_php" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/cloudinary/transformation-builder-sdk" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

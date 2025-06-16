@@ -160,16 +160,16 @@
                                                     <i class="fas fa-map-marker-alt text-muted me-2"></i>
                                                     <div>
                                                         <a href="{{ route('technician.directions', [
-                                                            'building' => $task->issue->location->building_name ?? 'N/A',
-                                                            'room' => $task->issue->location->room_number ?? 'N/A',
-                                                            'lat' => $task->issue->location->latitude ?? '',
-                                                            'lng' => $task->issue->location->longitude ?? ''
+                                                            'building' => $task->issue->building->building_name ?? 'N/A',
+                                                            'room' => $task->issue->room->room_number ?? 'N/A',
+                                                            'lat' => $task->issue->building->latitude ?? '',
+                                                            'lng' => $task->issue->building->longitude ?? ''
                                                         ]) }}" class="location-link text-decoration-none">
                                                             <div class="text-dark d-flex align-items-center">
-                                                                <span>{{ $task->issue->location->building_name ?? 'N/A' }}</span>
+                                                                <span>{{ $task->issue->building->building_name ?? 'N/A' }}</span>
                                                                 <i class="fas fa-external-link-alt ms-2 text-primary small"></i>
                                                             </div>
-                                                            <small class="text-muted">Room {{ $task->issue->location->room_number ?? 'N/A' }}</small>
+                                                            <small class="text-muted">Room {{ $task->issue->room->room_number ?? 'N/A' }}</small>
                                                         </a>
                                                     </div>
                                                 </div>
