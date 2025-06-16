@@ -1,4 +1,4 @@
-@extends('layouts.AdminNavBar')
+@extends('Layouts.AdminNavBar')
 @section('title', 'Feedback Management')
 @section('content')
 <div class="container-fluid py-4">

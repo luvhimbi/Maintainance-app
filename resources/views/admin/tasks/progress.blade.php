@@ -1,4 +1,4 @@
-@extends('layouts.AdminNavBar')
+@extends('Layouts.AdminNavBar')
 @section('title', 'Task Progress')
 @section('content')
 <div class="container mt-4">

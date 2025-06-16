@@ -1,4 +1,4 @@
-@extends('layouts.AdminNavBar')
+@extends('Layouts.AdminNavBar')
 
 @section('title', 'View All Tasks')
 
@@ -457,7 +457,7 @@
                         }
 
                         // Check search term
-                        const searchMatch = !searchTerm || 
+                        const searchMatch = !searchTerm ||
                             taskId.includes(searchTerm) ||
                             issueId.includes(searchTerm) ||
                             issueTitle.includes(searchTerm) ||
@@ -536,10 +536,10 @@
                         // Update active state
                         statusFilters.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                         this.classList.add('active');
-                        
+
                         // Update current status
                         currentStatus = this.dataset.status;
-                        
+
                         // Apply filters
                         filterTasks();
                     });

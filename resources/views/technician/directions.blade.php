@@ -1,4 +1,4 @@
-@extends('layouts.TechnicianNavBar')
+@extends('Layouts.TechnicianNavBar')
 
 @section('title', 'Smart Navigation')
 
@@ -209,8 +209,8 @@ function initMap() {
         const lng = urlParams.get('lng');
 
         // Set initial center based on URL parameters or default
-        const initialCenter = lat && lng ? 
-            [parseFloat(lng), parseFloat(lat)] : 
+        const initialCenter = lat && lng ?
+            [parseFloat(lng), parseFloat(lat)] :
             [28.098271679102634, -25.53978422415537];
 
         map = new mapboxgl.Map({
@@ -685,7 +685,7 @@ function handleMapClick(e) {
 
         // Update start location input
         document.getElementById('start-location-input').value = 'Selected Location';
-    } 
+    }
     // If start location exists but no destination, set as destination
     else if (!endLocationMarker) {
         const el = document.createElement('div');
@@ -735,7 +735,7 @@ function getUserLocation() {
                 }
 
                 const { latitude, longitude } = position.coords;
-                
+
                 // Create marker for user location
                 const el = document.createElement('div');
                 el.className = 'location-marker';
@@ -984,7 +984,7 @@ function displayRoute(routeData) {
     if (startLocationMarker && endLocationMarker) {
         const startCoords = startLocationMarker.getLngLat().toArray();
         const endCoords = endLocationMarker.getLngLat().toArray();
-        
+
         // Add start and end coordinates to ensure connection
         routeCoordinates = [
             startCoords,
