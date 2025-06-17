@@ -1,9 +1,8 @@
-@extends('Layouts.TechnicianNavbar')
-
+@extends('Layouts.TechnicianNavBar')
 @section('title', 'Dashboard')
 
 @section('content')
-    <div class="container-fluid px-4 py-4"> {{-- Added py-4 for top/bottom spacing --}}
+    <div class="container-fluid px-4 py-4">
 
         <div class="row mb-4">
             <div class="col-12">

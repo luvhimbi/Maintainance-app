@@ -1,4 +1,5 @@
-@extends('Layouts.TechnicianNavbar')
+@extends('Layouts.TechnicianNavBar')
+
 @section('title', 'Notifications')
 @section('content')
 

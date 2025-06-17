@@ -218,10 +218,8 @@
         <p class="mt-3">Easily report and track campus maintenance issues at Tshwane University of Technology.</p>
         <a href="/login" class="btn btn-primary btn-lg">Login to Report an Issue</a>
         <div class="social-links mt-4">
-            <a href="https://facebook.com/ocm-campus" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
-            <a href="https://twitter.com/ocm-campus" target="_blank" title="Twitter"><i class="bi bi-twitter"></i></a>
+            <a href="https://www.facebook.com/share/1AYstu5oQQ/?mibextid=wwXIfr" target="_blank" title="Facebook"><i class="bi bi-facebook"></i></a>
             <a href="https://www.instagram.com/my_ocm?igsh=MWhpM2FwY2twNHp2cw%3D%3D&utm_source=qr" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
-            <a href="mailto:support@ocm-campus.com" title="Email"><i class="bi bi-envelope"></i></a>
         </div>
     </div>
 </section>

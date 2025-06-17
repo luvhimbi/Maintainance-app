@@ -1,4 +1,5 @@
-@extends('Layouts.TechnicianNavbar')
+@extends('Layouts.TechnicianNavBar')
+
 @section('title', 'Notification Details')
 @section('content')
 
@@ -37,11 +38,11 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="card-body">
                 <div class="notification-content">
-                 
-                 
+
+
 
                     <!-- Main Message -->
                     <div class="mb-4">
@@ -54,7 +55,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Changes Section -->
                     @if(isset($notification->data['changes']) && count($notification->data['changes']))
                     <div class="mb-4">
@@ -75,7 +76,7 @@
                         </div>
                     </div>
                     @endif
-                    
+
                     <!-- Additional Details -->
                     @if(isset($notification->data['details']))
                     <div class="mb-4">
@@ -93,7 +94,7 @@
                         </div>
                     </div>
                     @endif
-                    
+
                     <!-- Action Buttons -->
                     @if(isset($notification->data['action_url']))
                     <div class="mt-4 text-center">
