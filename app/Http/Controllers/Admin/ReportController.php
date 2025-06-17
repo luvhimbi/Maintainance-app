@@ -99,7 +99,7 @@ class ReportController extends Controller
             return $staff->issues->count(); // This will count the *filtered* issues
         });
 
-        return view('admin.reports.students_and_staff_report', compact('students', 'staffMembers', 'totalStudentIssues', 'totalStaffIssues', 'startDate', 'endDate', 'searchTerm'));
+        return view('admin.Reports.students_and_staff_report', compact('students', 'staffMembers', 'totalStudentIssues', 'totalStaffIssues', 'startDate', 'endDate', 'searchTerm'));
     }
 
 
@@ -270,7 +270,7 @@ class ReportController extends Controller
         if ($students->isNotEmpty()) {
             $phpWord->addTableStyle('StudentTable', $tableStyle, $headerCellStyle);
             $table = $section->addTable('StudentTable');
-            
+
             // Add header row
             $table->addRow(400);
             $table->addCell(2000, $headerCellStyle)->addText('Name', $headerFont, $paraStyleCenter);
@@ -301,7 +301,7 @@ class ReportController extends Controller
         if ($staffMembers->isNotEmpty()) {
             $phpWord->addTableStyle('StaffTable', $tableStyle, $headerCellStyle);
             $table = $section->addTable('StaffTable');
-            
+
             // Add header row
             $table->addRow(400);
             $table->addCell(2000, $headerCellStyle)->addText('Name', $headerFont, $paraStyleCenter);
@@ -615,7 +615,7 @@ class ReportController extends Controller
         $endDate = $data['endDate'];
         $filters = $data['filters'];
 
-        return view('admin.reports.technician', compact('technicians', 'stats', 'startDate', 'endDate', 'filters'));
+        return view('admin.Reports.technician', compact('technicians', 'stats', 'startDate', 'endDate', 'filters'));
     }
 
     /**
