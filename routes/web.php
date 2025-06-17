@@ -278,3 +278,8 @@ Route::middleware(['auth'])->prefix('technician')->name('technician.')->group(fu
     });
 });
 
+// Add this route for handling storage file access
+Route::get('storage/{path}', function ($path) {
+    return response()->file(storage_path('app/public/' . $path));
+})->where('path', '.*')->middleware(['web', 'handle.storage']);
+

@@ -41,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'technician'=>TechnicianMiddleware::class,
                 'admin'=>AdminMiddleware::class,
                 'allowpublicaccess'=>\App\Http\Middleware\AllowPublicAccess::class,
+                'handle.storage' => \App\Http\Middleware\HandleStorageAccess::class,
             ]
         );
     })
