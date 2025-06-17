@@ -120,7 +120,7 @@ public function showTechnician($id)
         $notification->markAsRead();
     }
 
-    return view('Technician.show', compact('notification'));
+    return view('technician.show', compact('notification'));
 }
 public function showAdmin($id)
 {
