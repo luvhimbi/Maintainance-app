@@ -1,4 +1,4 @@
-@extends('Layouts.TechnicianNavbar')
+@extends('Layouts.TechnicianNavBar')
 
 @section('title', 'Completed Tasks')
 
