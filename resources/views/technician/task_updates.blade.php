@@ -1,37 +1,41 @@
 @extends('Layouts.TechnicianNavBar')
 
-
 @section('title', 'Task Updates')
 
 @section('content')
-    <div class="container py-4">
+    <div class="container-fluid px-4 py-5">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-            <div>
-
-                <h1 class="h2 fw-bold mb-0 text-dark">Task Updates for #{{ $task->task_id }}</h1>
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-4 me-3">
+                    <i class="fas fa-tasks text-primary fs-4"></i>
+                </div>
+                <div>
+                    <h1 class="h3 fw-bold mb-1 text-dark">Task Updates</h1>
+                    <p class="text-muted mb-0">Task ID: #{{ $task->task_id }}</p>
+                </div>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('technician.dashboard') }}" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
-                    <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                <a href="{{ route('technician.dashboard') }}" class="btn btn-outline-primary px-4 py-2 rounded-pill">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
                 </a>
-                {{-- Assuming 'tasks.update.form' is for editing the main task details, not adding updates --}}
-                {{-- <a href="{{ route('tasks.update.form', $task->task_id) }}" class="btn btn-primary px-4 py-2 rounded-pill">
-                    <i class="fas fa-edit me-1"></i> Edit Task Details
-                </a> --}}
             </div>
         </div>
 
-        <div class="card shadow-sm mb-4 rounded-4">
-            <div class="card-header bg-white py-3 px-4 rounded-top-4 border-bottom">
-                <h5 class="card-title mb-0 fw-bold text-dark">
-                    <i class="fas fa-info-circle me-2 text-primary"></i>Task Summary
-                </h5>
-            </div>
-            <div class="card-body p-4 p-md-5">
-                <div class="row g-4">
-                    <div class="col-lg-8">
+        <div class="row g-4">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 rounded-4 mb-4">
+                    <div class="card-header bg-white py-4 px-4 border-bottom-0">
+                        <h5 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                            Task Summary
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
                         <div class="mb-4">
-                            <h3 class="h6 text-uppercase text-muted fw-bold mb-3">Issue Description</h3>
+                            <h6 class="text-uppercase text-muted fw-bold mb-3">Issue Description</h6>
                             <div class="card bg-light border-0 p-4 rounded-3">
                                 <p class="mb-0 text-dark">{{ $task->issue->issue_description }}</p>
                             </div>
@@ -39,7 +43,7 @@
 
                         <div class="row mb-4 g-3">
                             <div class="col-md-6">
-                                <h3 class="h6 text-uppercase fw-bold mb-3 text-muted">Status</h3>
+                                <h6 class="text-uppercase fw-bold mb-3 text-muted">Status</h6>
                                 <div class="d-flex align-items-center">
                                     @php
                                         $statusBadgeClass = '';
@@ -68,18 +72,18 @@
                                         }
                                     @endphp
                                     <span class="badge rounded-pill {{ $statusBadgeClass }} py-2 px-3 fw-medium">
-                                    <i class="fas {{ $statusIconClass }} me-1"></i> {{ $task->issue_status }}
-                                </span>
+                                        <i class="fas {{ $statusIconClass }} me-1"></i> {{ $task->issue_status }}
+                                    </span>
                                 </div>
                             </div>
 
                             <div class="col-md-6">
-                                <h3 class="h6 text-uppercase fw-bold mb-3 text-muted">Priority</h3>
+                                <h6 class="text-uppercase fw-bold mb-3 text-muted">Priority</h6>
                                 <div class="d-flex align-items-center">
                                     @php
                                         $priorityBadgeClass = '';
                                         $priorityIconClass = '';
-                                        switch($task->priority) { // Assuming task->priority is 'Low', 'Medium', 'High'
+                                        switch($task->priority) {
                                             case 'Low':
                                                 $priorityBadgeClass = 'bg-success-subtle text-success';
                                                 $priorityIconClass = 'fa-arrow-down';
@@ -99,46 +103,56 @@
                                         }
                                     @endphp
                                     <span class="badge rounded-pill {{ $priorityBadgeClass }} py-2 px-3 fw-medium">
-                                    <i class="fas {{ $priorityIconClass }} me-1"></i> {{ $task->priority }}
-                                </span>
+                                        <i class="fas {{ $priorityIconClass }} me-1"></i> {{ $task->priority }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-4">
-                            <h3 class="h6 text-uppercase text-muted fw-bold mb-3">Issue Characteristics</h3>
+                            <h6 class="text-uppercase text-muted fw-bold mb-3">Issue Characteristics</h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <div class="card bg-light border-0 p-3 rounded-3 h-100 d-flex align-items-center justify-content-center">
-                                        @if($task->issue->safety_hazard)
-                                            <span class="badge bg-danger-subtle text-danger py-2 px-3 fw-medium">
-                                            <i class="fas fa-exclamation-triangle me-1"></i> Safety Hazard
-                                        </span>
-                                        @else
-                                            <span class="badge bg-success-subtle text-success py-2 px-3 fw-medium">
-                                            <i class="fas fa-shield-alt me-1"></i> No Safety Hazard
-                                        </span>
-                                        @endif
+                                    <div class="card bg-light border-0 p-3 rounded-3 h-100">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-danger bg-opacity-10 text-danger p-2 rounded-3 me-3">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            </div>
+                                            <div>
+                                                <p class="small text-muted mb-1">Safety Hazard</p>
+                                                <p class="mb-0 fw-bold text-dark">
+                                                    {{ $task->issue->safety_hazard ? 'Yes' : 'No' }}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="card bg-light border-0 p-3 rounded-3 h-100 d-flex align-items-center justify-content-center">
-                                        @if($task->issue->affects_operations)
-                                            <span class="badge bg-danger-subtle text-danger py-2 px-3 fw-medium">
-                                            <i class="fas fa-exclamation-circle me-1"></i> Affects Operations
-                                        </span>
-                                        @else
-                                            <span class="badge bg-success-subtle text-success py-2 px-3 fw-medium">
-                                            <i class="fas fa-check-circle me-1"></i> No Operational Impact
-                                        </span>
-                                        @endif
+                                    <div class="card bg-light border-0 p-3 rounded-3 h-100">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-3 me-3">
+                                                <i class="fas fa-exclamation-circle"></i>
+                                            </div>
+                                            <div>
+                                                <p class="small text-muted mb-1">Affects Operations</p>
+                                                <p class="mb-0 fw-bold text-dark">
+                                                    {{ $task->issue->affects_operations ? 'Yes' : 'No' }}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="card bg-light border-0 p-3 rounded-3 h-100 d-flex align-items-center justify-content-center">
-                                    <span class="badge bg-info-subtle text-info py-2 px-3 fw-medium">
-                                        <i class="fas fa-cubes me-1"></i> Affected Areas: {{ $task->issue->affected_areas }}
-                                    </span>
+                                    <div class="card bg-light border-0 p-3 rounded-3 h-100">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-info bg-opacity-10 text-info p-2 rounded-3 me-3">
+                                                <i class="fas fa-cubes"></i>
+                                            </div>
+                                            <div>
+                                                <p class="small text-muted mb-1">Affected Areas</p>
+                                                <p class="mb-0 fw-bold text-dark">{{ $task->issue->affected_areas }}</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -146,33 +160,47 @@
 
                         @if($task->issue->issue_type === 'PC')
                             <div class="mb-4">
-                                <h3 class="h6 text-uppercase text-muted fw-bold mb-3">PC Details</h3>
+                                <h6 class="text-uppercase text-muted fw-bold mb-3">PC Details</h6>
                                 <div class="row g-3">
                                     <div class="col-md-4">
-                                        <div class="card bg-light border-0 p-3 rounded-3 h-100 d-flex align-items-center justify-content-center">
-                                    <span class="badge bg-primary-subtle text-primary py-2 px-3 fw-medium">
-                                        <i class="fas fa-desktop me-1"></i> PC Number: {{ $task->issue->pc_number ?? 'N/A' }}
-                                    </span>
+                                        <div class="card bg-light border-0 p-3 rounded-3 h-100">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3">
+                                                    <i class="fas fa-desktop"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="small text-muted mb-1">PC Number</p>
+                                                    <p class="mb-0 fw-bold text-dark">{{ $task->issue->pc_number ?? 'N/A' }}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="card bg-light border-0 p-3 rounded-3 h-100 d-flex align-items-center justify-content-center">
-                                    <span class="badge bg-info-subtle text-info py-2 px-3 fw-medium">
-                                        <i class="fas fa-cogs me-1"></i> PC Issue Type: {{ ucfirst($task->issue->pc_issue_type ?? 'N/A') }}
-                                    </span>
+                                        <div class="card bg-light border-0 p-3 rounded-3 h-100">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-info bg-opacity-10 text-info p-2 rounded-3 me-3">
+                                                    <i class="fas fa-cogs"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="small text-muted mb-1">PC Issue Type</p>
+                                                    <p class="mb-0 fw-bold text-dark">{{ ucfirst($task->issue->pc_issue_type ?? 'N/A') }}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="card bg-light border-0 p-3 rounded-3 h-100 d-flex align-items-center justify-content-center">
-                                            @if($task->issue->critical_work_affected)
-                                                <span class="badge bg-danger-subtle text-danger py-2 px-3 fw-medium">
-                                            <i class="fas fa-briefcase me-1"></i> Critical Work Affected
-                                        </span>
-                                            @else
-                                                <span class="badge bg-success-subtle text-success py-2 px-3 fw-medium">
-                                            <i class="fas fa-briefcase me-1"></i> No Critical Work Impact
-                                        </span>
-                                            @endif
+                                        <div class="card bg-light border-0 p-3 rounded-3 h-100">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-3 me-3">
+                                                    <i class="fas fa-briefcase"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="small text-muted mb-1">Critical Work</p>
+                                                    <p class="mb-0 fw-bold text-dark">
+                                                        {{ $task->issue->critical_work_affected ? 'Affected' : 'Not Affected' }}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -181,370 +209,439 @@
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <h3 class="h6 text-uppercase text-muted fw-bold mb-3">Assignment Date</h3>
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-calendar-check text-muted me-2"></i>
-                                    <span class="text-dark">{{ $task->assignment_date->format('M d, Y') }}</span>
+                                <div class="card bg-light border-0 p-3 rounded-3 h-100">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3">
+                                            <i class="fas fa-calendar-check"></i>
+                                        </div>
+                                        <div>
+                                            <p class="small text-muted mb-1">Assignment Date</p>
+                                            <p class="mb-0 fw-bold text-dark">{{ $task->assignment_date->format('M d, Y') }}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <h3 class="h6 text-uppercase text-muted fw-bold mb-3">Expected Completion</h3>
-                                <div class="d-flex align-items-center">
-                                    <i class="fas fa-calendar-day text-muted me-2"></i>
-                                    <span class="text-dark">{{ \Carbon\Carbon::parse($task->expected_completion)->format('M d, Y') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 mt-4 mt-lg-0">
-                        <div class="card bg-light border-0 h-100 rounded-3">
-                            <div class="card-body p-4">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                        <i class="fas fa-map-marker-alt text-primary fa-lg"></i>
-                                    </div>
-                                    <h3 class="h6 text-uppercase text-muted fw-bold mb-0">Location Details</h3>
-                                </div>
-
-                                @if ($task->issue->building)
-                                    <div class="d-flex align-items-start mb-3">
-                                        <i class="fas fa-building text-muted mt-1 me-2"></i>
+                                <div class="card bg-light border-0 p-3 rounded-3 h-100">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-info bg-opacity-10 text-info p-2 rounded-3 me-3">
+                                            <i class="fas fa-calendar-day"></i>
+                                        </div>
                                         <div>
-                                            <h4 class="h6 mb-0 text-dark fw-semibold">{{ $task->issue->building->building_name }}</h4>
-                                            <small class="text-muted">floor {{ $task->issue->floor->floor_number }}</small>
-                                            <small class="text-muted">Room {{ $task->issue->room->room_number }}</small>
+                                            <p class="small text-muted mb-1">Expected Completion</p>
+                                            <p class="mb-0 fw-bold text-dark">{{ \Carbon\Carbon::parse($task->expected_completion)->format('M d, Y') }}</p>
                                         </div>
                                     </div>
-{{--                                    <div class="d-flex align-items-start">--}}
-{{--                                        <i class="fas fa-location-dot text-muted mt-1 me-2"></i>--}}
-{{--                                        <div>--}}
-{{--                                            <p class="mb-0 text-dark">{{ $task->issue->location->location_name }}</p>--}}
-{{--                                        </div>--}}
-{{--                                    </div>--}}
-                                @else
-                                    <div class="alert alert-light py-2 mb-0 rounded-3">
-                                        <i class="fas fa-info-circle me-1"></i> No location specified
-                                    </div>
-                                @endif
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <hr class="my-5 border-light">
-                <div class="mb-4">
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                            <i class="fas fa-paperclip text-primary fa-lg"></i>
+                @if($task->issue_status != 'Completed' && $task->issue_status != 'Closed')
+                    <div class="card shadow-sm border-0 rounded-4 mb-4">
+                        <div class="card-header bg-white py-4 px-4 border-bottom-0">
+                            <h5 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                                <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
+                                    <i class="fas fa-plus-circle"></i>
+                                </span>
+                                Add New Update
+                            </h5>
                         </div>
-                        <h3 class="h6 text-uppercase text-muted fw-bold mb-0">Attachments</h3>
-                    </div>
-
-                    @if ($task->issue->attachments->count() > 0)
-                        <div class="row g-3">
-                            @foreach ($task->issue->attachments as $attachment)
-                                @php
-                                    $fileExtension = pathinfo($attachment->original_name, PATHINFO_EXTENSION);
-                                    $iconClass = 'fa-file';
-                                    $iconColor = 'text-secondary';
-
-                                    if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif'])) {
-                                        $iconClass = 'fa-file-image';
-                                        $iconColor = 'text-success';
-                                    } elseif (in_array($fileExtension, ['pdf'])) {
-                                        $iconClass = 'fa-file-pdf';
-                                        $iconColor = 'text-danger';
-                                    } elseif (in_array($fileExtension, ['doc', 'docx'])) {
-                                        $iconClass = 'fa-file-word';
-                                        $iconColor = 'text-primary';
-                                    } elseif (in_array($fileExtension, ['xls', 'xlsx'])) {
-                                        $iconClass = 'fa-file-excel';
-                                        $iconColor = 'text-success';
-                                    } elseif (in_array($fileExtension, ['mp4', 'mov', 'avi'])) { // Added video types
-                                        $iconClass = 'fa-file-video';
-                                        $iconColor = 'text-info';
-                                    }
-                                @endphp
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="card border shadow-sm h-100 rounded-3">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex align-items-center mb-3">
-                                                <i class="fas {{ $iconClass }} fa-2x {{ $iconColor }} me-3"></i>
-                                                <div>
-                                                    <h4 class="h6 mb-0 text-truncate fw-semibold">{{ Str::limit($attachment->original_name, 20) }}</h4>
-                                                    <small class="text-muted">{{ strtoupper($fileExtension) }} file ({{ round($attachment->file_size / 1024, 1) }} KB)</small>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex gap-2">
-                                                <a href="{{ asset('storage/' . $attachment->file_path) }}"
-                                                   target="_blank"
-                                                   class="btn btn-sm btn-outline-primary flex-grow-1 rounded-pill">
-                                                    <i class="fas fa-eye me-1"></i> View
-                                                </a>
-                                                <a href="{{ asset('storage/' . $attachment->file_path) }}"
-                                                   download="{{ $attachment->original_name }}"
-                                                   class="btn btn-sm btn-outline-success flex-grow-1 rounded-pill">
-                                                    <i class="fas fa-download me-1"></i> Download
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endforeach
+                        <div class="card-body p-4">
+                            <form action="{{ route('tasks.update', $task->task_id) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <div class="mb-4">
+                                    <label for="update_description" class="form-label fw-bold">Update Description</label>
+                                    <textarea class="form-control rounded-3" id="update_description" name="update_description" rows="3" placeholder="Provide details about the task update..." required></textarea>
                                 </div>
-                                @else
-                                    <div class="card border-0 bg-light rounded-3">
-                                        <div class="card-body text-center py-4">
-                                            <i class="fas fa-folder-open text-muted fs-4 mb-3"></i>
-                                            <h5 class="text-muted fw-semibold">No attachments found</h5>
-                                            <p class="text-muted mb-0">This issue does not have any attached files.</p>
+                                <div class="mb-4">
+                                    <label for="status_change" class="form-label fw-bold">Change Status To</label>
+                                    <select class="form-select rounded-3" id="status_change" name="status_change" required>
+                                        <option value="" selected disabled>Select new status</option>
+                                        @if($task->issue_status == 'Open')
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed">Mark as Completed</option>
+                                        @elseif($task->issue_status == 'In Progress')
+                                            <option value="Completed">Mark as Completed</option>
+                                        @endif
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill">
+                                    <i class="fas fa-save me-2"></i> Submit Update
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <div class="alert alert-info border-0 rounded-4 shadow-sm mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-info bg-opacity-10 text-info p-2 rounded-3 me-3">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1 fw-bold">Task {{ $task->issue_status }}</h6>
+                                <p class="mb-0">This task has been {{ $task->issue_status }} and cannot be updated further.</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-white py-4 px-4 border-bottom-0">
+                        <h5 class="card-title mb-0 fw-bold text-dark d-flex align-items-center">
+                            <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
+                                <i class="fas fa-history"></i>
+                            </span>
+                            Task Updates History
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        @if ($task->updates->count() > 0)
+                            <div class="timeline ps-3">
+                                @foreach ($task->updates->sortByDesc('update_timestamp') as $update)
+                                    <div class="timeline-item position-relative pb-4">
+                                        <div class="timeline-badge position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center bg-white border border-3
+                                            @if($update->status_change == 'In Progress') border-primary
+                                            @elseif($update->status_change == 'Completed') border-success
+                                            @else border-info @endif"
+                                             style="width: 24px; height: 24px;">
+                                            <i class="fas fa-circle fs-6
+                                                @if($update->status_change == 'In Progress') text-primary
+                                                @elseif($update->status_change == 'Completed') text-success
+                                                @else text-info @endif"></i>
                                         </div>
-                                    </div>
-                                @endif
-                        </div>
-                </div>
-            </div>
 
-            @if($task->issue_status != 'Completed' && $task->issue_status != 'Closed') {{-- Also check for 'Closed' --}}
-            <div class="card shadow-sm mb-4 rounded-4">
-                <div class="card-header bg-white py-3 px-4 rounded-top-4 border-bottom">
-                    <h5 class="card-title mb-0 fw-bold text-dark">
-                        <i class="fas fa-plus-circle me-2 text-primary"></i>Add New Update
-                    </h5>
-                </div>
-                <div class="card-body p-4 p-md-5">
-                    <form action="{{ route('tasks.update', $task->task_id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-3">
-                            <label for="update_description" class="form-label fw-bold">Update Description</label>
-                            <textarea class="form-control rounded-3" id="update_description" name="update_description" rows="3" placeholder="Provide details about the task update..." required></textarea>
-                        </div>
-                        <div class="mb-4">
-                            <label for="status_change" class="form-label fw-bold">Change Status To</label>
-                            <select class="form-select rounded-3" id="status_change" name="status_change" required>
-                                <option value="" selected disabled>Select new status</option>
-                                {{-- Only allow progression of status --}}
-                                @if($task->issue_status == 'Open')
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Completed">Mark as Completed</option>
-                                @elseif($task->issue_status == 'In Progress')
-                                    <option value="Completed">Mark as Completed</option>
-                                @endif
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill">
-                            <i class="fas fa-save me-1"></i> Submit Update
-                        </button>
-                    </form>
-                </div>
-            </div>
-            @else
-                <div class="alert alert-info mb-4 rounded-3 shadow-sm py-3 px-4">
-                    <i class="fas fa-info-circle me-2"></i>This task has been {{ $task->issue_status }} and cannot be updated further.
-                </div>
-            @endif
-
-            <div class="card shadow-sm rounded-4">
-                <div class="card-header bg-white py-3 px-4 rounded-top-4 border-bottom">
-                    <h5 class="card-title mb-0 fw-bold text-dark">
-                        <i class="fas fa-history me-2 text-primary"></i>Task Updates History
-                    </h5>
-                </div>
-                <div class="card-body p-4 p-md-5">
-                    @if ($task->updates->count() > 0)
-                        <div class="timeline ps-3">
-                            @foreach ($task->updates->sortByDesc('update_timestamp') as $update)
-                                <div class="timeline-item position-relative pb-4">
-                                    <div class="timeline-badge position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center bg-white border border-3
-                            @if($update->status_change == 'In Progress') border-primary
-                            @elseif($update->status_change == 'Completed') border-success
-                            @else border-info @endif"
-                                         style="width: 24px; height: 24px;">
-                                        <i class="fas fa-circle fs-6
-                                @if($update->status_change == 'In Progress') text-primary
-                                @elseif($update->status_change == 'Completed') text-success
-                                @else text-info @endif"></i>
-                                    </div>
-
-                                    <div class="timeline-content ms-5 ps-3">
-                                        <div class="card border-0 shadow-sm mb-3 rounded-3">
-                                            <div class="card-body p-4">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <div class="d-flex align-items-center">
-                                                        @if($update->staff)
-                                                            <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3"
-                                                                 style="width: 40px; height: 40px; font-size: 1.1rem;">
-                                                                {{ substr($update->staff->first_name, 0, 1) }}{{ substr($update->staff->last_name, 0, 1) }}
-                                                            </div>
-                                                            <div>
-                                                                <h6 class="mb-0 text-dark fw-semibold">{{ $update->staff->first_name }} {{ $update->staff->last_name }}</h6>
-                                                                <span class="badge bg-secondary-subtle text-secondary small fw-medium">{{ $update->staff->user_role }}</span>
-                                                            </div>
-                                                        @else
-                                                            <span class="text-muted small">[Staff removed]</span>
-                                                        @endif
+                                        <div class="timeline-content ms-5 ps-3">
+                                            <div class="card border-0 shadow-sm mb-3 rounded-3">
+                                                <div class="card-body p-4">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <div class="d-flex align-items-center">
+                                                            @if($update->staff)
+                                                                <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                                     style="width: 40px; height: 40px; font-size: 1.1rem;">
+                                                                    {{ substr($update->staff->first_name, 0, 1) }}{{ substr($update->staff->last_name, 0, 1) }}
+                                                                </div>
+                                                                <div>
+                                                                    <h6 class="mb-0 text-dark fw-semibold">{{ $update->staff->first_name }} {{ $update->staff->last_name }}</h6>
+                                                                    <span class="badge bg-secondary-subtle text-secondary small fw-medium">{{ $update->staff->user_role }}</span>
+                                                                </div>
+                                                            @else
+                                                                <span class="text-muted small">[Staff removed]</span>
+                                                            @endif
+                                                        </div>
+                                                        <span class="text-muted small">
+                                                            {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y · g:i A') }}
+                                                        </span>
                                                     </div>
-                                                    <span class="text-muted small">
-                                            {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y · g:i A') }}
-                                        </span>
-                                                </div>
 
-                                                <div class="mb-3">
-                                        <span class="badge rounded-pill py-2 px-3 fw-medium
-                                            @if($update->status_change == 'In Progress') bg-primary-subtle text-primary
-                                            @elseif($update->status_change == 'Completed') bg-success-subtle text-success
-                                            @else bg-info-subtle text-info @endif">
-                                            <i class="fas
-                                                @if($update->status_change == 'In Progress') fa-spinner fa-spin me-1
-                                                @elseif($update->status_change == 'Completed') fa-check-circle me-1
-                                                @else fa-info-circle me-1 @endif"></i>
-                                            Status: {{ $update->status_change }}
-                                        </span>
-                                                </div>
+                                                    <div class="mb-3">
+                                                        <span class="badge rounded-pill py-2 px-3 fw-medium
+                                                            @if($update->status_change == 'In Progress') bg-primary-subtle text-primary
+                                                            @elseif($update->status_change == 'Completed') bg-success-subtle text-success
+                                                            @else bg-info-subtle text-info @endif">
+                                                            <i class="fas
+                                                                @if($update->status_change == 'In Progress') fa-spinner fa-spin me-1
+                                                                @elseif($update->status_change == 'Completed') fa-check-circle me-1
+                                                                @else fa-info-circle me-1 @endif"></i>
+                                                            Status: {{ $update->status_change }}
+                                                        </span>
+                                                    </div>
 
-                                                <p class="mb-0 text-dark">{{ $update->update_description }}</p>
+                                                    <p class="mb-0 text-dark">{{ $update->update_description }}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="card border-0 bg-light rounded-3">
-                            <div class="card-body text-center py-4">
-                                <i class="fas fa-info-circle text-primary fs-4 mb-3"></i>
-                                <h5 class="text-muted fw-semibold">No updates yet</h5>
-                                <p class="text-muted mb-0">Task updates will appear here once available.</p>
+                                @endforeach
                             </div>
-                        </div>
-                    @endif
+                        @else
+                            <div class="card border-0 bg-light rounded-3">
+                                <div class="card-body text-center py-5">
+                                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
+                                        <i class="fas fa-info-circle fs-4"></i>
+                                    </div>
+                                    <h5 class="text-muted fw-semibold">No updates yet</h5>
+                                    <p class="text-muted mb-0">Task updates will appear here once available.</p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Location Details Card -->
+                <div class="card shadow-sm border-0 rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold d-flex align-items-center mb-3 text-dark">
+                            <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </span>
+                            Location Details
+                        </h5>
+
+                        @if ($task->issue->building)
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="bg-light p-2 rounded-3 me-3">
+                                    <i class="fas fa-building text-muted"></i>
+                                </div>
+                                <div>
+                                    <p class="small text-muted mb-1">Building</p>
+                                    <p class="mb-0 fw-bold text-dark">{{ $task->issue->building->building_name }}</p>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="bg-light p-2 rounded-3 me-3">
+                                    <i class="fas fa-layer-group text-muted"></i>
+                                </div>
+                                <div>
+                                    <p class="small text-muted mb-1">Floor</p>
+                                    <p class="mb-0 fw-bold text-dark">Floor {{ $task->issue->floor->floor_number }}</p>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-start">
+                                <div class="bg-light p-2 rounded-3 me-3">
+                                    <i class="fas fa-door-open text-muted"></i>
+                                </div>
+                                <div>
+                                    <p class="small text-muted mb-1">Room</p>
+                                    <p class="mb-0 fw-bold text-dark">Room {{ $task->issue->room->room_number }}</p>
+                                </div>
+                            </div>
+                        @else
+                            <div class="alert alert-light border d-flex align-items-center rounded-3" role="alert">
+                                <i class="fas fa-info-circle text-secondary me-2"></i>
+                                <div>
+                                    <small class="text-muted">No location specified</small>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Attachments Card -->
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold d-flex align-items-center mb-3 text-dark">
+                            <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
+                                <i class="fas fa-paperclip"></i>
+                            </span>
+                            Attachments
+                        </h5>
+
+                        @if ($task->issue->attachments->count() > 0)
+                            <div class="row g-3">
+                                @foreach ($task->issue->attachments as $attachment)
+                                    @php
+                                        $fileExtension = pathinfo($attachment->original_name, PATHINFO_EXTENSION);
+                                        $iconClass = 'fa-file';
+                                        $bgClass = 'bg-secondary-subtle text-secondary';
+
+                                        if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif'])) {
+                                            $iconClass = 'fa-file-image';
+                                            $bgClass = 'bg-success-subtle text-success';
+                                        } elseif (in_array($fileExtension, ['pdf'])) {
+                                            $iconClass = 'fa-file-pdf';
+                                            $bgClass = 'bg-danger-subtle text-danger';
+                                        } elseif (in_array($fileExtension, ['doc', 'docx'])) {
+                                            $iconClass = 'fa-file-word';
+                                            $bgClass = 'bg-primary-subtle text-primary';
+                                        } elseif (in_array($fileExtension, ['xls', 'xlsx'])) {
+                                            $iconClass = 'fa-file-excel';
+                                            $bgClass = 'bg-success-subtle text-success';
+                                        } elseif (in_array($fileExtension, ['mp4', 'mov', 'avi'])) {
+                                            $iconClass = 'fa-file-video';
+                                            $bgClass = 'bg-info-subtle text-info';
+                                        }
+                                    @endphp
+                                    <div class="col-12">
+                                        <div class="card border-0 bg-light h-100">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="{{ $bgClass }} p-3 rounded-3 me-3">
+                                                        <i class="fas {{ $iconClass }} fa-lg"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1 overflow-hidden">
+                                                        <p class="mb-0 fw-bold text-truncate text-dark">{{ $attachment->original_name }}</p>
+                                                        <p class="small text-muted mb-0 text-uppercase">{{ $fileExtension }} file</p>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex gap-2 mt-3">
+                                                    <a href="{{ asset('storage/' . $attachment->file_path) }}"
+                                                       target="_blank"
+                                                       class="btn btn-sm btn-outline-primary flex-grow-1 rounded-pill">
+                                                        <i class="fas fa-eye me-1"></i> View
+                                                    </a>
+                                                    <a href="{{ asset('storage/' . $attachment->file_path) }}"
+                                                       download="{{ $attachment->original_name }}"
+                                                       class="btn btn-sm btn-outline-success flex-grow-1 rounded-pill">
+                                                        <i class="fas fa-download me-1"></i> Download
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="card border-0 bg-light rounded-3">
+                                <div class="card-body text-center py-4">
+                                    <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
+                                        <i class="fas fa-folder-open fs-4"></i>
+                                    </div>
+                                    <h5 class="text-muted fw-semibold">No attachments found</h5>
+                                    <p class="text-muted mb-0">This issue does not have any attached files.</p>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        @if($task->issue_status == 'Completed' || $task->issue_status == 'Closed')
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Disable all form elements if task is completed or closed
-                    const formElements = document.querySelectorAll('#addUpdateForm input, #addUpdateForm textarea, #addUpdateForm select, #addUpdateForm button');
-                    formElements.forEach(element => {
-                        element.disabled = true;
-                    });
+    @if($task->issue_status == 'Completed' || $task->issue_status == 'Closed')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const formElements = document.querySelectorAll('#addUpdateForm input, #addUpdateForm textarea, #addUpdateForm select, #addUpdateForm button');
+                formElements.forEach(element => {
+                    element.disabled = true;
                 });
-            </script>
-        @endif
+            });
+        </script>
+    @endif
 
-        <style>
+    <style>
+        /* General Styles */
+       d
 
+        /* Card Styles */
+        .card {
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
 
-            .card {
-                border: 1px solid #e0e0e0; /* Subtle border for cards */
-                box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05); /* Lighter shadow */
-            }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
 
-            .card-header {
-                background-color: #ffffff; /* White background for headers */
-                color: #343a40; /* Dark text */
-                border-bottom: 1px solid #e9ecef; /* Light border at the bottom */
-            }
+        /* Badge Styles */
+        .badge {
+            font-weight: 500;
+            padding: 0.5em 1em;
+        }
 
-            .card-header h2, .card-header p {
-                color: #343a40 !important; /* Ensure text is dark */
-            }
+        /* Timeline Styles */
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
 
-            .h6.text-uppercase.text-muted.fw-bold {
-                color: #6c757d !important; /* Ensure muted text color for section titles */
-            }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 12px;
+            width: 2px;
+            background: #e9ecef;
+        }
 
-            /* Custom subtle badge colors */
-            .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
-            .text-primary { color: #0d6efd !important; }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 30px;
+        }
 
-            .bg-success-subtle { background-color: rgba(40, 167, 69, 0.1) !important; }
-            .text-success { color: #28a745 !important; }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
 
-            .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
-            .text-warning { color: #ffc107 !important; }
+        .timeline-badge {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border: 3px solid;
+            z-index: 1;
+        }
 
-            .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1) !important; }
-            .text-danger { color: #dc3545 !important; }
+        .timeline-content {
+            margin-left: 30px;
+            padding-left: 15px;
+        }
 
-            .bg-info-subtle { background-color: rgba(23, 162, 184, 0.1) !important; }
-            .text-info { color: #17a2b8 !important; }
+        /* Custom Colors */
+        .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
+        .bg-success-subtle { background-color: rgba(40, 167, 69, 0.1) !important; }
+        .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
+        .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1) !important; }
+        .bg-info-subtle { background-color: rgba(23, 162, 184, 0.1) !important; }
+        .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1) !important; }
 
-            .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1) !important; }
-            .text-secondary { color: #6c757d !important; }
+        /* Button Styles */
+        .btn {
+            font-weight: 500;
+            padding: 0.5rem 1.5rem;
+        }
 
-            .btn-primary {
-                background-color: #0d6efd;
-                border-color: #0d6efd;
-            }
-            .btn-primary:hover {
-                background-color: #0b5ed7;
-                border-color: #0a58ca;
-            }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
 
-            .btn-outline-secondary {
-                color: #6c757d;
-                border-color: #6c757d;
-            }
-            .btn-outline-secondary:hover {
-                background-color: #6c757d;
-                color: white;
-            }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
 
-            /* Timeline specific styles */
-            .timeline {
-                position: relative;
-                padding-left: 20px;
-            }
-            .timeline::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 12px;
-                width: 2px;
-                background: #e9ecef;
-            }
-            .timeline-item {
-                position: relative;
-                padding-bottom: 30px;
-            }
-            .timeline-item:last-child {
-                padding-bottom: 0;
-            }
-            .timeline-badge {
-                position: absolute;
-                left: 0;
-                top: 0;
-                transform: translateX(-50%);
-                width: 24px;
-                height: 24px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background-color: white;
-                border: 3px solid;
-                z-index: 1;
-            }
-            .timeline-content {
-                margin-left: 30px;
-                padding-left: 15px;
-            }
-            .timeline-item:last-child .timeline-content {
-                border-left-color: transparent;
-            }
+        .btn-outline-primary {
+            color: #0d6efd;
+            border-color: #0d6efd;
+        }
 
-            /* General card hover effect */
-            .card {
-                transition: transform 0.2s ease, box-shadow 0.2s ease;
-            }
-            .card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
-            }
-        </style>
+        .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        /* Form Control Styles */
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            border: 1px solid #dee2e6;
+            padding: 0.5rem 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Alert Styles */
+        .alert {
+            border-radius: 0.5rem;
+            border: none;
+        }
+
+        /* Avatar Styles */
+        .avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+    </style>
 @endsection

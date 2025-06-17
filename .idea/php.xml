@@ -165,6 +165,10 @@
       <path value="$PROJECT_DIR$/vendor/cloudinary-labs/cloudinary-laravel" />
       <path value="$PROJECT_DIR$/vendor/graham-campbell/result-type" />
       <path value="$PROJECT_DIR$/vendor/composer" />
+      <path value="$PROJECT_DIR$/vendor/beberlei/assert" />
+      <path value="$PROJECT_DIR$/vendor/imagekit/imagekit" />
+      <path value="$PROJECT_DIR$/vendor/zaxbux/backblaze-b2-php" />
+      <path value="$PROJECT_DIR$/vendor/zaxbux/flysystem-backblaze-b2" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2">
