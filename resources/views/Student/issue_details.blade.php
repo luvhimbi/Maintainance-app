@@ -306,7 +306,7 @@
                                     }
                                 @endphp
                                 <div class="col-12 col-sm-6 col-lg-4">
-                                    <a href="{{ Storage::url($attachment->file_path) }}" target="_blank" class="text-decoration-none">
+                                    <a href="{{ route('files.view', ['id' => $attachment->attachment_id]) }}" target="_blank" class="text-decoration-none">
                                         <div class="card border shadow-sm h-100 rounded-3 hover-shadow">
                                             <div class="card-body p-3">
                                                 <div class="d-flex align-items-center">

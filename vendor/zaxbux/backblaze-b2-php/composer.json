@@ -1,0 +1,40 @@
+{
+    "name": "zaxbux/backblaze-b2-php",
+    "description": "A SDK for working with B2 cloud storage.",
+    "keywords": [
+        "b2",
+        "storage",
+        "backblaze",
+        "cloud",
+        "filesystem",
+        "backup"
+    ],
+    "homepage": "https://github.com/zaxbux/backblaze-b2-php",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Zachary Schneider",
+            "email": "hello@zacharyschneider.ca",
+            "homepage": "https://www.zacharyschneider.ca"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "blastcloud/guzzler": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Zaxbux\\BackblazeB2\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "tests\\": "tests/"
+        }
+    }
+}

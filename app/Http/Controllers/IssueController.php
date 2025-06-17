@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\MissingIssueFormDataException;
 use App\Mail\TechnicianAssignmentEmail;
 use App\Mail\TechnicianReassignmentMail;
+use App\Services\SupabaseStorageService;
 use Illuminate\Http\Request;
 use App\Models\Location;
 use App\Models\Issue;
@@ -28,7 +29,12 @@ use App\Models\Room;
 
 class IssueController extends Controller
 {
+    protected $supabaseStorage;
 
+    public function __construct(SupabaseStorageService $supabaseStorage)
+    {
+        $this->supabaseStorage = $supabaseStorage;
+    }
 
     public function create()
     {
@@ -61,8 +67,7 @@ class IssueController extends Controller
         return view('Student.createissue', compact('buildings', 'floors', 'rooms', 'formData', 'attachments'));
     }
 
-
-// this is for storing the issue
+    // this is for storing the issue
     public function store(Request $request)
     {
         $this->processIssueForm($request);
@@ -136,13 +141,18 @@ class IssueController extends Controller
             $attachments = [];
             foreach ($request->file('attachments') as $file) {
                 try {
-                    $path = $file->store('issue-attachments', 'public');
-                    $attachments[] = [
-                        'path' => $path,
-                        'original_name' => $file->getClientOriginalName(),
-                        'mime_type' => $file->getClientMimeType(),
-                        'size' => $file->getSize()
-                    ];
+                    $result = $this->supabaseStorage->uploadFile($file, 'issue-attachments');
+                    if ($result['success']) {
+                        $attachments[] = [
+                            'path' => $result['path'],
+                            'original_name' => $result['original_name'],
+                            'mime_type' => $result['mime_type'],
+                            'size' => $result['size']
+                        ];
+                    } else {
+                        Log::error('File upload failed: ' . ($result['error'] ?? 'Unknown error'));
+                        throw new \RuntimeException('Failed to upload file to Supabase');
+                    }
                 } catch (\Exception $e) {
                     Log::error('File upload failed: ' . $e->getMessage());
                     throw new \RuntimeException('Failed to upload file: ' . $e->getMessage());
@@ -314,7 +324,7 @@ class IssueController extends Controller
                     'original_name' => $attachment['original_name'],
                     'mime_type' => $attachment['mime_type'],
                     'file_size' => $attachment['size'],
-                    'storage_disk' => 'public',
+                    'storage_disk' => 'supabase'
                 ]);
             }
 
@@ -774,24 +784,29 @@ public function sendTechnicianUpdateNotification($issue, $task, $reporter, $tech
 
         // Handle attachments
         if ($request->hasFile('attachments')) {
-            // Delete old attachments from storage
+            // Delete old attachments from Supabase
             foreach ($issue->attachments as $attachment) {
-                Storage::disk('public')->delete($attachment->file_path);
+                $this->supabaseStorage->deleteFile($attachment->file_path);
                 $attachment->delete();
             }
 
             // Add new attachments
             foreach ($request->file('attachments') as $file) {
                 try {
-                    $path = $file->store('issue-attachments', 'public');
-                    IssueAttachment::create([
-                        'issue_id' => $issue->issue_id,
-                        'file_path' => $path,
-                        'original_name' => $file->getClientOriginalName(),
-                        'mime_type' => $file->getClientMimeType(),
-                        'file_size' => $file->getSize(),
-                        'storage_disk' => 'public'
-                    ]);
+                    $result = $this->supabaseStorage->uploadFile($file, 'issue-attachments');
+                    if ($result['success']) {
+                        IssueAttachment::create([
+                            'issue_id' => $issue->issue_id,
+                            'file_path' => $result['path'],
+                            'original_name' => $result['original_name'],
+                            'mime_type' => $result['mime_type'],
+                            'file_size' => $result['size'],
+                            'storage_disk' => 'supabase'
+                        ]);
+                    } else {
+                        Log::error('File upload failed: ' . ($result['error'] ?? 'Unknown error'));
+                        throw new \RuntimeException('Failed to upload file to Supabase');
+                    }
                 } catch (\Exception $e) {
                     Log::error('File upload failed: ' . $e->getMessage());
                     throw new \RuntimeException('Failed to upload file: ' . $e->getMessage());

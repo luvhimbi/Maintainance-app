@@ -26,6 +26,7 @@ class IssueAttachment extends Model
         'file_size',
         'storage_disk',
         'upload_date',
+        'url'
     ];
 
     // Define relationship with the Issue model

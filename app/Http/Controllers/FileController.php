@@ -18,16 +18,32 @@ class FileController extends Controller
             abort(403, 'Unauthorized access to file.');
         }
 
-        // Get the file path and check if it exists
+        // Get the file path
         $path = $attachment->file_path;
         Log::info('Attempting to view file', [
             'id' => $id,
             'path' => $path,
             'disk' => $attachment->storage_disk,
-            'exists' => Storage::disk($attachment->storage_disk)->exists($path)
+            'is_url' => str_starts_with($path, 'http')
         ]);
 
+        // If it's a Supabase URL, redirect to it directly
+        if (str_starts_with($path, 'http')) {
+            Log::info('Redirecting to Supabase URL', ['url' => $path]);
+            return redirect($path);
+        } else {
+            $publicUrl = "{$this->supabaseUrl}/storage/v1/object/public/onlinebucket/{$path}";
+            return redirect($publicUrl);
+        }
+
+        // For local files, use the storage disk
         if (!Storage::disk($attachment->storage_disk)->exists($path)) {
+            Log::error('File not found in storage', [
+                'id' => $id,
+                'path' => $path,
+                'disk' => $attachment->storage_disk,
+                'storage_path' => Storage::disk($attachment->storage_disk)->path($path)
+            ]);
             abort(404, 'File not found.');
         }
 
@@ -58,6 +74,15 @@ class FileController extends Controller
 
         $path = $attachment->file_path;
         
+        // If it's a Supabase URL, redirect to it directly
+        if (str_starts_with($path, 'http')) {
+            return redirect($path);
+        } else {
+            $publicUrl = "{$this->supabaseUrl}/storage/v1/object/public/onlinebucket/{$path}";
+            return redirect($publicUrl);
+        }
+
+        // For local files, use the storage disk
         if (!Storage::disk($attachment->storage_disk)->exists($path)) {
             Log::error('File not found in storage', [
                 'filename' => $filename,
@@ -84,24 +109,50 @@ class FileController extends Controller
             abort(403, 'Unauthorized access to file.');
         }
 
-        // Get the file path and check if it exists
+        // Get the file path
         $path = $attachment->file_path;
-        \Log::info('Attempting to download file', [
+        Log::info('Attempting to download file', [
             'id' => $id,
             'path' => $path,
             'disk' => $attachment->storage_disk,
-            'exists' => Storage::disk($attachment->storage_disk)->exists($path)
+            'is_url' => str_starts_with($path, 'http')
         ]);
 
+        // If it's a Supabase URL, redirect to it directly
+        if (str_starts_with($path, 'http')) {
+            Log::info('Redirecting to Supabase URL for download', ['url' => $path]);
+            // Use a different approach to force download
+            return response()->streamDownload(function () use ($path) {
+                echo file_get_contents($path);
+            }, $attachment->original_name, [
+                'Content-Type' => $attachment->mime_type,
+                'Content-Disposition' => 'attachment; filename="' . $attachment->original_name . '"',
+                'Cache-Control' => 'public, max-age=31536000'
+            ]);
+        } else {
+            $publicUrl = "{$this->supabaseUrl}/storage/v1/object/public/onlinebucket/{$path}";
+            return redirect($publicUrl);
+        }
+
+        // For local files, use the storage disk
         if (!Storage::disk($attachment->storage_disk)->exists($path)) {
+            Log::error('File not found in storage for download', [
+                'id' => $id,
+                'path' => $path,
+                'disk' => $attachment->storage_disk,
+                'storage_path' => Storage::disk($attachment->storage_disk)->path($path)
+            ]);
             abort(404, 'File not found.');
         }
 
-        // Return the file download response
-        return Storage::disk($attachment->storage_disk)->download(
-            $path,
-            $attachment->original_name
-        );
+        // Get the file contents
+        $file = Storage::disk($attachment->storage_disk)->get($path);
+        
+        // Return the file with appropriate headers
+        return response($file, 200)
+            ->header('Content-Type', $attachment->mime_type)
+            ->header('Content-Disposition', 'attachment; filename="' . $attachment->original_name . '"')
+            ->header('Cache-Control', 'public, max-age=31536000');
     }
 
     private function canAccessFile($attachment)

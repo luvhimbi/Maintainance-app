@@ -10,6 +10,8 @@ return array(
     'chillerlan\\Settings\\' => array($vendorDir . '/chillerlan/php-settings-container/src'),
     'chillerlan\\QRCode\\' => array($vendorDir . '/chillerlan/php-qrcode/src'),
     'ZipStream\\' => array($vendorDir . '/maennchen/zipstream-php/src'),
+    'Zaxbux\\Flysystem\\' => array($vendorDir . '/zaxbux/flysystem-backblaze-b2/src'),
+    'Zaxbux\\BackblazeB2\\' => array($vendorDir . '/zaxbux/backblaze-b2-php/src'),
     'Whoops\\' => array($vendorDir . '/filp/whoops/src/Whoops'),
     'Webmozart\\Assert\\' => array($vendorDir . '/webmozart/assert/src'),
     'TijsVerkoyen\\CssToInlineStyles\\' => array($vendorDir . '/tijsverkoyen/css-to-inline-styles/src'),
@@ -89,6 +91,7 @@ return array(
     'Laravel\\Reverb\\' => array($vendorDir . '/laravel/reverb/src'),
     'Laravel\\Prompts\\' => array($vendorDir . '/laravel/prompts/src'),
     'Laravel\\Pail\\' => array($vendorDir . '/laravel/pail/src'),
+    'ImageKit\\' => array($vendorDir . '/imagekit/imagekit/src/ImageKit'),
     'Illuminate\\Support\\' => array($vendorDir . '/laravel/framework/src/Illuminate/Macroable', $vendorDir . '/laravel/framework/src/Illuminate/Collections', $vendorDir . '/laravel/framework/src/Illuminate/Conditionable'),
     'Illuminate\\' => array($vendorDir . '/laravel/framework/src/Illuminate'),
     'GuzzleHttp\\UriTemplate\\' => array($vendorDir . '/guzzlehttp/uri-template/src'),
@@ -122,5 +125,6 @@ return array(
     'Brick\\Math\\' => array($vendorDir . '/brick/math/src'),
     'Barryvdh\\DomPDF\\' => array($vendorDir . '/barryvdh/laravel-dompdf/src'),
     'BaconQrCode\\' => array($vendorDir . '/bacon/bacon-qr-code/src'),
+    'Assert\\' => array($vendorDir . '/beberlei/assert/lib/Assert'),
     'App\\' => array($baseDir . '/app', $vendorDir . '/laravel/pint/app'),
 );
