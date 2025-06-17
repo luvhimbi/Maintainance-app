@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\IssueAttachment;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class FileController extends Controller
 {
@@ -19,7 +20,7 @@ class FileController extends Controller
 
         // Get the file path and check if it exists
         $path = $attachment->file_path;
-        \Log::info('Attempting to view file', [
+        Log::info('Attempting to view file', [
             'id' => $id,
             'path' => $path,
             'disk' => $attachment->storage_disk,
@@ -36,7 +37,42 @@ class FileController extends Controller
         // Return the file with appropriate headers
         return response($file, 200)
             ->header('Content-Type', $attachment->mime_type)
-            ->header('Content-Disposition', 'inline; filename="' . $attachment->original_name . '"');
+            ->header('Content-Disposition', 'inline; filename="' . $attachment->original_name . '"')
+            ->header('Cache-Control', 'public, max-age=31536000');
+    }
+
+    public function publicView($filename)
+    {
+        // Find the attachment by filename
+        $attachment = IssueAttachment::where('file_path', 'like', '%' . $filename)->first();
+        
+        if (!$attachment) {
+            Log::error('File not found in database', ['filename' => $filename]);
+            abort(404, 'File not found.');
+        }
+
+        // Check if user has permission to view this file
+        if (!$this->canAccessFile($attachment)) {
+            abort(403, 'Unauthorized access to file.');
+        }
+
+        $path = $attachment->file_path;
+        
+        if (!Storage::disk($attachment->storage_disk)->exists($path)) {
+            Log::error('File not found in storage', [
+                'filename' => $filename,
+                'path' => $path,
+                'disk' => $attachment->storage_disk
+            ]);
+            abort(404, 'File not found.');
+        }
+
+        $file = Storage::disk($attachment->storage_disk)->get($path);
+        
+        return response($file, 200)
+            ->header('Content-Type', $attachment->mime_type)
+            ->header('Content-Disposition', 'inline; filename="' . $attachment->original_name . '"')
+            ->header('Cache-Control', 'public, max-age=31536000');
     }
 
     public function download($id)
