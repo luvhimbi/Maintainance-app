@@ -187,7 +187,7 @@ class ReportController extends Controller
         $data = $this->getFilteredReportData($request);
 
         try {
-            $pdf = Pdf::loadView('admin.reports.students_and_staff_pdf', $data);
+            $pdf = Pdf::loadView('admin.Reports.students_and_staff_pdf', $data);
             return $pdf->download('students_and_staff_report.pdf');
         } catch (\Exception $e) {
             // Log the error for debugging
@@ -462,7 +462,7 @@ class ReportController extends Controller
         $data['reportTitle'] = 'Maintenance Task Report'; // Add title for PDF view
 
         try {
-            $pdf = Pdf::loadView('admin.reports.task_report_pdf', $data);
+            $pdf = Pdf::loadView('admin.Reports.task_report_pdf', $data);
             return $pdf->download('maintenance_task_report_' . now()->format('Ymd_His') . '.pdf');
         } catch (\Exception $e) {
             \Log::error('Task PDF export failed: ' . $e->getMessage());
@@ -760,7 +760,7 @@ class ReportController extends Controller
         $data['reportTitle'] = 'Technician Performance Report';
 
         try {
-            $pdf = Pdf::loadView('admin.reports.technician_report_pdf', $data);
+            $pdf = Pdf::loadView('admin.Reports.technician_report_pdf', $data);
             return $pdf->download('technician_report_' . now()->format('Ymd_His') . '.pdf');
         } catch (\Exception $e) {
             \Log::error('Technician PDF export failed: ' . $e->getMessage());
