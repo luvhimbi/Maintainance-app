@@ -53,7 +53,7 @@ class ProfileController extends Controller
         ->first();
 
     // Pass both user and maintenance staff data to the view
-    return view('Technician.profile', [
+    return view('technician.profile', [
         'user' => $user,
         'maintenanceStaff' => $maintenanceStaff
     ]);
@@ -74,7 +74,7 @@ class ProfileController extends Controller
     }
 
     public function editProfile(){
-        return view('Technician.profileedit', ['user' => Auth::user()]);
+        return view('technician.profileedit', ['user' => Auth::user()]);
     }
 
 
