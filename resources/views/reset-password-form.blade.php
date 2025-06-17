@@ -177,7 +177,7 @@
         </div>
     </div>
 
-    @include('layouts.footer')
+    @include('Layouts.footer')
 
 </div>
 
