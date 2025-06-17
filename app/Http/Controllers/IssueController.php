@@ -90,7 +90,10 @@ class IssueController extends Controller
             'pc_issue_type' => 'nullable|required_if:issue_type,PC|string|max:50',
             'critical_work_affected' => 'nullable|boolean',
             'affects_operations' => 'required|boolean',
-            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,pdf,doc,docx|max:2048',
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4|max:2048',
+        ], [
+            'attachments.*.mimes' => 'The file must be an image (jpg, jpeg, png, gif) or a video (mp4).',
+            'attachments.*.max' => 'The file size must not exceed 2MB.',
         ]);
 
         $validated['safety_hazard'] = filter_var($validated['safety_hazard'], FILTER_VALIDATE_BOOLEAN);
@@ -632,8 +635,24 @@ public function sendTechnicianUpdateNotification($issue, $task, $reporter, $tech
             'pc_number' => 'nullable|required_if:issue_type,PC|integer|min:1|max:100',
             'pc_issue_type' => 'nullable|required_if:issue_type,PC|string|max:50',
             'critical_work_affected' => 'nullable|boolean',
-            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,pdf,doc,docx|max:2048'
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4',
+        ], [
+            'attachments.*.mimes' => 'The file must be an image (jpg, jpeg, png, gif) or a video (mp4).',
         ]);
+
+        // Custom size validation for images and videos
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $mime = $file->getMimeType();
+                $size = $file->getSize(); // in bytes
+                if (str_starts_with($mime, 'image/') && $size > 2 * 1024 * 1024) {
+                    return back()->withErrors(['attachments' => 'Each image must not exceed 2MB.'])->withInput();
+                }
+                if ($mime === 'video/mp4' && $size > 10 * 1024 * 1024) {
+                    return back()->withErrors(['attachments' => 'Each video must not exceed 10MB.'])->withInput();
+                }
+            }
+        }
 
         // Store old values for comparison and notification logic
         $oldIssueType = $issue->issue_type;

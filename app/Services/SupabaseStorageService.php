@@ -29,7 +29,7 @@ class SupabaseStorageService
     public function uploadFile($file, $path = '')
     {
         try {
-            $fileName = time() . '_' . $file->getClientOriginalName();
+            $fileName = time() . '_' . urlencode($file->getClientOriginalName());
             $filePath = $path ? $path . '/' . $fileName : $fileName;
             
             // Log file details for debugging
@@ -40,6 +40,10 @@ class SupabaseStorageService
                 'path' => $filePath
             ]);
 
+            // Build the upload URL
+            $uploadUrl = "{$this->supabaseUrl}/storage/v1/object/onlinebucket/{$filePath}";
+            Log::info('Supabase upload URL', ['url' => $uploadUrl]);
+
             // Create a temporary file
             $tempFile = tmpfile();
             $tempFilePath = stream_get_meta_data($tempFile)['uri'];
@@ -49,7 +53,7 @@ class SupabaseStorageService
             $ch = curl_init();
             
             // Set cURL options
-            curl_setopt($ch, CURLOPT_URL, "{$this->supabaseUrl}/storage/v1/object/onlinebucket/{$filePath}");
+            curl_setopt($ch, CURLOPT_URL, $uploadUrl);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
