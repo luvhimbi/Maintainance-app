@@ -28,12 +28,8 @@ use App\Models\Room;
 
 class IssueController extends Controller
 {
-    public function __construct()
-    {
-        // No configuration needed
-    }
 
-    //this is called when the user  clicks on create or report an issue
+
     public function create()
     {
         // Fetch buildings to populate the dropdown

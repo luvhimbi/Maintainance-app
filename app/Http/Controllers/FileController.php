@@ -19,6 +19,13 @@ class FileController extends Controller
 
         // Get the file path and check if it exists
         $path = $attachment->file_path;
+        \Log::info('Attempting to view file', [
+            'id' => $id,
+            'path' => $path,
+            'disk' => $attachment->storage_disk,
+            'exists' => Storage::disk($attachment->storage_disk)->exists($path)
+        ]);
+
         if (!Storage::disk($attachment->storage_disk)->exists($path)) {
             abort(404, 'File not found.');
         }
@@ -43,6 +50,13 @@ class FileController extends Controller
 
         // Get the file path and check if it exists
         $path = $attachment->file_path;
+        \Log::info('Attempting to download file', [
+            'id' => $id,
+            'path' => $path,
+            'disk' => $attachment->storage_disk,
+            'exists' => Storage::disk($attachment->storage_disk)->exists($path)
+        ]);
+
         if (!Storage::disk($attachment->storage_disk)->exists($path)) {
             abort(404, 'File not found.');
         }
