@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 'campus_member'=>CampusMemberMiddleware::class,
                 'technician'=>TechnicianMiddleware::class,
                 'admin'=>AdminMiddleware::class,
+                'allowpublicaccess'=>\App\Http\Middleware\AllowPublicAccess::class,
             ]
         );
     })
