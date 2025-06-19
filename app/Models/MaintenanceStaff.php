@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class MaintenanceStaff extends Model
 {
-
-    protected $table = 'maintenance_staff';
+     use HasFactory;
+    protected $table = 'Technicians'; 
     protected $primaryKey = 'user_id';
     public $timestamps = false;
 

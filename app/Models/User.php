@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
+
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Searchable;
 
     /**
      * The primary key for the model.
@@ -24,15 +26,13 @@ class User extends Authenticatable
      */
   protected $fillable = [
     'user_id',
-    'username',
     'password_hash',
     'email',
     'phone_number',
     'user_role',
-    'status',
     'first_name',
     'last_name',
-    'address' 
+    'address'
 ];
 
     public function getAuthPassword()
@@ -48,6 +48,12 @@ class User extends Authenticatable
         'password_hash', // Hide password_hash instead of password
         'remember_token',
     ];
+
+    public function hasRole(string $role): bool
+    {
+        return $this->user_role === $role;
+    }
+
 
     /**
      * The attributes that should be cast.
@@ -65,7 +71,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
+public function studentDetail()
+{
+    return $this->hasOne(Student::class, 'user_id');
+}
+public function staffDetail()
+{
+    return $this->hasOne(StaffMember::class, 'user_id');
+}
     public function feedbacks()
 {
     return $this->hasMany(Feedback::class);
@@ -77,46 +90,30 @@ class User extends Authenticatable
     {
         return $this->hasOne(Admin::class, 'user_id');
     }
- public function threads()
-    {
-        return $this->hasMany(Thread::class);
-    }
 
-    public function replies()
-    {
-        return $this->hasMany(Reply::class);
-    }
 
-    public function categories()
-    {
-        return $this->hasMany(Category::class);
-    }
-    /**
-     * Get the maintenance staff record associated with the user.
-     */
-    // app/Models/User.php
+
+
+
 public function isAdmin()
 {
-    return $this->role === 'Admin';
+    return $this->user_role === 'Admin';
 }
-public function mentions()
-{
-    return $this->hasMany(Mention::class);
-}
+
 public function isMaintenanceStaff()
 {
-    return $this->role === 'Technician';
+    return $this->user_role === 'Technician';
 }
 
 public function isStudent()
 {
-    return $this->role === 'Student';
+    return $this->user_role === 'Student';
 }
 public function maintenanceStaff()
 {
         return $this->hasOne(MaintenanceStaff::class, 'user_id');
  }
- 
+
  public function sendWelcomeNotification()
     {
         $this->notify(new DatabaseNotification('Welcome to our app support!', url('/')));
@@ -130,4 +127,23 @@ public function maintenanceStaff()
     {
         return $this->hasOne(CampusMember::class);
     }
+    public function issues()
+    {
+        return $this->hasMany(Issue::class, 'reporter_id'); // Assuming 'user_id' is the foreign key in the 'issues' table
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'first_name' => strtolower($this->first_name ?? ''),
+            'last_name' => strtolower($this->last_name ?? ''),
+            'email' => strtolower($this->email ?? ''),
+            'phone_number' => strtolower($this->phone_number ?? ''),
+            'address' => strtolower($this->address ?? ''),
+            // Add student number and course if relationship loaded
+            'student_number' => strtolower(optional($this->studentDetail)->student_number ?? ''),
+            'course' => strtolower(optional($this->studentDetail)->course ?? ''),
+        ];
+    }
+
 }

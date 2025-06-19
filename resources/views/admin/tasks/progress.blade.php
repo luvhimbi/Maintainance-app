@@ -1,6 +1,5 @@
-@extends('layouts.AdminNavBar')
-@section('page_title', 'Task Progress')
-@section('page_description', 'View the progress of the task assigned to a technician.')
+@extends('Layouts.AdminNavBar')
+@section('title', 'Task Progress')
 @section('content')
 <div class="container mt-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
@@ -52,23 +51,23 @@
                         <h5 class="text-muted fs-6">
                             <i class="fas fa-map-marker-alt me-2"></i>Location
                         </h5>
-                        @if($task->issue->location)
+                        @if($task->issue->building)
                         <div class="card bg-light border-0 rounded-3">
                             <div class="card-body">
                                 <p class="mb-1">
-                                    {{ $task->issue->location->building_name ?? 'Unknown Building' }}
+                                    {{ $task->issue->building->building_name ?? 'Unknown Building' }}
                                 </p>
                                 <div class="row g-2">
                                     <div class="col-6">
                                         <small class="text-muted">
                                             <i class="fas fa-layer-group me-1"></i>
-                                            Floor: {{ $task->issue->location->floor_number ?? 'N/A' }}
+                                            Floor: {{ $task->issue->floor->floor_number ?? 'N/A' }}
                                         </small>
                                     </div>
                                     <div class="col-6">
                                         <small class="text-muted">
                                             <i class="fas fa-door-open me-1"></i>
-                                            Room: {{ $task->issue->location->room_number ?? 'N/A' }}
+                                            Room: {{ $task->issue->room->room_number ?? 'N/A' }}
                                         </small>
                                     </div>
                                 </div>
@@ -103,12 +102,12 @@
                             </h5>
                             @if($task->assignee)
                             <div class="d-flex align-items-center mb-2">
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
                                      style="width: 40px; height: 40px; flex-shrink: 0;">
-                                    {{ strtoupper(substr($task->assignee->username, 0, 1)) }}
+                                    {{ strtoupper(substr($task->assignee->first_name, 0, 1)) }}
                                 </div>
                                 <div>
-                                    <p class="mb-0 fw-bold">{{ $task->assignee->username }}</p>
+                                    <p class="mb-0 fw-bold">{{ $task->assignee->first_name }}{{ $task->assignee->last_name }}</p>
                                     <small class="text-muted">{{ $task->assignee->email }}</small>
                                 </div>
                             </div>
@@ -123,17 +122,17 @@
                     <div class="card bg-light border-0 rounded-3">
                         <div class="card-body">
                             <h5 class="card-title fs-6">
-                                <i class="fas fa-user-shield me-2"></i>Supervising Admin
+                                <i class="fas fa-user-edit me-2"></i>Issue Reporter
                             </h5>
-                            @if($task->admin)
+                            @if($task->issue)
                             <div class="d-flex align-items-center mb-2">
-                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2"
                                      style="width: 40px; height: 40px; flex-shrink: 0;">
-                                    {{ strtoupper(substr($task->admin->username, 0, 1)) }}
+                                    {{ strtoupper(substr($task->issue->reporter->first_name, 0, 1)) }}
                                 </div>
                                 <div>
-                                    <p class="mb-0 fw-bold">{{ $task->admin->username }}</p>
-                                    <small class="text-muted">{{ $task->admin->email }}</small>
+                                    <p class="mb-0 fw-bold">{{ $task->issue->reporter->first_name }}{{ $task->issue->reporter->last_name }}</p>
+                                    <small class="text-muted">{{$task->issue->reporter->email}}</small>
                                 </div>
                             </div>
                             @else
@@ -152,61 +151,74 @@
             <h5 class="mb-3">
                 <i class="fas fa-history me-2"></i>Progress Updates
             </h5>
-            
-            @if($task->updates->count() > 0)
-            <div class="timeline">
-                @foreach($task->updates->sortByDesc('update_timestamp') as $update)
-                <div class="timeline-item mb-4">
-                    <div class="timeline-badge 
-                        @if($update->status_change == 'In Progress') bg-warning
-                        @elseif($update->status_change == 'Completed') bg-success
-                        @else bg-primary @endif">
-                        <i class="fas 
-                            @if($update->status_change == 'In Progress') fa-wrench
-                            @elseif($update->status_change == 'Completed') fa-check
-                            @else fa-info @endif"></i>
-                    </div>
-                    <div class="timeline-content card shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="d-flex align-items-center">
-                                    @if($update->staff)
-                                    <div class="symbol symbol-35px symbol-circle me-2">
-                                        <span class="symbol-label bg-light-primary text-primary fw-bold">
-                                            {{ substr($update->staff->username, 0, 1) }}
-                                        </span>
+
+           @if($task->updates->count() > 0)
+    <div class="timeline ps-3">
+        @foreach($task->updates->sortByDesc('update_timestamp') as $update)
+        <div class="timeline-item position-relative pb-4">
+            <div class="timeline-badge position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center bg-white border border-3
+                @if($update->status_change == 'In Progress') border-warning
+                @elseif($update->status_change == 'Completed') border-success
+                @else border-primary @endif"
+                style="width: 24px; height: 24px;">
+                <i class="fas fa-circle fs-6
+                    @if($update->status_change == 'In Progress') text-warning
+                    @elseif($update->status_change == 'Completed') text-success
+                    @else text-primary @endif"></i>
+            </div>
+
+            <div class="timeline-content ms-5 ps-3">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center">
+                                @if($update->staff)
+                                    <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3"
+                                         style="width: 40px; height: 40px; font-size: 1.1rem;">
+                                        {{ substr($update->staff->first_name, 0, 1) }}
                                     </div>
                                     <div>
-                                        <strong>{{ $update->staff->username }}</strong>
-                                        <span class="badge bg-secondary ms-2">Technician</span>
+                                        <h6 class="mb-0 text-dark">{{ $update->staff->first_name }} {{ $update->staff->last_name }}</h6>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">{{ $update->staff->user_role }}</span>
                                     </div>
-                                    @else
-                                    <span class="text-muted">System Generated Update</span>
-                                    @endif
-                                </div>
-                                <small class="text-muted">
-                                    {{ $update->update_timestamp }}
-                                </small>
+                                @else
+                                    <span class="text-muted small">System Generated Update</span>
+                                @endif
                             </div>
-                            <div class="mb-2">
-                                <span class="badge 
-                                    @if($update->status_change == 'In Progress') bg-warning text-dark
-                                    @elseif($update->status_change == 'Completed') bg-success
-                                    @else bg-primary @endif">
-                                    {{ $update->status_change }}
-                                </span>
-                            </div>
-                            <p class="mb-0">{{ $update->update_description }}</p>
+                            <span class="text-muted small">
+                                {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y · g:i A') }}
+                            </span>
                         </div>
+
+                        <div class="mb-3">
+                            <span class="badge rounded-pill
+                                @if($update->status_change == 'In Progress') bg-warning bg-opacity-10 text-warning
+                                @elseif($update->status_change == 'Completed') bg-success bg-opacity-10 text-success
+                                @else bg-primary bg-opacity-10 text-primary @endif">
+                                <i class="fas
+                                    @if($update->status_change == 'In Progress') fa-wrench me-1
+                                    @elseif($update->status_change == 'Completed') fa-check me-1
+                                    @else fa-info-circle me-1 @endif"></i>
+                                {{ $update->status_change }}
+                            </span>
+                        </div>
+
+                        <p class="mb-0 text-dark">{{ $update->update_description }}</p>
                     </div>
                 </div>
-                @endforeach
             </div>
-            @else
-            <div class="alert alert-secondary">
-                <i class="fas fa-info-circle me-2"></i>No progress updates available yet
-            </div>
-            @endif
+        </div>
+        @endforeach
+    </div>
+@else
+    <div class="card border-0 bg-light">
+        <div class="card-body text-center py-4">
+            <i class="fas fa-info-circle text-primary fs-4 mb-3"></i>
+            <h5 class="text-dark">No updates yet</h5>
+            <p class="text-muted mb-0">Task updates will appear here once available</p>
+        </div>
+    </div>
+@endif
         </div>
     </div>
 </div>

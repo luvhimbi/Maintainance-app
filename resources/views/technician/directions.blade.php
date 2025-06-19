@@ -1,4 +1,4 @@
-@extends('layouts.TechnicianNavBar')
+@extends('Layouts.TechnicianNavBar')
 
 @section('title', 'Smart Navigation')
 
@@ -11,7 +11,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">
                             <i class="fas fa-map-marked-alt me-2"></i>
-                            Campus Navigation
+                           Smart Nav
                         </h4>
                         <a href="{{ route('technician.dashboard') }}" class="btn btn-light btn-sm">
                             <i class="fas fa-arrow-left me-1"></i> Dashboard
@@ -21,38 +21,120 @@
                 <div class="card-body p-0">
                     <div class="row g-0">
                         <!-- Map Column -->
-                        <div class="col-lg-8 position-relative">
-                            <div id="map" style="height: 75vh; width: 100%;"></div>
+                        <div class="col-lg-9 position-relative">
+                            <div id="map" style="height: 85vh; width: 100%;"></div>
                             <div id="location-info" class="position-absolute top-0 end-0 m-3 p-2 bg-white rounded shadow-sm d-none">
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-circle text-success me-2"></i>
                                     <span id="location-status">Tracking active</span>
                                 </div>
                                 <div class="small text-muted mt-1">
-                                    <span id="coordinates">0, 0</span> | 
+                                    <span id="coordinates">0, 0</span> |
                                     <span id="accuracy">Accuracy: 0m</span>
                                 </div>
                             </div>
+
+                            <!-- Navigation UI -->
+                            <div id="navigation-ui" class="position-absolute bottom-0 start-0 end-0 p-3 bg-white shadow-lg d-none">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div id="next-maneuver-icon" class="text-primary fs-4">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div id="next-maneuver-text" class="fw-bold">Continue straight</div>
+                                        <div id="next-maneuver-distance" class="small text-muted">in 100 meters</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button id="toggle-voice" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-volume-up"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div id="route-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <!-- Add route summary -->
+                                <div class="mt-2 d-flex justify-content-between align-items-center">
+                                    <div class="text-primary">
+                                        <i class="fas fa-road me-1"></i>
+                                        <span id="total-distance">0 km</span>
+                                    </div>
+                                    <div class="text-primary">
+                                        <i class="fas fa-clock me-1"></i>
+                                        <span id="total-duration">0 min</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location Permission Alert -->
+                            <div id="location-permission-alert" class="position-absolute top-50 start-50 translate-middle bg-white p-4 rounded shadow-lg d-none" style="z-index: 1000;">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-map-marker-alt text-primary fa-3x"></i>
+                                </div>
+                                <h5 class="text-center mb-3">Location Access Required</h5>
+                                <p class="text-center mb-3">Please enable location access to use your current location.</p>
+                                <div class="d-grid">
+                                    <button id="request-location" class="btn btn-primary">
+                                        <i class="fas fa-location-arrow me-2"></i>Enable Location
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        
+
                         <!-- Controls Panel -->
-                        <div class="col-lg-4">
-                            <div class="p-3" style="height: 75vh; overflow-y: auto;">
+                        <div class="col-lg-3">
+                            <div class="p-3" style="height: 85vh; overflow-y: auto;">
                                 <div class="navigation-controls">
                                     <div class="mb-4">
                                         <h5 class="text-primary mb-3">
                                             <i class="fas fa-directions me-2"></i>
                                             Navigation Controls
                                         </h5>
-                                        
+
+                                        <div class="input-group mb-3">
+                                            <span class="input-group-text bg-primary text-white">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                            </span>
+                                            <input type="text"
+                                                   class="form-control"
+                                                   id="start-location-input"
+                                                   placeholder="Enter start location">
+                                        </div>
+                                        <div id="start-location-results" class="list-group mb-3 d-none" style="max-height: 200px; overflow-y: auto;">
+                                        </div>
+
                                         <div class="input-group mb-3">
                                             <span class="input-group-text bg-primary text-white">
                                                 <i class="fas fa-flag-checkered"></i>
                                             </span>
-                                            <input type="text" 
-                                                   class="form-control" 
-                                                   id="destination-input" 
-                                                   placeholder="Enter destination address">
+                                            <input type="text"
+                                                   class="form-control"
+                                                   id="destination-input"
+                                                   placeholder="Enter destination">
+                                        </div>
+                                        <div id="destination-results" class="list-group mb-3 d-none" style="max-height: 200px; overflow-y: auto;">
+                                        </div>
+
+                                        <!-- All Locations List -->
+                                        <div class="mb-3">
+                                            <h6 class="text-primary mb-2">
+                                                <i class="fas fa-list me-2"></i>
+                                               Campus Locations
+                                            </h6>
+                                            <div id="all-locations-list" class="list-group" style="max-height: 300px; overflow-y: auto;">
+                                                <!-- Locations will be loaded here -->
+                                            </div>
+                                        </div>
+
+                                        <!-- Location Buttons -->
+                                        <div class="mb-3">
+                                            <div class="d-grid gap-2">
+                                                <button id="get-user-location" class="btn btn-outline-primary">
+                                                    <i class="fas fa-location-arrow me-2"></i>Use My Location
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <select id="travel-mode" class="form-select mb-3">
@@ -75,22 +157,11 @@
                                         <h6><i class="fas fa-list-ol me-2"></i> Turn-by-Turn Directions</h6>
                                         <div id="steps-container" class="mt-2"></div>
                                     </div>
-<div id="route-info" class="mt-4 p-3 bg-light rounded d-none">
-    <!-- Route summary will be displayed here -->
-</div>
 
-<div id="clicked-points" class="mt-4 p-3 bg-light rounded d-none">
-    <h6><i class="fas fa-map-marker-alt me-2"></i> Clicked Points</h6>
-    <div id="clicked-points-container" class="mt-2"></div>
-    <button id="clear-points" class="btn btn-sm btn-outline-danger mt-2">
-        <i class="fas fa-trash me-1"></i> Clear Points
-    </button>
-</div>
+                                    <div id="route-info" class="mt-4 p-3 bg-light rounded d-none">
+                                        <!-- Route summary will be displayed here -->
+                                    </div>
 
-<div id="distances" class="mt-4 p-3 bg-light rounded d-none">
-    <h6><i class="fas fa-ruler me-2"></i> Distances</h6>
-    <div id="distances-container" class="mt-2"></div>
-</div>
                                     <div id="loading-indicator" class="text-center mt-4 d-none">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Loading...</span>
@@ -111,53 +182,295 @@
 @endsection
 
 @push('scripts')
-
 <script>
 mapboxgl.accessToken = '{{ $mapboxAccessToken }}';
 let map, userLocation;
 let markers = [];
-let clickedPoints = [];
 let watchId = null;
+let currentRoute = null;
+let navigationActive = false;
+let voiceEnabled = true;
+let routeProgress = 0;
+let currentStepIndex = 0;
+let speechSynthesis = window.speechSynthesis;
+let userLocationMarker = null;
+let geolocateControl = null;
+let startLocationMarker = null;
+let endLocationMarker = null;
+
 // Initialize Mapbox map
 function initMap() {
     try {
+        // Get location parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const building = urlParams.get('building');
+        const room = urlParams.get('room');
+        const lat = urlParams.get('lat');
+        const lng = urlParams.get('lng');
+
+        // Set initial center based on URL parameters or default
+        const initialCenter = lat && lng ?
+            [parseFloat(lng), parseFloat(lat)] :
+            [28.098271679102634, -25.53978422415537];
+
         map = new mapboxgl.Map({
             container: 'map',
-            style: '{{ $mapboxStyle }}',
-            center: [{{ $defaultLocation['lng'] }}, {{ $defaultLocation['lat'] }}],
-            zoom: 13
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: initialCenter,
+            zoom: 17,
+            pitch: 45,
+            bearing: 0
         });
 
         // Add navigation controls
         map.addControl(new mapboxgl.NavigationControl());
-        
+
         // Setup geolocation control
-        const geolocate = new mapboxgl.GeolocateControl({
-            positionOptions: { 
-                enableHighAccuracy: true 
+        geolocateControl = new mapboxgl.GeolocateControl({
+            positionOptions: {
+                enableHighAccuracy: true
             },
             trackUserLocation: true,
-            showUserHeading: true
+            showUserHeading: true,
+            showAccuracyCircle: true
         });
-        map.addControl(geolocate);
+        map.addControl(geolocateControl);
 
-        // Wait for map to load before adding event listeners
+        // Add click event listener for selecting points
+        map.on('click', handleMapClick);
+
+        // Wait for map to load before adding event listeners and custom layers
         map.on('load', () => {
             console.log('Map loaded successfully');
-            // Handle geolocation events
-            geolocate.on('geolocate', handleGeolocation);
-            geolocate.on('error', handleGeolocationError);
-
-            // Add click handler for map
-            map.on('click', handleMapClick);
-            
-            // Setup event listeners
             setupEventListeners();
+            enhanceMapVisibility();
+
+            // If location parameters exist, create destination marker
+            if (building && lat && lng) {
+                // Create destination marker
+                const el = document.createElement('div');
+                el.className = 'location-marker';
+                el.innerHTML = `
+                    <div class="location-marker-content">
+                        <i class="fas fa-flag"></i>
+                        <div class="location-marker-tooltip">${building}${room ? `, Room ${room}` : ''}</div>
+                    </div>
+                `;
+
+                // Remove existing end marker if any
+                if (endLocationMarker) {
+                    endLocationMarker.remove();
+                }
+
+                // Add new marker
+                endLocationMarker = new mapboxgl.Marker(el)
+                    .setLngLat([parseFloat(lng), parseFloat(lat)])
+                    .addTo(map);
+
+                // Update destination input
+                document.getElementById('destination-input').value = `${building}${room ? `, Room ${room}` : ''}`;
+
+                // Add a popup with location information
+                const popup = new mapboxgl.Popup({ offset: 25 })
+                    .setHTML(`
+                        <div class="p-2">
+                            <h6 class="mb-1">${building}</h6>
+                            ${room ? `<p class="mb-0 text-muted">Room ${room}</p>` : ''}
+                        </div>
+                    `);
+
+                endLocationMarker.setPopup(popup);
+
+                // Center map on destination with animation
+                map.flyTo({
+                    center: [parseFloat(lng), parseFloat(lat)],
+                    zoom: 17,
+                    essential: true,
+                    duration: 2000
+                });
+            }
         });
 
     } catch (error) {
         console.error('Map initialization failed:', error);
-        alert('Failed to initialize map. Please check your connection.');
+        showLocationError('Failed to initialize map. Please check your connection.');
+    }
+}
+
+// Function to enhance map visibility
+function enhanceMapVisibility() {
+    // Add 3D buildings layer
+    map.addLayer({
+        'id': '3d-buildings',
+        'source': 'composite',
+        'source-layer': 'building',
+        'filter': ['==', 'extrude', 'true'],
+        'type': 'fill-extrusion',
+        'minzoom': 15,
+        'paint': {
+            'fill-extrusion-color': '#aaa',
+            'fill-extrusion-height': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                15,
+                0,
+                15.05,
+                ['get', 'height']
+            ],
+            'fill-extrusion-base': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                15,
+                0,
+                15.05,
+                ['get', 'min_height']
+            ],
+            'fill-extrusion-opacity': 0.6
+        }
+    });
+
+    // Enhance roads visibility
+    map.addLayer({
+        'id': 'road-labels',
+        'type': 'symbol',
+        'source': 'composite',
+        'source-layer': 'road',
+        'layout': {
+            'text-field': ['get', 'name'],
+            'text-size': 12,
+            'text-anchor': 'top',
+            'text-offset': [0, 1]
+        },
+        'paint': {
+            'text-color': '#000',
+            'text-halo-color': '#fff',
+            'text-halo-width': 1
+        }
+    });
+
+    // Add custom style for pathways
+    map.addLayer({
+        'id': 'pathways',
+        'type': 'line',
+        'source': 'composite',
+        'source-layer': 'road',
+        'filter': ['==', ['get', 'class'], 'path'],
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        'paint': {
+            'line-color': '#ff0000',
+            'line-width': 2,
+            'line-opacity': 0.8
+        }
+    });
+
+    // Add custom style for roads
+    map.addLayer({
+        'id': 'roads',
+        'type': 'line',
+        'source': 'composite',
+        'source-layer': 'road',
+        'filter': ['!=', ['get', 'class'], 'path'],
+        'layout': {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        'paint': {
+            'line-color': '#000',
+            'line-width': 3,
+            'line-opacity': 0.8
+        }
+    });
+
+    // Add building labels
+    map.addLayer({
+        'id': 'building-labels',
+        'type': 'symbol',
+        'source': 'composite',
+        'source-layer': 'building',
+        'layout': {
+            'text-field': ['get', 'name'],
+            'text-size': 12,
+            'text-anchor': 'center',
+            'text-offset': [0, 0]
+        },
+        'paint': {
+            'text-color': '#000',
+            'text-halo-color': '#fff',
+            'text-halo-width': 1
+        }
+    });
+}
+
+function requestLocationPermission() {
+    const locationAlert = document.getElementById('location-permission-alert');
+    const requestButton = document.getElementById('request-location');
+
+    if (locationAlert) {
+        locationAlert.classList.remove('d-none');
+    }
+
+    if (requestButton) {
+        requestButton.addEventListener('click', () => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // Success
+                    if (locationAlert) {
+                        locationAlert.classList.add('d-none');
+                    }
+                    handleGeolocation(position);
+                    startLocationTracking();
+                },
+                (error) => {
+                    // Error
+                    handleGeolocationError(error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        });
+    }
+}
+
+function startLocationTracking() {
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+    }
+
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    };
+
+    watchId = navigator.geolocation.watchPosition(
+        (position) => {
+            updateUserLocation(position);
+            // Show location info
+            const locationInfo = document.getElementById('location-info');
+            if (locationInfo) {
+                locationInfo.classList.remove('d-none');
+            }
+        },
+        (error) => {
+            handleGeolocationError(error);
+        },
+        options
+    );
+}
+
+function showLocationError(message) {
+    const errorDisplay = document.getElementById('navigation-error');
+    if (errorDisplay) {
+        errorDisplay.textContent = message;
+        errorDisplay.classList.remove('d-none');
     }
 }
 
@@ -165,66 +478,59 @@ function initMap() {
 function setupEventListeners() {
     const startBtn = document.getElementById('start-navigation');
     const clearBtn = document.getElementById('clear-route');
-    const clearPointsBtn = document.getElementById('clear-points');
-    
+    const useMyLocationBtn = document.getElementById('get-user-location');
+    const toggleVoiceBtn = document.getElementById('toggle-voice');
+
     if (startBtn && clearBtn) {
         startBtn.addEventListener('click', startNavigation);
         clearBtn.addEventListener('click', clearRoute);
-        console.log('Navigation buttons set up');
-    } else {
-        console.error('Navigation buttons not found');
     }
-    
-    if (clearPointsBtn) {
-        clearPointsBtn.addEventListener('click', clearClickedPoints);
-        console.log('Clear points button set up');
-    } else {
-        console.warn('Clear points button not found');
+
+    if (useMyLocationBtn) {
+        useMyLocationBtn.addEventListener('click', getUserLocation);
     }
-}
-function toggleLocationTracking() {
-    const locationInfo = document.getElementById('location-info');
-    
-    if (watchId) {
-        // Stop tracking
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-        
-        if (locationInfo) locationInfo.classList.add('d-none');
-        if (userLocationMarker) userLocationMarker.remove();
-        
-        console.log('Location tracking stopped');
-    } else {
-        // Start tracking
-        if (locationInfo) locationInfo.classList.remove('d-none');
-        
-        if ('geolocation' in navigator) {
-            watchId = navigator.geolocation.watchPosition(
-                updateUserLocation, 
-                handleGeolocationError,
-                { 
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            );
-            console.log('Location tracking started');
-        } else {
-            alert('Geolocation is not supported by your browser');
-            if (locationInfo) locationInfo.classList.add('d-none');
-        }
+
+    if (toggleVoiceBtn) {
+        toggleVoiceBtn.addEventListener('click', toggleVoiceGuidance);
+    }
+
+    // Add geolocate control event listeners
+    if (geolocateControl) {
+        geolocateControl.on('geolocate', handleGeolocation);
+        geolocateControl.on('error', handleGeolocationError);
     }
 }
+
+function toggleVoiceGuidance() {
+    voiceEnabled = !voiceEnabled;
+    const icon = document.querySelector('#toggle-voice i');
+    if (voiceEnabled) {
+        icon.className = 'fas fa-volume-up';
+        speak('Voice guidance enabled');
+    } else {
+        icon.className = 'fas fa-volume-mute';
+        speak('Voice guidance disabled');
+    }
+}
+
+function speak(text) {
+    if (!voiceEnabled) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    speechSynthesis.speak(utterance);
+}
+
 // Update user location
 function updateUserLocation(position) {
     const { latitude, longitude, accuracy } = position.coords;
     userLocation = [longitude, latitude];
-    
-    console.log('User location updated:', userLocation);
-    
+
     // Update location display
     updateLocationDisplay(position.coords);
-    
+
     // Add or update marker
     if (!userLocationMarker) {
         // Create a pulsing dot for user location
@@ -237,7 +543,7 @@ function updateUserLocation(position) {
         el.style.border = '2px solid white';
         el.style.boxShadow = '0 0 0 2px rgba(66, 133, 244, 0.5)';
         el.style.animation = 'pulse 1.5s infinite';
-        
+
         // Add style for the animation
         const style = document.createElement('style');
         style.innerHTML = `
@@ -248,17 +554,17 @@ function updateUserLocation(position) {
             }
         `;
         document.head.appendChild(style);
-        
+
         userLocationMarker = new mapboxgl.Marker(el)
             .setLngLat(userLocation)
             .addTo(map);
-            
+
         // Center map on first location acquisition
         map.flyTo({ center: userLocation, zoom: 15 });
     } else {
         userLocationMarker.setLngLat(userLocation);
     }
-    
+
     // Add accuracy circle
     updateAccuracyCircle(userLocation, accuracy);
 }
@@ -271,15 +577,15 @@ function updateAccuracyCircle(center, accuracyMeters) {
         map.removeLayer('accuracy-circle-border');
         map.removeSource('accuracy-circle');
     }
-    
+
     // Create a circle representing accuracy
     const accuracyCircle = turf.circle(center, accuracyMeters / 1000, { units: 'kilometers' });
-    
+
     map.addSource('accuracy-circle', {
         'type': 'geojson',
         'data': accuracyCircle
     });
-    
+
     map.addLayer({
         'id': 'accuracy-circle-fill',
         'type': 'fill',
@@ -289,7 +595,7 @@ function updateAccuracyCircle(center, accuracyMeters) {
             'fill-opacity': 0.1
         }
     });
-    
+
     map.addLayer({
         'id': 'accuracy-circle-border',
         'type': 'line',
@@ -304,9 +610,8 @@ function updateAccuracyCircle(center, accuracyMeters) {
 
 // Handle geolocation errors
 function handleGeolocationError(error) {
-    console.error('Geolocation error:', error);
     let errorMessage;
-    
+
     switch(error.code) {
         case error.PERMISSION_DENIED:
             errorMessage = "Location access denied. Please check your browser permissions.";
@@ -320,187 +625,235 @@ function handleGeolocationError(error) {
         default:
             errorMessage = "An unknown error occurred getting your location.";
     }
-    
-    alert(errorMessage);
-    
+
+    showLocationError(errorMessage);
+
     const locationStatus = document.getElementById('location-status');
     if (locationStatus) {
         locationStatus.textContent = 'Location tracking failed';
         locationStatus.parentElement.classList.remove('text-success');
         locationStatus.parentElement.classList.add('text-danger');
     }
-    
+
     watchId = null;
 }
+
+function handleGeolocation(e) {
+    console.log('Location acquired:', e.coords);
+    userLocation = [e.coords.longitude, e.coords.latitude];
+    updateLocationDisplay(e.coords);
+}
+
+function updateLocationDisplay(coords) {
+    const locationInfo = document.getElementById('location-info');
+    const coordinates = document.getElementById('coordinates');
+    const accuracy = document.getElementById('accuracy');
+    const locationStatus = document.getElementById('location-status');
+
+    if (locationInfo && coordinates && accuracy) {
+        coordinates.textContent = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
+        accuracy.textContent = `Accuracy: ${Math.round(coords.accuracy)}m`;
+        locationInfo.classList.remove('d-none');
+    }
+
+    if (locationStatus) {
+        locationStatus.textContent = 'Location tracking enabled';
+        locationStatus.classList.add('text-success');
+        locationStatus.classList.remove('text-danger');
+    }
+}
+
+// Function to handle map clicks
 function handleMapClick(e) {
     const coords = e.lngLat;
     console.log('Map clicked at:', coords);
-    
-    // Add marker to map
-    const marker = new mapboxgl.Marker({
-        color: "#FF0000"
-    })
-        .setLngLat(coords)
-        .addTo(map);
-    
-    // Store marker and coordinates
-    markers.push(marker);
-    clickedPoints.push([coords.lng, coords.lat]);
-    
-    // Update UI with clicked points
-    updateClickedPointsDisplay();
-    
-    // If we have 2 or more points, calculate and display distances
-    if (clickedPoints.length >= 2) {
-        calculateDistancesBetweenPoints();
-    }
-}
 
-function updateClickedPointsDisplay() {
-    const container = document.getElementById('clicked-points-container');
-    if (!container) {
-        console.warn('Clicked points container not found');
-        return;
-    }
-    
-    container.innerHTML = clickedPoints.map((point, index) => `
-        <div class="d-flex mb-2">
-            <div class="me-3 text-danger fw-bold">${index + 1}</div>
-            <div>
-                <div>Point at: ${point[1].toFixed(6)}, ${point[0].toFixed(6)}</div>
-            </div>
-        </div>
-    `).join('');
-    
-    const clickedPointsElement = document.getElementById('clicked-points');
-    if (clickedPointsElement) {
-        clickedPointsElement.classList.remove('d-none');
-    }
-}
-
-function calculateDistancesBetweenPoints() {
-    if (typeof turf === 'undefined') {
-        console.error('Turf.js is not loaded. Cannot calculate distances.');
-        return;
-    }
-    
-    const distancesContainer = document.getElementById('distances-container');
-    if (!distancesContainer) {
-        console.warn('Distances container not found');
-        return;
-    }
-    
-    let distancesHTML = '';
-    
-    // Calculate distance between consecutive points
-    for (let i = 1; i < clickedPoints.length; i++) {
-        const from = turf.point(clickedPoints[i-1]);
-        const to = turf.point(clickedPoints[i]);
-        const distance = turf.distance(from, to, {units: 'kilometers'});
-        
-        distancesHTML += `
-            <div class="d-flex mb-2">
-                <div class="me-3 text-primary fw-bold">${i}</div>
-                <div>
-                    <div>From Point ${i} to Point ${i+1}: ${distance.toFixed(2)} km</div>
-                </div>
+    // If no start location is set, set it as start location
+    if (!startLocationMarker) {
+        const el = document.createElement('div');
+        el.className = 'location-marker';
+        el.innerHTML = `
+            <div class="location-marker-content">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="location-marker-tooltip">Start Location</div>
             </div>
         `;
+
+        startLocationMarker = new mapboxgl.Marker(el)
+            .setLngLat(coords)
+            .addTo(map);
+
+        // Update start location input
+        document.getElementById('start-location-input').value = 'Selected Location';
     }
-    
-    // Calculate total distance
-    if (clickedPoints.length > 1) {
-        let totalDistance = 0;
-        for (let i = 1; i < clickedPoints.length; i++) {
-            const from = turf.point(clickedPoints[i-1]);
-            const to = turf.point(clickedPoints[i]);
-            totalDistance += turf.distance(from, to, {units: 'kilometers'});
+    // If start location exists but no destination, set as destination
+    else if (!endLocationMarker) {
+        const el = document.createElement('div');
+        el.className = 'location-marker';
+        el.innerHTML = `
+            <div class="location-marker-content">
+                <i class="fas fa-flag"></i>
+                <div class="location-marker-tooltip">Destination</div>
+            </div>
+        `;
+
+        endLocationMarker = new mapboxgl.Marker(el)
+            .setLngLat(coords)
+            .addTo(map);
+
+        // Update destination input
+        document.getElementById('destination-input').value = 'Selected Location';
+
+        // Calculate route if both points are set
+        calculateRoute({
+            origin: startLocationMarker.getLngLat().toArray(),
+            destination: endLocationMarker.getLngLat().toArray(),
+            profile: document.getElementById('travel-mode').value
+        }).then(routeData => {
+            displayRoute(routeData);
+        }).catch(error => {
+            console.error('Route calculation error:', error);
+            handleNavigationError(error);
+        });
+    }
+}
+
+// Function to get user location
+function getUserLocation() {
+    if (navigator.geolocation) {
+        // Show location permission alert
+        const locationAlert = document.getElementById('location-permission-alert');
+        if (locationAlert) {
+            locationAlert.classList.remove('d-none');
         }
-        
-        distancesHTML += `
-            <div class="d-flex mt-3 fw-bold">
-                <div class="me-3 text-success">Total</div>
-                <div>${totalDistance.toFixed(2)} km</div>
-            </div>
-        `;
-    }
-    
-    distancesContainer.innerHTML = distancesHTML;
-    
-    const distancesElement = document.getElementById('distances');
-    if (distancesElement) {
-        distancesElement.classList.remove('d-none');
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                // Success
+                if (locationAlert) {
+                    locationAlert.classList.add('d-none');
+                }
+
+                const { latitude, longitude } = position.coords;
+
+                // Create marker for user location
+                const el = document.createElement('div');
+                el.className = 'location-marker';
+                el.innerHTML = `
+                    <div class="location-marker-content">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div class="location-marker-tooltip">My Location</div>
+                    </div>
+                `;
+
+                // Remove existing start marker if any
+                if (startLocationMarker) {
+                    startLocationMarker.remove();
+                }
+
+                // Add new marker
+                startLocationMarker = new mapboxgl.Marker(el)
+                    .setLngLat([longitude, latitude])
+                    .addTo(map);
+
+                // Update start location input
+                document.getElementById('start-location-input').value = 'My Location';
+
+                // Center map on user's location
+                map.flyTo({
+                    center: [longitude, latitude],
+                    zoom: 17,
+                    essential: true
+                });
+
+                // Start location tracking
+                startLocationTracking();
+            },
+            (error) => {
+                // Error
+                if (locationAlert) {
+                    locationAlert.classList.add('d-none');
+                }
+                handleGeolocationError(error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        showLocationError('Geolocation is not supported by your browser');
     }
 }
 
-function clearClickedPoints() {
-    console.log('Clearing clicked points');
-    // Remove all markers
-    markers.forEach(marker => marker.remove());
-    markers = [];
-    clickedPoints = [];
-    
-    // Update UI
-    const clickedPointsElement = document.getElementById('clicked-points');
-    const distancesElement = document.getElementById('distances');
-    
-    if (clickedPointsElement) {
-        clickedPointsElement.classList.add('d-none');
-    }
-    
-    if (distancesElement) {
-        distancesElement.classList.add('d-none');
-    }
-}
+// Function to start navigation
 async function startNavigation() {
     console.log('Starting navigation');
+    const startInput = document.getElementById('start-location-input');
     const destinationInput = document.getElementById('destination-input');
     const profileSelect = document.getElementById('travel-mode');
     const errorDisplay = document.getElementById('navigation-error');
     const loadingIndicator = document.getElementById('loading-indicator');
-    
+
     try {
-        // Reset state
         if (errorDisplay) errorDisplay.classList.add('d-none');
         if (loadingIndicator) loadingIndicator.classList.remove('d-none');
-        
-        // First check if we have user location
-        if (!userLocation) {
-            throw new Error("Your location is not available. Please enable location tracking first.");
-        }
-        
-        let destinationCoords;
-        
-        // Check if a destination was entered or if we should use last clicked point
-        if (destinationInput && destinationInput.value.trim()) {
-            // Geocode destination address
-            console.log('Using address:', destinationInput.value);
-            destinationCoords = await geocodeAddress(destinationInput.value);
-        } else if (clickedPoints.length > 0) {
-            // Use the last clicked point as destination
-            console.log('Using last clicked point as destination');
-            destinationCoords = clickedPoints[clickedPoints.length - 1];
+
+        let originCoords, destinationCoords;
+
+        // Get origin coordinates
+        if (startLocationMarker) {
+            originCoords = startLocationMarker.getLngLat().toArray();
+        } else if (userLocation) {
+            originCoords = userLocation;
         } else {
-            throw new Error('Please enter a destination address or click a location on the map');
+            throw new Error('Please set a start location or use your current location');
         }
-        
-        console.log('Origin:', userLocation, 'Destination:', destinationCoords);
-        
-        // Clear previous route before calculating new one
-        clearRoute();
-        
+
+        // Get destination coordinates
+        if (endLocationMarker) {
+            destinationCoords = endLocationMarker.getLngLat().toArray();
+        } else {
+            throw new Error('Please set a destination location');
+        }
+
+        // Remove existing route layer
+        if (map.getSource('route')) {
+            map.removeLayer('route-glow');
+            map.removeLayer('route');
+            map.removeSource('route');
+        }
+
         // Calculate route
         const routeData = await calculateRoute({
-            origin: userLocation,
+            origin: originCoords,
             destination: destinationCoords,
             profile: profileSelect ? profileSelect.value : 'walking'
         });
 
-        console.log('Route data received:', routeData);
+        // Store current route
+        currentRoute = routeData.routes[0];
+        navigationActive = true;
+        currentStepIndex = 0;
 
         // Display results
         displayRoute(routeData);
         showInstructions(routeData.routes[0].legs[0].steps);
+
+        // Show navigation UI
+        document.getElementById('navigation-ui').classList.remove('d-none');
+
+        // Start navigation updates
+        startNavigationUpdates();
+
+        // Ensure markers are visible
+        if (startLocationMarker) {
+            startLocationMarker.getElement().style.zIndex = '1000';
+        }
+        if (endLocationMarker) {
+            endLocationMarker.getElement().style.zIndex = '1000';
+        }
 
     } catch (error) {
         console.error('Navigation error:', error);
@@ -509,40 +862,336 @@ async function startNavigation() {
         if (loadingIndicator) loadingIndicator.classList.add('d-none');
     }
 }
-function updateLocationDisplay(coords) {
-    console.log('Updating location display');
-    const locationInfo = document.getElementById('location-info');
-    const coordinates = document.getElementById('coordinates');
-    const accuracy = document.getElementById('accuracy');
-    const locationStatus = document.getElementById('location-status');
-    
-    if (locationInfo && coordinates && accuracy) {
-        coordinates.textContent = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
-        accuracy.textContent = `Accuracy: ${Math.round(coords.accuracy)}m`;
-        locationInfo.classList.remove('d-none');
+
+function startNavigationUpdates() {
+    if (!navigationActive || !currentRoute) return;
+
+    // Update navigation UI every second
+    const updateInterval = setInterval(() => {
+        if (!navigationActive) {
+            clearInterval(updateInterval);
+            return;
+        }
+
+        updateNavigationUI();
+    }, 1000);
+}
+
+function updateNavigationUI() {
+    if (!currentRoute || !userLocation) return;
+
+    const steps = currentRoute.legs[0].steps;
+    const currentStep = steps[currentStepIndex];
+
+    // Calculate progress
+    const totalDistance = currentRoute.distance;
+    const remainingDistance = calculateRemainingDistance();
+    routeProgress = ((totalDistance - remainingDistance) / totalDistance) * 100;
+
+    // Update progress bar
+    document.getElementById('route-progress').style.width = `${routeProgress}%`;
+
+    // Update next maneuver
+    const nextManeuver = currentStep.maneuver;
+    const nextManeuverIcon = document.getElementById('next-maneuver-icon');
+    const nextManeuverText = document.getElementById('next-maneuver-text');
+    const nextManeuverDistance = document.getElementById('next-maneuver-distance');
+
+    // Set maneuver icon
+    nextManeuverIcon.innerHTML = getManeuverIcon(nextManeuver.type);
+
+    // Set maneuver text and distance
+    nextManeuverText.textContent = nextManeuver.instruction;
+    nextManeuverDistance.textContent = `in ${Math.round(currentStep.distance)} meters`;
+
+    // Update total distance and duration
+    let remainingDistanceText;
+    if (remainingDistance < 1000) {
+        remainingDistanceText = `${Math.round(remainingDistance)} m remaining`;
+    } else {
+        remainingDistanceText = `${(remainingDistance / 1000).toFixed(1)} km remaining`;
     }
-    
-    if (locationStatus) {
-        locationStatus.textContent = 'Location tracking enabled';
-        locationStatus.parentElement.classList.add('text-success');
-        locationStatus.parentElement.classList.remove('text-danger');
+    const remainingMin = Math.ceil(remainingDistance / (totalDistance / (currentRoute.duration / 60)));
+
+    document.getElementById('total-distance').textContent = remainingDistanceText;
+    document.getElementById('total-duration').textContent = `${remainingMin} min remaining`;
+
+    // Check if we need to move to next step
+    if (currentStep.distance < 20) { // Within 20 meters of next maneuver
+        if (currentStepIndex < steps.length - 1) {
+            currentStepIndex++;
+            speak(steps[currentStepIndex].maneuver.instruction);
+        } else {
+            // Reached destination
+            speak('You have reached your destination');
+            navigationActive = false;
+            document.getElementById('navigation-ui').classList.add('d-none');
+        }
     }
 }
 
-// Geolocation handlers
-function handleGeolocation(e) {
-    console.log('Location acquired:', e.coords);
-    userLocation = [e.coords.longitude, e.coords.latitude];
-    updateLocationDisplay(e.coords);
+function getManeuverIcon(type) {
+    const icons = {
+        'turn': 'fa-arrow-right',
+        'straight': 'fa-arrow-up',
+        'left': 'fa-arrow-left',
+        'right': 'fa-arrow-right',
+        'slight left': 'fa-arrow-turn-left',
+        'slight right': 'fa-arrow-turn-right',
+        'sharp left': 'fa-arrow-turn-left',
+        'sharp right': 'fa-arrow-turn-right',
+        'uturn': 'fa-rotate',
+        'arrive': 'fa-flag-checkered'
+    };
+
+    return `<i class="fas ${icons[type] || 'fa-arrow-up'}"></i>`;
 }
 
-function handleGeolocationError(error) {
-    console.error('Geolocation error:', error);
-    const locationStatus = document.getElementById('location-status');
-    if (locationStatus) {
-        locationStatus.textContent = 'Location tracking disabled';
-        locationStatus.classList.remove('text-success');
-        locationStatus.classList.add('text-danger');
+function calculateRemainingDistance() {
+    if (!currentRoute || !userLocation) return 0;
+
+    const steps = currentRoute.legs[0].steps;
+    let remainingDistance = 0;
+
+    // Add distance from current position to next step
+    const currentStep = steps[currentStepIndex];
+    const currentStepCoords = currentStep.maneuver.location;
+    const distanceToNextStep = turf.distance(
+        turf.point(userLocation),
+        turf.point(currentStepCoords),
+        { units: 'meters' }
+    );
+    remainingDistance += distanceToNextStep;
+
+    // Add remaining step distances
+    for (let i = currentStepIndex; i < steps.length; i++) {
+        remainingDistance += steps[i].distance;
+    }
+
+    return remainingDistance;
+}
+
+function displayRoute(routeData) {
+    console.log('Displaying route');
+    if (!routeData.routes?.length) throw new Error('No route found');
+
+    // Clear existing route
+    if (map.getSource('route')) {
+        map.removeLayer('route-glow');
+        map.removeLayer('route');
+        map.removeSource('route');
+    }
+
+    // Get the route coordinates
+    let routeCoordinates = routeData.routes[0].geometry.coordinates;
+
+    // Ensure the route starts and ends exactly at the markers
+    if (startLocationMarker && endLocationMarker) {
+        const startCoords = startLocationMarker.getLngLat().toArray();
+        const endCoords = endLocationMarker.getLngLat().toArray();
+
+        // Add start and end coordinates to ensure connection
+        routeCoordinates = [
+            startCoords,
+            ...routeCoordinates,
+            endCoords
+        ];
+    }
+
+    // Add new route layer with improved styling
+    map.addSource('route', {
+        type: 'geojson',
+        data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+                type: 'LineString',
+                coordinates: routeCoordinates
+            }
+        }
+    });
+
+    // Add the main route line
+    map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#3a86ff',
+            'line-width': 5,
+            'line-opacity': 0.8
+        }
+    });
+
+    // Add a glow effect to the route
+    map.addLayer({
+        id: 'route-glow',
+        type: 'line',
+        source: 'route',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': '#3a86ff',
+            'line-width': 8,
+            'line-opacity': 0.2,
+            'line-blur': 2
+        }
+    });
+
+    // Ensure markers are on top
+    if (startLocationMarker) {
+        startLocationMarker.getElement().style.zIndex = '1000';
+    }
+    if (endLocationMarker) {
+        endLocationMarker.getElement().style.zIndex = '1000';
+    }
+
+    // Update route summary
+    const route = routeData.routes[0];
+    let distanceText;
+    if (route.distance < 1000) {
+        distanceText = `${Math.round(route.distance)} m`;
+    } else {
+        distanceText = `${(route.distance / 1000).toFixed(1)} km`;
+    }
+    const durationMin = Math.ceil(route.duration / 60);
+
+    // Update the route summary display
+    document.getElementById('total-distance').textContent = distanceText;
+    document.getElementById('total-duration').textContent = `${durationMin} min`;
+
+    // Update route info display
+    const routeInfoContainer = document.getElementById('route-info');
+    if (routeInfoContainer) {
+        routeInfoContainer.innerHTML = `
+            <div class="alert alert-info">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="fw-bold">Route Summary</div>
+                    <div class="text-primary">
+                        <i class="fas fa-route"></i>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-road me-2"></i>
+                        <span class="fw-bold">${distanceText}</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-clock me-2"></i>
+                        <span class="fw-bold">${durationMin} min</span>
+                    </div>
+                </div>
+                <div class="mt-2 small text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Estimated time based on ${document.getElementById('travel-mode').value} speed
+                </div>
+            </div>
+        `;
+        routeInfoContainer.classList.remove('d-none');
+    }
+
+    // Fit map to route with padding
+    const bounds = new mapboxgl.LngLatBounds();
+    routeCoordinates.forEach(coord => bounds.extend(coord));
+    map.fitBounds(bounds, {
+        padding: { top: 50, bottom: 50, left: 50, right: 50 },
+        maxZoom: 17
+    });
+
+    console.log('Route displayed successfully');
+}
+
+function showInstructions(steps) {
+    console.log('Displaying instructions');
+    const container = document.getElementById('steps-container');
+    if (!container) {
+        console.warn('Steps container not found');
+        return;
+    }
+
+    container.innerHTML = steps.map((step, index) => {
+        let distanceText;
+        if (step.distance < 1000) {
+            distanceText = `${Math.round(step.distance)} m`;
+        } else {
+            distanceText = `${(step.distance / 1000).toFixed(1)} km`;
+        }
+        return `
+            <div class="d-flex mb-2">
+                <div class="me-3 text-primary fw-bold">${index + 1}</div>
+                <div>
+                    <div>${step.maneuver.instruction}</div>
+                    <small class="text-muted">${distanceText} · ${Math.ceil(step.duration / 60)} min</small>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const instructionsElement = document.getElementById('navigation-instructions');
+    if (instructionsElement) {
+        instructionsElement.classList.remove('d-none');
+    }
+}
+
+function clearRoute() {
+    // Remove route layers
+    if (map.getSource('route')) {
+        map.removeLayer('route-glow');
+        map.removeLayer('route');
+        map.removeSource('route');
+    }
+
+    // Remove markers
+    if (startLocationMarker) {
+        startLocationMarker.remove();
+        startLocationMarker = null;
+    }
+    if (endLocationMarker) {
+        endLocationMarker.remove();
+        endLocationMarker = null;
+    }
+
+    // Clear input fields
+    document.getElementById('start-location-input').value = '';
+    document.getElementById('destination-input').value = '';
+
+    // Hide UI elements
+    const instructionsElement = document.getElementById('navigation-instructions');
+    const routeInfoElement = document.getElementById('route-info');
+    const navigationUI = document.getElementById('navigation-ui');
+
+    if (instructionsElement) {
+        instructionsElement.classList.add('d-none');
+    }
+
+    if (routeInfoElement) {
+        routeInfoElement.classList.add('d-none');
+    }
+
+    if (navigationUI) {
+        navigationUI.classList.add('d-none');
+    }
+
+    // Reset navigation state
+    navigationActive = false;
+    currentRoute = null;
+    currentStepIndex = 0;
+    routeProgress = 0;
+}
+
+function handleNavigationError(error, displayElement) {
+    console.error('Navigation error:', error);
+    if (displayElement) {
+        displayElement.textContent = error.message || 'An unknown error occurred';
+        displayElement.classList.remove('d-none');
+    } else {
+        alert(error.message || 'Navigation error occurred');
     }
 }
 
@@ -554,14 +1203,14 @@ async function geocodeAddress(address) {
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?` +
             `access_token=${mapboxgl.accessToken}&country=ZA`
         );
-        
+
         if (!response.ok) throw new Error('Geocoding failed');
-        
+
         const data = await response.json();
         console.log('Geocoding response:', data);
-        
+
         if (!data.features?.length) throw new Error('Location not found');
-        
+
         return data.features[0].geometry.coordinates;
     } catch (error) {
         console.error('Geocoding error:', error);
@@ -575,19 +1224,26 @@ async function calculateRoute({ origin, destination, profile }) {
         // Make sure origin and destination are arrays
         const originCoords = Array.isArray(origin) ? origin : origin.split(',').map(Number);
         const destCoords = Array.isArray(destination) ? destination : destination.split(',').map(Number);
-        
+
         const csrfToken = document.querySelector('meta[name="csrf-token"]');
         if (!csrfToken) {
             console.error('CSRF token not found');
             throw new Error('Security token missing. Please refresh the page and try again.');
         }
-        
+
+        // Map the profile to the correct Mapbox profile
+        const mapboxProfile = {
+            'walking': 'walking',
+            'driving': 'driving',
+            'cycling': 'cycling'
+        }[profile] || 'walking';
+
         console.log('Sending route request with params:', {
             origin: `${originCoords[0]},${originCoords[1]}`,
             destination: `${destCoords[0]},${destCoords[1]}`,
-            profile: profile
+            profile: mapboxProfile
         });
-        
+
         const response = await fetch('/technician/route', {
             method: 'POST',
             headers: {
@@ -597,206 +1253,448 @@ async function calculateRoute({ origin, destination, profile }) {
             body: JSON.stringify({
                 origin: `${originCoords[0]},${originCoords[1]}`,
                 destination: `${destCoords[0]},${destCoords[1]}`,
-                profile: profile
+                profile: mapboxProfile
             })
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Route API error:', response.status, errorText);
-            throw new Error(`Route calculation failed: ${response.status} ${errorText}`);
-        }
-        
         const data = await response.json();
+
+        if (!response.ok) {
+            console.error('Route API error:', response.status, data);
+            const errorMessage = data.error || data.message || 'Failed to calculate route';
+
+            // Show error in UI
+            const errorDisplay = document.getElementById('navigation-error');
+            if (errorDisplay) {
+                errorDisplay.textContent = errorMessage;
+                errorDisplay.classList.remove('d-none');
+
+                // Add suggestion for long routes
+                if (errorMessage.includes('too long')) {
+                    errorDisplay.innerHTML += `
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Try selecting points closer together or use a different travel mode.
+                            </small>
+                        </div>
+                    `;
+                }
+            }
+
+            throw new Error(errorMessage);
+        }
+
         console.log('Route API response:', data);
-        
+
         if (!data.routes || data.routes.length === 0) {
             throw new Error('No route found between these points');
         }
-        
+
+        // Validate the route based on travel mode
+        const route = data.routes[0];
+        const distanceKm = route.distance / 1000;
+
+        // Add distance limits for different travel modes
+        const distanceLimits = {
+            'walking': 5, // 5 km for walking
+            'cycling': 15, // 15 km for cycling
+            'driving': 50 // 50 km for driving
+        };
+
+        if (distanceKm > distanceLimits[mapboxProfile]) {
+            throw new Error(`Route is too long for ${profile} mode. Please try a different travel mode or select closer points.`);
+        }
+
         return data;
-        
+
     } catch (error) {
         console.error('Route calculation error:', error);
-        throw new Error('Failed to calculate route. Please check your connection and try again.');
-    }
-}
-
-function displayRoute(routeData) {
-    console.log('Displaying route');
-    if (!routeData.routes?.length) throw new Error('No route found');
-    
-    // Clear existing route
-    if (map.getSource('route')) {
-        map.removeLayer('route');
-        map.removeSource('route');
-    }
-
-    // Add new route layer
-    map.addSource('route', {
-        type: 'geojson',
-        data: {
-            type: 'Feature',
-            properties: {},
-            geometry: routeData.routes[0].geometry
+        const errorDisplay = document.getElementById('navigation-error');
+        if (errorDisplay) {
+            errorDisplay.textContent = error.message;
+            errorDisplay.classList.remove('d-none');
         }
-    });
-
-    map.addLayer({
-        id: 'route',
-        type: 'line',
-        source: 'route',
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        paint: {
-            'line-color': '#3a86ff',
-            'line-width': 4,
-            'line-opacity': 0.7
-        }
-    });
-
-    // Add markers for start and end points
-    const coordinates = routeData.routes[0].geometry.coordinates;
-    
-    // Start marker (blue)
-    const startMarker = new mapboxgl.Marker({ color: "#3a86ff" })
-        .setLngLat(coordinates[0])
-        .addTo(map);
-    
-    // End marker (green)
-    const endMarker = new mapboxgl.Marker({ color: "#10b981" })
-        .setLngLat(coordinates[coordinates.length - 1])
-        .addTo(map);
-    
-    // Store markers to clear them later
-    markers.push(startMarker, endMarker);
-    
-    // Update route info display
-    updateRouteInfo(routeData.routes[0]);
-
-    // Fit map to route
-    const bounds = new mapboxgl.LngLatBounds();
-    routeData.routes[0].geometry.coordinates.forEach(coord => bounds.extend(coord));
-    map.fitBounds(bounds, { padding: 50 });
-    
-    console.log('Route displayed successfully');
-}
-
-function updateRouteInfo(route) {
-    const routeInfoContainer = document.getElementById('route-info');
-    if (!routeInfoContainer) {
-        console.warn('Route info container not found');
-        return;
-    }
-    
-    // Calculate total distance and duration
-    const distanceKm = route.distance / 1000;
-    const durationMin = route.duration / 60;
-    
-    routeInfoContainer.innerHTML = `
-        <div class="alert alert-info">
-            <div class="fw-bold mb-2">Route Summary:</div>
-            <div>Distance: ${distanceKm.toFixed(2)} km</div>
-            <div>Duration: ${Math.floor(durationMin)} min</div>
-        </div>
-    `;
-    
-    routeInfoContainer.classList.remove('d-none');
-}
-
-function showInstructions(steps) {
-    console.log('Displaying instructions');
-    const container = document.getElementById('steps-container');
-    if (!container) {
-        console.warn('Steps container not found');
-        return;
-    }
-    
-    container.innerHTML = steps.map((step, index) => `
-        <div class="d-flex mb-2">
-            <div class="me-3 text-primary fw-bold">${index + 1}</div>
-            <div>
-                <div>${step.maneuver.instruction}</div>
-                <small class="text-muted">${(step.distance / 1000).toFixed(1)} km · ${Math.ceil(step.duration / 60)} min</small>
-            </div>
-        </div>
-    `).join('');
-    
-    const instructionsElement = document.getElementById('navigation-instructions');
-    if (instructionsElement) {
-        instructionsElement.classList.remove('d-none');
-    }
-}
-
-function clearRoute() {
-    console.log('Clearing route');
-    // Remove route layer
-    if (map.getSource('route')) {
-        map.removeLayer('route');
-        map.removeSource('route');
-    }
-    
-    // Remove route markers (but keep clicked point markers)
-    const clickedPointsCount = clickedPoints.length;
-    if (markers.length > clickedPointsCount) {
-        markers.slice(clickedPointsCount).forEach(marker => marker.remove());
-        markers = markers.slice(0, clickedPointsCount);
-    }
-    
-    // Hide UI elements
-    const instructionsElement = document.getElementById('navigation-instructions');
-    const routeInfoElement = document.getElementById('route-info');
-    
-    if (instructionsElement) {
-        instructionsElement.classList.add('d-none');
-    }
-    
-    if (routeInfoElement) {
-        routeInfoElement.classList.add('d-none');
-    }
-}
-
-function updateLocationDisplay(coords) {
-    console.log('Updating location display');
-    const locationInfo = document.getElementById('location-info');
-    const coordinates = document.getElementById('coordinates');
-    const accuracy = document.getElementById('accuracy');
-    const locationStatus = document.getElementById('location-status');
-    
-    if (locationInfo && coordinates && accuracy) {
-        coordinates.textContent = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
-        accuracy.textContent = `Accuracy: ${Math.round(coords.accuracy)}m`;
-        locationInfo.classList.remove('d-none');
-    }
-    
-    if (locationStatus) {
-        locationStatus.textContent = 'Location tracking enabled';
-        locationStatus.classList.add('text-success');
-        locationStatus.classList.remove('text-danger');
-    }
-}
-
-function handleNavigationError(error, displayElement) {
-    console.error('Navigation error:', error);
-    if (displayElement) {
-        displayElement.textContent = error.message || 'An unknown error occurred';
-        displayElement.classList.remove('d-none');
-    } else {
-        alert(error.message || 'Navigation error occurred');
+        throw error;
     }
 }
 
 // Initialize map when DOM is ready
 document.addEventListener('DOMContentLoaded', initMap);
+
+// Function to handle location selection
+function handleLocationSelection(lat, lng, buildingName, floorNumber, roomNumber, isStartLocation) {
+    console.log('Handling location selection:', { lat, lng, buildingName, floorNumber, roomNumber, isStartLocation });
+
+    // Validate coordinates
+    if (isNaN(lat) || isNaN(lng)) {
+        console.error('Invalid coordinates:', { lat, lng });
+        return;
+    }
+
+    // Create marker element with label
+    const el = document.createElement('div');
+    el.className = 'location-marker';
+    el.innerHTML = `
+        <div class="location-marker-content">
+            <i class="fas ${isStartLocation ? 'fa-map-marker-alt' : 'fa-flag'}"></i>
+            <div class="location-marker-tooltip">${buildingName}${floorNumber ? `, Floor ${floorNumber}` : ''}${roomNumber ? `, Room ${roomNumber}` : ''}</div>
+        </div>
+    `;
+
+    // Remove existing marker
+    if (isStartLocation) {
+        if (startLocationMarker) {
+            startLocationMarker.remove();
+        }
+        startLocationMarker = new mapboxgl.Marker(el)
+            .setLngLat([parseFloat(lng), parseFloat(lat)])
+            .addTo(map);
+
+        // Update start location input
+        document.getElementById('start-location-input').value = `${buildingName}${floorNumber ? `, Floor ${floorNumber}` : ''}${roomNumber ? `, Room ${roomNumber}` : ''}`;
+        document.getElementById('start-location-results').classList.add('d-none');
+    } else {
+        if (endLocationMarker) {
+            endLocationMarker.remove();
+        }
+        endLocationMarker = new mapboxgl.Marker(el)
+            .setLngLat([parseFloat(lng), parseFloat(lat)])
+            .addTo(map);
+
+        // Update destination input
+        document.getElementById('destination-input').value = `${buildingName}${floorNumber ? `, Floor ${floorNumber}` : ''}${roomNumber ? `, Room ${roomNumber}` : ''}`;
+        document.getElementById('destination-results').classList.add('d-none');
+    }
+
+    // Center map on selected location
+    map.flyTo({
+        center: [parseFloat(lng), parseFloat(lat)],
+        zoom: 17,
+        essential: true
+    });
+
+    // Calculate route if both points are set
+    if (startLocationMarker && endLocationMarker) {
+        calculateRoute({
+            origin: startLocationMarker.getLngLat().toArray(),
+            destination: endLocationMarker.getLngLat().toArray(),
+            profile: document.getElementById('travel-mode').value
+        });
+    }
+}
+
+// Function to handle location search
+async function searchLocations(query, resultsContainer, isStartLocation) {
+    console.log('Searching locations:', { query, isStartLocation });
+
+    if (query.length < 2) {
+        resultsContainer.classList.add('d-none');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/technician/search-locations?query=${encodeURIComponent(query)}`);
+        const buildings = await response.json();
+
+        resultsContainer.innerHTML = '';
+
+        if (buildings.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="list-group-item text-muted">
+                    No buildings found
+                </div>
+            `;
+        } else {
+            buildings.forEach(building => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${building.building_name}</h6>
+                        </div>
+                        <button class="btn btn-sm btn-primary select-location"
+                                data-lat="${building.latitude}"
+                                data-lng="${building.longitude}"
+                                data-building="${building.building_name}">
+                            Select
+                        </button>
+                    </div>
+                `;
+
+                // Add click handler for the select button
+                const selectButton = item.querySelector('.select-location');
+                selectButton.addEventListener('click', () => {
+                    const lat = parseFloat(selectButton.dataset.lat);
+                    const lng = parseFloat(selectButton.dataset.lng);
+                    const buildingName = selectButton.dataset.building;
+
+                    if (isNaN(lat) || isNaN(lng)) {
+                        console.error('Invalid coordinates:', { lat, lng });
+                        return;
+                    }
+
+                    handleLocationSelection(lat, lng, buildingName, null, null, isStartLocation);
+                });
+
+                resultsContainer.appendChild(item);
+            });
+        }
+
+        resultsContainer.classList.remove('d-none');
+    } catch (error) {
+        console.error('Error searching buildings:', error);
+        resultsContainer.innerHTML = `
+            <div class="list-group-item text-danger">
+                Error searching buildings
+            </div>
+        `;
+        resultsContainer.classList.remove('d-none');
+    }
+}
+
+// Function to load all locations
+async function loadAllLocations() {
+    console.log('Loading all buildings');
+    try {
+        const response = await fetch('/technician/search-locations?query=');
+        const buildings = await response.json();
+
+        const allLocationsList = document.getElementById('all-locations-list');
+        allLocationsList.innerHTML = '';
+
+        if (buildings.length === 0) {
+            allLocationsList.innerHTML = `
+                <div class="list-group-item text-muted">
+                    No buildings found
+                </div>
+            `;
+            return;
+        }
+
+        buildings.forEach(building => {
+            // Validate coordinates before creating the item
+            if (!building.latitude || !building.longitude) {
+                console.error('Building missing coordinates:', building);
+                return;
+            }
+
+            const item = document.createElement('div');
+            item.className = 'list-group-item';
+            item.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">${building.building_name}</h6>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary set-start-location"
+                                data-lat="${building.latitude}"
+                                data-lng="${building.longitude}"
+                                data-building="${building.building_name}">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger set-end-location"
+                                data-lat="${building.latitude}"
+                                data-lng="${building.longitude}"
+                                data-building="${building.building_name}">
+                            <i class="fas fa-flag"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Add click handlers for the buttons
+            const startButton = item.querySelector('.set-start-location');
+            const endButton = item.querySelector('.set-end-location');
+
+            startButton.addEventListener('click', () => {
+                const lat = parseFloat(startButton.dataset.lat);
+                const lng = parseFloat(startButton.dataset.lng);
+                const buildingName = startButton.dataset.building;
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    console.error('Invalid coordinates from button:', { lat, lng });
+                    return;
+                }
+
+                handleLocationSelection(lat, lng, buildingName, null, null, true);
+            });
+
+            endButton.addEventListener('click', () => {
+                const lat = parseFloat(endButton.dataset.lat);
+                const lng = parseFloat(endButton.dataset.lng);
+                const buildingName = endButton.dataset.building;
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    console.error('Invalid coordinates from button:', { lat, lng });
+                    return;
+                }
+
+                handleLocationSelection(lat, lng, buildingName, null, null, false);
+            });
+
+            allLocationsList.appendChild(item);
+        });
+
+    } catch (error) {
+        console.error('Error loading buildings:', error);
+        const allLocationsList = document.getElementById('all-locations-list');
+        allLocationsList.innerHTML = `
+            <div class="list-group-item text-danger">
+                Error loading buildings
+            </div>
+        `;
+    }
+}
+
+// Add event listeners for search inputs
+document.addEventListener('DOMContentLoaded', () => {
+    const startLocationInput = document.getElementById('start-location-input');
+    const startLocationResults = document.getElementById('start-location-results');
+    const destinationInput = document.getElementById('destination-input');
+    const destinationResults = document.getElementById('destination-results');
+    const useMyLocationBtn = document.getElementById('get-user-location');
+
+    let startSearchTimeout, destSearchTimeout;
+
+    // Add click handler for "Use My Location" button
+    if (useMyLocationBtn) {
+        useMyLocationBtn.addEventListener('click', () => {
+            getUserLocation();
+        });
+    }
+
+    startLocationInput.addEventListener('input', function(e) {
+        clearTimeout(startSearchTimeout);
+        startSearchTimeout = setTimeout(() => {
+            searchLocations(e.target.value, startLocationResults, true);
+        }, 300);
+    });
+
+    destinationInput.addEventListener('input', function(e) {
+        clearTimeout(destSearchTimeout);
+        destSearchTimeout = setTimeout(() => {
+            searchLocations(e.target.value, destinationResults, false);
+        }, 300);
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!startLocationResults.contains(e.target) && e.target !== startLocationInput) {
+            startLocationResults.classList.add('d-none');
+        }
+        if (!destinationResults.contains(e.target) && e.target !== destinationInput) {
+            destinationResults.classList.add('d-none');
+        }
+    });
+
+    // Load all locations
+    loadAllLocations();
+});
+
+// Add styles for location markers
+const style = document.createElement('style');
+style.textContent = `
+    .location-marker {
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        background-color: #4285F4;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .location-marker-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .location-marker-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        white-space: nowrap;
+        display: none;
+        z-index: 1;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: #333;
+    }
+
+    .location-marker:hover .location-marker-tooltip {
+        display: block;
+    }
+
+    .location-marker i {
+        font-size: 16px;
+    }
+
+    .mapboxgl-popup-content {
+        padding: 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .mapboxgl-popup-close-button {
+        padding: 4px 8px;
+        font-size: 16px;
+        color: #666;
+    }
+`;
+document.head.appendChild(style);
+
+// Update the travel mode select options
+document.addEventListener('DOMContentLoaded', () => {
+    const travelModeSelect = document.getElementById('travel-mode');
+    if (travelModeSelect) {
+        travelModeSelect.innerHTML = `
+            <option value="walking">Walking (up to 5 km)</option>
+            <option value="cycling">Cycling (up to 15 km)</option>
+            <option value="driving">Driving (up to 50 km)</option>
+        `;
+    }
+});
+
+// Add event listener for travel mode changes
+document.addEventListener('DOMContentLoaded', () => {
+    const travelModeSelect = document.getElementById('travel-mode');
+    if (travelModeSelect) {
+        travelModeSelect.addEventListener('change', () => {
+            if (startLocationMarker && endLocationMarker) {
+                calculateRoute({
+                    origin: startLocationMarker.getLngLat().toArray(),
+                    destination: endLocationMarker.getLngLat().toArray(),
+                    profile: travelModeSelect.value
+                }).then(routeData => {
+                    displayRoute(routeData);
+                }).catch(error => {
+                    console.error('Route calculation error:', error);
+                    handleNavigationError(error);
+                });
+            }
+        });
+    }
+});
 </script>
 @endpush
-
 @push('styles')
 <style>
-#map { height: 75vh; width: 100%; }
-.navigation-controls { height: 75vh; overflow-y: auto; }
+#map { height: 85vh; width: 100% !important; }
+.navigation-controls { height: 85vh; overflow-y: auto; }
 #navigation-instructions { max-height: 300px; overflow-y: auto; }
 #loading-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; }
 .mapboxgl-ctrl-geolocate { margin: 10px; }
@@ -814,7 +1712,9 @@ document.addEventListener('DOMContentLoaded', initMap);
     font-size: 0.85rem;
     z-index: 100;
 }
-
+.container-fluid{
+    width: 100%;
+}
 .location-tracking-button {
     z-index: 100;
     background-color: white;
@@ -829,5 +1729,36 @@ document.addEventListener('DOMContentLoaded', initMap);
 .location-tracking-button:hover {
     background-color: #f0f0f0;
 }
+
+#navigation-ui {
+    z-index: 1000;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+#next-maneuver-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(66, 133, 244, 0.1);
+    border-radius: 50%;
+}
+
+.progress {
+    background-color: rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    background-color: #4285F4;
+    transition: width 0.3s ease;
+}
+
+#location-permission-alert {
+    max-width: 400px;
+    width: 90%;
+}
 </style>
 @endpush
+
+

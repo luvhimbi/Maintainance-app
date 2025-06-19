@@ -3,109 +3,55 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('user_role', 'Student');
-        
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where(function($q) use ($search) {
-                $q->where('username', 'like', "%$search%")
-                  ->orWhere('email', 'like', "%$search%")
-                  ->orWhere('phone_number', 'like', "%$search%");
-            });
+        $search = $request->input('search');
+        if ($search) {
+            // Use Scout for case-insensitive search on User and Student models
+            $searchLower = mb_strtolower($search);
+            $userResults = \App\Models\User::search($searchLower)
+                ->where('user_role', 'Student')
+                ->get()
+                ->load('studentDetail');
+
+            $studentResults = \App\Models\Student::search($searchLower)
+                ->with('user')
+                ->get();
+
+            // Merge unique users from both sources
+            $userIds = $userResults->pluck('user_id')->merge($studentResults->pluck('user_id'))->unique();
+            $students = \App\Models\User::whereIn('user_id', $userIds)
+                ->with('studentDetail')
+                ->get();
+
+            // Paginate manually
+            $perPage = 5;
+            $page = $request->input('page', 1);
+            $students = new \Illuminate\Pagination\LengthAwarePaginator(
+                $students->forPage($page, $perPage),
+                $students->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            $students = \App\Models\User::where('user_role', 'Student')
+                ->with('studentDetail')
+                ->paginate(5);
         }
-        
-        if ($request->has('status')) {
-            $query->where('status', $request->input('status'));
-        }
-        
-        $students = $query->orderBy('username')->paginate(10);
-        
-        return view('admin.students.index', compact('students'));
+
+        return view('admin.Students.index', compact('students'));
     }
 
-    public function create()
+
+    public function show($id)
     {
-        return view('admin.students.create');
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'username' => 'required|string|max:50|unique:users',
-            'email' => 'required|email|max:200|unique:users',
-            'phone_number' => 'nullable|string|max:20|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'status' => 'required|in:Active,Inactive,Suspended'
-        ]);
-
-        User::create([
-            'username' => $validated['username'],
-            'email' => $validated['email'],
-            'phone_number' => $validated['phone_number'],
-            'password_hash' => bcrypt($validated['password']),
-            'status' => $validated['status'],
-            'user_role' => 'Student'
-        ]);
-
-        return redirect()->route('admin.students.index')
-            ->with('success', 'Student created successfully');
-    }
-
-    public function edit(User $student)
-    {
-        $this->authorizeStudent($student);
-        return view('admin.students.edit', compact('student'));
-    }
-
-    public function update(Request $request, User $student)
-    {
-        $this->authorizeStudent($student);
-        
-        $validated = $request->validate([
-            'username' => 'required|string|max:50|unique:users,username,'.$student->user_id.',user_id',
-            'email' => 'required|email|max:200|unique:users,email,'.$student->user_id.',user_id',
-            'phone_number' => 'nullable|string|max:20|unique:users,phone_number,'.$student->user_id.',user_id',
-            'password' => 'nullable|string|min:8|confirmed',
-            'status' => 'required|in:Active,Inactive,Suspended'
-        ]);
-
-        $updateData = [
-            'username' => $validated['username'],
-            'email' => $validated['email'],
-            'phone_number' => $validated['phone_number'],
-            'status' => $validated['status']
-        ];
-        
-        if ($request->filled('password')) {
-            $updateData['password_hash'] = bcrypt($validated['password']);
-        }
-        
-        $student->update($updateData);
-
-        return redirect()->route('admin.students.index')
-            ->with('success', 'Student updated successfully');
-    }
-
-    public function destroy(User $student)
-    {
-        $this->authorizeStudent($student);
-        $student->delete();
-        
-        return redirect()->route('admin.students.index')
-            ->with('success', 'Student deleted successfully');
-    }
-
-    protected function authorizeStudent(User $user)
-    {
-        if ($user->user_role !== 'Student') {
-            abort(403, 'This user is not a student');
-        }
+        $student = User::findOrFail($id);
+        return view('admin.students.show', compact('student'));
     }
 }

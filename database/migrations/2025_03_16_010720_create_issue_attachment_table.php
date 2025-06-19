@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('issue_attachment', function (Blueprint $table) {
-            $table->id('attachment_id'); // Auto-incrementing primary key
-            $table->unsignedBigInteger('issue_id'); // Foreign key to issue table
-            $table->string('file_path', 255); // Path to the file
-            $table->string('original_name', 255); // Original file name
-            $table->string('mime_type', 50); // MIME type (e.g., image/jpeg, application/pdf)
-            $table->integer('file_size'); // File size in bytes
-            $table->string('storage_disk', 50)->default('local'); // Storage disk (e.g., local, s3)
-            $table->dateTime('upload_date')->useCurrent(); // Timestamp for upload
-            $table->timestamps(); // Adds created_at and updated_at columns
+            $table->id('attachment_id'); 
+            $table->unsignedBigInteger('issue_id');
+            $table->string('file_path', 255); 
+            $table->string('original_name', 255); 
+            $table->string('mime_type', 50); 
+            $table->integer('file_size'); 
+            $table->string('storage_disk', 50)->default('local'); 
+            $table->dateTime('upload_date')->useCurrent(); 
+            $table->timestamps();
 
             // Foreign key constraint
             $table->foreign('issue_id')->references('issue_id')->on('issue')->onDelete('cascade');

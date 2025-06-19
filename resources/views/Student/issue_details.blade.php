@@ -1,98 +1,308 @@
-@extends('layouts.StudentNavbar')
+@extends('Layouts.StudentNavbar')
 @section('title', 'Issue Details')
 @section('content')
-<div class="container mt-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <h1 class="h3 fw-bold mb-2 mb-md-0">Issue Details</h1>
-        <a href="{{ route('home') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Back to  dashboard?
-        </a>
-    </div>
-
-    <div class="card shadow-sm border-0 rounded-3 mb-4">
-        <div class="card-header bg-light py-3">
-            <div class="row align-items-center">
-                <div class="col-12 col-md-8">
-                    <h4 class="card-title mb-0">
-                        <i class="fas fa-exclamation-circle me-2 text-primary"></i>{{ $issue->issue_type }}
-                    </h4>
+    <div class="container-fluid px-4 py-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-4 me-3">
+                    <i class="fas fa-exclamation-circle text-primary fs-4"></i>
                 </div>
-                <div class="col-12 col-md-4 mt-2 mt-md-0 text-md-end">
-                    <span class="me-2"><i class="fas fa-calendar-alt me-1"></i> Reported: {{ \Carbon\Carbon::parse($issue->report_date)->format('M d, Y') }}</span>
+                <div>
+                    <h1 class="h3 fw-bold mb-1">Issue Details</h1>
+                    <p class="text-muted mb-0">View and track your reported issue</p>
                 </div>
             </div>
+            <a href="{{ route('Student.dashboard') }}" class="btn btn-outline-primary rounded-pill px-4 py-2">
+                <i class="fas fa-arrow-left me-2"></i> Back to dashboard
+            </a>
         </div>
 
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-8 mb-4 mb-md-0">
-                    <div class="mb-4">
-                        <h5 class="text-muted fs-6">Location</h5>
-                        <p class="card-text fs-5">
-                            <i class="fas fa-map-marker-alt me-2 text-secondary"></i>
-                            {{ $issue->location->building_name ?? 'unknown building name'}}, Room {{ $issue->location->room_number ??'unknown room no' }}
-                        </p>
-                    </div>
-
-                    <div class="mb-4">
-                        <h5 class="text-muted fs-6">Description</h5>
-                        <p class="card-text">{{ $issue->issue_description }}</p>
-                    </div>
-
-                    <div class="row g-3 mb-4">
-                        <div class="col-6">
-                            <h5 class="text-muted fs-6">Status</h5>
-                            <div>
-                                @if($issue->issue_status == 'Open')
-                                    <span class="badge bg-primary">Open</span>
-                                @elseif($issue->issue_status == 'In Progress')
-                                    <span class="badge bg-warning text-dark">In Progress</span>
-                                @elseif($issue->issue_status == 'Resolved')
-                                    <span class="badge bg-success">Resolved</span>
-                                @endif
+        <div class="row g-4">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 rounded-4 mb-4">
+                    <div class="card-header bg-white py-4 px-4 border-bottom-0">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                            <div class="d-flex align-items-center mb-3 mb-md-0">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-4 me-3">
+                                    <i class="fas fa-exclamation-circle text-primary fs-4"></i>
+                                </div>
+                                <div>
+                                    <h4 class="card-title mb-1 fw-bold text-dark">{{ $issue->issue_type }}</h4>
+                                    <p class="text-muted small mb-0">
+                                        <i class="fas fa-map-marker-alt text-muted me-1"></i>
+                                        {{ $issue->building->building_name ?? 'Unknown' }},
+                                        Floor {{ $issue->floor->floor_number ?? 'Unknown' }},
+                                        Room {{ $issue->room->room_number ?? 'Unknown' }}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-6">
-                            <h5 class="text-muted fs-6">Urgency</h5>
-                            <div>
-                                @if($issue->urgency_level == 'Low')
-                                    <span class="badge bg-success">Low</span>
-                                @elseif($issue->urgency_level == 'Medium')
-                                    <span class="badge bg-warning text-dark">Medium</span>
-                                @elseif($issue->urgency_level == 'High')
-                                    <span class="badge bg-danger">High</span>
-                                @endif
+                            <div class="d-flex align-items-center">
+                                <span class="badge rounded-pill me-2 py-2 px-3 fw-medium
+                                    @if($issue->urgency_level == 'High') bg-danger-subtle text-danger
+                                    @elseif($issue->urgency_level == 'Medium') bg-warning-subtle text-warning
+                                    @else bg-success-subtle text-success
+                                    @endif">
+                                    <i class="fas fa-flag me-1"></i>
+                                    {{ $issue->urgency_level }} Priority
+                                </span>
+                                <span class="text-muted small ms-3">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ $issue->created_at ? \Carbon\Carbon::parse($issue->created_at)->format('M d, Y H:i') : 'N/A' }}
+                                </span>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-md-4">
-                    <div class="card bg-light border-0 rounded-3 mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title fs-6">
-                                <i class="fas fa-user-cog me-2"></i>Assigned Technician
+                    <div class="card-body p-4">
+                        <!-- Issue Description -->
+                        <div class="mb-5">
+                            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center">
+                                <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
+                                    <i class="fas fa-align-left"></i>
+                                </span>
+                                Issue Description
                             </h5>
-                            @if ($issue->task && $issue->task->assignee)
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; flex-shrink: 0;">
-                                        {{ substr($issue->task->assignee->username, 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <p class="mb-0 fw-bold">{{ $issue->task->assignee->username }}</p>
+                            <div class="ps-4 ms-3 border-start border-2 border-primary bg-light bg-opacity-50 p-4 rounded-3">
+                                <p class="card-text text-dark mb-0">{{ $issue->issue_description }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Issue Details -->
+                        <div class="mb-5">
+                            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center">
+                                <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
+                                    <i class="fas fa-info-circle"></i>
+                                </span>
+                                Issue Details
+                            </h5>
+                            <div class="row g-3">
+                                <!-- Status Card -->
+                                <div class="col-md-6">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-3">
+                                                    <i class="fas fa-tag"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="small text-muted mb-1">Status</p>
+                                                    <p class="mb-0 fw-bold">
+                                                        @php
+                                                            $statusBadgeClass = '';
+                                                            $statusIconClass = '';
+                                                            switch($issue->issue_status) {
+                                                                case 'Open':
+                                                                    $statusBadgeClass = 'bg-info-subtle text-info';
+                                                                    $statusIconClass = 'fa-folder-open';
+                                                                    break;
+                                                                case 'In Progress':
+                                                                    $statusBadgeClass = 'bg-primary-subtle text-primary';
+                                                                    $statusIconClass = 'fa-spinner fa-spin';
+                                                                    break;
+                                                                case 'Resolved':
+                                                                    $statusBadgeClass = 'bg-success-subtle text-success';
+                                                                    $statusIconClass = 'fa-check-circle';
+                                                                    break;
+                                                                case 'Closed':
+                                                                    $statusBadgeClass = 'bg-secondary-subtle text-secondary';
+                                                                    $statusIconClass = 'fa-times-circle';
+                                                                    break;
+                                                                default:
+                                                                    $statusBadgeClass = 'bg-secondary-subtle text-secondary';
+                                                                    $statusIconClass = 'fa-question-circle';
+                                                                    break;
+                                                            }
+                                                        @endphp
+                                                        <span class="badge rounded-pill {{ $statusBadgeClass }} py-2 px-3 fw-medium">
+                                                            <i class="fas {{ $statusIconClass }} me-1"></i> {{ $issue->issue_status }}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="ms-1 ps-1 border-start">
-                                    <p class="mb-1 small">
-                                        <i class="fas fa-envelope me-2 text-secondary"></i>{{ $issue->task->assignee->email }}
-                                    </p>
-                                    <p class="mb-0 small">
-                                        <i class="fas fa-phone me-2 text-secondary"></i>{{ $issue->task->assignee->phone_number }}
-                                    </p>
+
+                                <!-- Safety Hazard Card -->
+                                <div class="col-md-6">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-danger bg-opacity-10 text-danger p-2 rounded-3 me-3">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="small text-muted mb-1">Safety Hazard</p>
+                                                    <p class="mb-0 fw-bold text-dark">
+                                                        {{ $issue->safety_hazard ? 'Yes' : 'No' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Affects Operations Card -->
+                                <div class="col-md-6">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-3 me-3">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="small text-muted mb-1">Affects Operations</p>
+                                                    <p class="mb-0 fw-bold text-dark">
+                                                        {{ $issue->affects_operations ? 'Yes' : 'No' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Affected Areas Card -->
+                                <div class="col-md-6">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-info bg-opacity-10 text-info p-2 rounded-3 me-3">
+                                                    <i class="fas fa-layer-group"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="small text-muted mb-1">Affected Areas</p>
+                                                    <p class="mb-0 fw-bold text-dark">{{ $issue->affected_areas }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if($issue->issue_type == 'PC')
+                                    <!-- PC Number Card -->
+                                    <div class="col-md-6">
+                                        <div class="card border-0 bg-light h-100">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-purple bg-opacity-10 text-purple p-2 rounded-3 me-3">
+                                                        <i class="fas fa-desktop"></i>
+                                                    </div>
+                                                    <div>
+                                                        <p class="small text-muted mb-1">PC Number</p>
+                                                        <p class="mb-0 fw-bold text-dark">{{ $issue->pc_number ?? 'N/A' }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Critical Work Card -->
+                                    <div class="col-md-6">
+                                        <div class="card border-0 bg-light h-100">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-3 me-3">
+                                                        <i class="fas fa-briefcase"></i>
+                                                    </div>
+                                                    <div>
+                                                        <p class="small text-muted mb-1">Critical Work Affected</p>
+                                                        <p class="mb-0 fw-bold text-dark">
+                                                            {{ $issue->critical_work_affected ? 'Yes' : 'No' }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- PC Issue Type Card -->
+                                    <div class="col-md-6">
+                                        <div class="card border-0 bg-light h-100">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-purple bg-opacity-10 text-purple p-2 rounded-3 me-3">
+                                                        <i class="fas fa-tools"></i>
+                                                    </div>
+                                                    <div>
+                                                        <p class="small text-muted mb-1">PC Issue Type</p>
+                                                        <p class="mb-0 fw-bold text-dark">{{ ucfirst($issue->pc_issue_type ?? 'N/A') }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Attachments Section -->
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center">
+                                <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
+                                    <i class="fas fa-paperclip"></i>
+                                </span>
+                                Attachments
+                            </h5>
+
+                            @if ($issue->attachments->count() > 0)
+                                <div class="row g-3">
+                                    @foreach ($issue->attachments as $attachment)
+                                        @php
+                                            $fileExtension = pathinfo($attachment->original_name, PATHINFO_EXTENSION);
+                                            $iconClass = 'fa-file';
+                                            $bgClass = 'bg-secondary-subtle text-secondary';
+                                            $isImage = in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif']);
+
+                                            if ($isImage) {
+                                                $iconClass = 'fa-file-image';
+                                                $bgClass = 'bg-success-subtle text-success';
+                                            } elseif (in_array($fileExtension, ['pdf'])) {
+                                                $iconClass = 'fa-file-pdf';
+                                                $bgClass = 'bg-danger-subtle text-danger';
+                                            } elseif (in_array($fileExtension, ['doc', 'docx'])) {
+                                                $iconClass = 'fa-file-word';
+                                                $bgClass = 'bg-primary-subtle text-primary';
+                                            } elseif (in_array($fileExtension, ['xls', 'xlsx'])) {
+                                                $iconClass = 'fa-file-excel';
+                                                $bgClass = 'bg-success-subtle text-success';
+                                            } elseif (in_array($fileExtension, ['mp4', 'mov', 'avi'])) {
+                                                $iconClass = 'fa-file-video';
+                                                $bgClass = 'bg-info-subtle text-info';
+                                            }
+                                        @endphp
+                                        <div class="col-12 col-sm-6 col-lg-4">
+                                            <div class="card border-0 bg-light h-100 hover-shadow">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="{{ $bgClass }} p-3 rounded-3 me-3">
+                                                            <i class="fas {{ $iconClass }} fa-lg"></i>
+                                                        </div>
+                                                        <div class="flex-grow-1 overflow-hidden">
+                                                            <p class="mb-0 fw-bold text-truncate text-dark">{{ $attachment->original_name }}</p>
+                                                            <p class="small text-muted mb-0 text-uppercase">{{ $fileExtension }} file</p>
+                                                            @if($isImage)
+                                                                <div class="mt-2">
+                                                                    <a href="{{ route('files.view', ['id' => $attachment->attachment_id]) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                                                                </div>
+                                                            @else
+                                                                <div class="mt-2">
+                                                                    <a href="{{ route('files.view', ['id' => $attachment->attachment_id]) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             @else
-                                <div class="alert alert-secondary py-2 mb-0">
-                                    <small><i class="fas fa-info-circle me-1"></i>No technician assigned yet</small>
+                                <div class="alert alert-light border d-flex align-items-center rounded-3 py-3 px-4" role="alert">
+                                    <i class="fas fa-info-circle text-secondary me-2"></i>
+                                    <div>
+                                        <small class="text-muted">No attachments available for this issue.</small>
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -100,277 +310,448 @@
                 </div>
             </div>
 
-            <hr class="my-4">
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Technician Details Card -->
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold d-flex align-items-center mb-3 text-dark">
+                            <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
+                                <i class="fas fa-user-cog"></i>
+                            </span>
+                            Technician Details
+                        </h5>
 
-            <h5 class="mb-3">
-                <i class="fas fa-paperclip me-2"></i>Attachments
-            </h5>
-            @if ($issue->attachments->count() > 0)
-                <div class="row g-2">
-                    @foreach ($issue->attachments as $attachment)
-                        @php
-                            $fileExtension = pathinfo($attachment->original_name, PATHINFO_EXTENSION);
-                            $iconClass = 'fa-file';
+                        @if ($issue->task && $issue->task->assignee)
+                            <div class="text-center mb-4">
+                                <div class="avatar avatar-xl bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                                    <span class="fs-3 fw-bold">
+                                        {{ substr($issue->task->assignee->first_name, 0, 1) }}{{ substr($issue->task->assignee->last_name, 0, 1) }}
+                                    </span>
+                                </div>
+                                <h6 class="fw-bold mb-1 text-dark">{{ $issue->task->assignee->first_name }} {{$issue->task->assignee->last_name}}</h6>
+                                <p class="text-muted small mb-2">Assigned Technician</p>
+                            </div>
 
-                            if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif'])) {
-                                $iconClass = 'fa-file-image';
-                            } elseif (in_array($fileExtension, ['pdf'])) {
-                                $iconClass = 'fa-file-pdf';
-                            } elseif (in_array($fileExtension, ['doc', 'docx'])) {
-                                $iconClass = 'fa-file-word';
-                            } elseif (in_array($fileExtension, ['xls', 'xlsx'])) {
-                                $iconClass = 'fa-file-excel';
-                            }
-                        @endphp
-                        <div class="col-12 col-sm-6 col-lg-4">
-                            <a href="{{ Storage::url($attachment->file_path) }}" target="_blank" class="text-decoration-none">
-                                <div class="card border-0 bg-light h-100">
-                                    <div class="card-body p-3 d-flex align-items-center">
-                                        <i class="fas {{ $iconClass }} fa-2x me-3 text-secondary"></i>
-                                        <div class="text-truncate">{{ $attachment->original_name }}</div>
+                            <div class="border-top pt-3">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-light p-2 rounded-3 me-3">
+                                        <i class="fas fa-envelope text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <p class="small text-muted mb-0">Email</p>
+                                        <a href="mailto:{{ $issue->task->assignee->email }}" class="text-decoration-none">
+                                            <p class="mb-0 fw-bold text-dark">{{ $issue->task->assignee->email }}</p>
+                                        </a>
                                     </div>
                                 </div>
-                            </a>
+
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light p-2 rounded-3 me-3">
+                                        <i class="fas fa-phone text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <p class="small text-muted mb-0">Phone</p>
+                                        <a href="tel:{{ $issue->task->assignee->phone_number }}" class="text-decoration-none">
+                                            <p class="mb-0 fw-bold text-dark">{{ $issue->task->assignee->phone_number }}</p>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="alert alert-light border d-flex align-items-center rounded-3" role="alert">
+                                <i class="fas fa-info-circle text-secondary me-2"></i>
+                                <div>
+                                    <small class="text-muted">No technician has been assigned to this issue yet.</small>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Updates Section -->
+        <div class="container-fluid px-4 mt-5">
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-4 me-3">
+                    <i class="fas fa-tasks text-primary fs-4"></i>
+                </div>
+                <div>
+                    <h4 class="mb-1 text-dark fw-bold">Task Updates</h4>
+                    <p class="text-muted small mb-0">Track the progress of your issue</p>
+                </div>
+            </div>
+
+            @if ($issue->task && $issue->task->updates->count() > 0)
+                <div class="timeline ps-3">
+                    @foreach ($issue->task->updates->sortByDesc('update_timestamp') as $update)
+                        <div class="timeline-item position-relative pb-4">
+                            <div class="timeline-badge position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center bg-white border border-3
+                                @if($update->status_change == 'In Progress') border-primary
+                                @elseif($update->status_change == 'Resolved') border-success
+                                @else border-info @endif"
+                                 style="width: 24px; height: 24px;">
+                                <i class="fas fa-circle fs-6
+                                    @if($update->status_change == 'In Progress') text-primary
+                                    @elseif($update->status_change == 'Resolved') text-success
+                                    @else text-info @endif"></i>
+                            </div>
+
+                            <div class="timeline-content ms-5 ps-3">
+                                <div class="card border-0 shadow-sm mb-3 rounded-4">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div class="d-flex align-items-center">
+                                                @if($update->staff)
+                                                    <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                         style="width: 40px; height: 40px; font-size: 1.1rem;">
+                                                        {{ substr($update->staff->first_name, 0, 1) }}{{ substr($update->staff->last_name, 0, 1) }}
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0 text-dark fw-semibold">{{ $update->staff->first_name}} {{ $update->staff->last_name}}</h6>
+                                                        <span class="badge bg-secondary-subtle text-secondary small fw-medium">{{ $update->staff->user_role }}</span>
+                                                    </div>
+                                                @else
+                                                    <span class="text-muted small">[Staff removed]</span>
+                                                @endif
+                                            </div>
+                                            <span class="text-muted small">
+                                                {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y · g:i A') }}
+                                            </span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <span class="badge rounded-pill py-2 px-3 fw-medium
+                                                @if($update->status_change == 'In Progress') bg-primary-subtle text-primary
+                                                @elseif($update->status_change == 'Resolved') bg-success-subtle text-success
+                                                @else bg-info-subtle text-info @endif">
+                                                <i class="fas
+                                                    @if($update->status_change == 'In Progress') fa-spinner fa-spin me-1
+                                                    @elseif($update->status_change == 'Resolved') fa-check-circle me-1
+                                                    @else fa-info-circle me-1 @endif"></i>
+                                                Status: {{ $update->status_change }}
+                                            </span>
+                                        </div>
+
+                                        <p class="mb-0 text-dark">{{ $update->update_description }}</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @endforeach
                 </div>
             @else
-                <div class="alert alert-secondary" role="alert">
-                    <i class="fas fa-info-circle me-2"></i>No attachments found
+                <div class="card border-0 bg-light rounded-4">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-info-circle text-primary fs-1 mb-3"></i>
+                        <h5 class="text-muted fw-semibold">No updates yet</h5>
+                        <p class="text-muted mb-0">Task updates will appear here once available.</p>
+                    </div>
                 </div>
             @endif
         </div>
-    </div>
 
-    <!-- Task Updates Section -->
-   <div class="mt-5">
-    <div class="d-flex align-items-center mb-4">
-        <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
-            <i class="fas fa-tasks fs-4 text-primary"></i>
-        </div>
-        <h4 class="mb-0 text-dark">Task Updates</h4>
-    </div>
-
-    @if ($issue->task && $issue->task->updates->count() > 0)
-        <div class="timeline ps-3">
-            @foreach ($issue->task->updates->sortByDesc('update_timestamp') as $update)
-                <div class="timeline-item position-relative pb-4">
-                    <div class="timeline-badge position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center bg-white border border-3 
-                        @if($update->status_change == 'In Progress') border-warning
-                        @elseif($update->status_change == 'Resolved') border-success
-                        @else border-primary @endif"
-                        style="width: 24px; height: 24px;">
-                        <i class="fas fa-circle fs-6 
-                            @if($update->status_change == 'In Progress') text-warning
-                            @elseif($update->status_change == 'Resolved') text-success
-                            @else text-primary @endif"></i>
+        {{-- Feedback Modal --}}
+        <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4">
+                    <div class="modal-header border-bottom-0">
+                        <h5 class="modal-title fw-bold text-dark" id="feedbackModalLabel">
+                            <i class="fas fa-comment-dots me-2 text-primary"></i>Provide Feedback
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    
-                    <div class="timeline-content ms-5 ps-3">
-                        <div class="card border-0 shadow-sm mb-3">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="d-flex align-items-center">
-                                        @if($update->staff)
-                                            <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                                 style="width: 40px; height: 40px; font-size: 1.1rem;">
-                                                {{ substr($update->staff->username, 0, 1) }}
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0 text-dark">{{ $update->staff->username }}</h6>
-                                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ $update->staff->user_role }}</span>
-                                            </div>
-                                        @else
-                                            <span class="text-muted small">[Staff removed]</span>
-                                        @endif
-                                    </div>
-                                    <span class="text-muted small">
-                                        {{ \Carbon\Carbon::parse($update->update_timestamp)->format('M j, Y · g:i A') }}
-                                    </span>
+                    <form id="feedbackFormBootstrap">
+                        <div class="modal-body">
+                            <div class="mb-4 text-center">
+                                <h6 class="fw-bold text-dark">How would you rate the resolution of this issue?</h6>
+                                <div class="rating-stars mt-3 d-flex justify-content-center flex-row-reverse">
+                                    @for($i = 5; $i >= 1; $i--)
+                                        <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" class="d-none" {{ $i == 5 ? 'checked' : '' }}>
+                                        <label for="star{{ $i }}" title="{{ $i }} star" class="star-label" style="font-size:2rem; color:#ddd; cursor:pointer;">
+                                            <i class="fas fa-star"></i>
+                                        </label>
+                                    @endfor
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <span class="badge rounded-pill 
-                                        @if($update->status_change == 'In Progress') bg-warning bg-opacity-10 text-warning
-                                        @elseif($update->status_change == 'Resolved') bg-success bg-opacity-10 text-success
-                                        @else bg-primary bg-opacity-10 text-primary @endif">
-                                        <i class="fas 
-                                            @if($update->status_change == 'In Progress') fa-wrench me-1
-                                            @elseif($update->status_change == 'Resolved') fa-check me-1
-                                            @else fa-info-circle me-1 @endif"></i>
-                                        {{ $update->status_change }}
-                                    </span>
-                                </div>
-                                
-                                <p class="mb-0 text-dark">{{ $update->update_description }}</p>
+                                <p class="mt-2 fw-bold text-primary" id="ratingValue">5 Stars</p>
+                            </div>
+                            <div class="mb-3">
+                                <label for="comments" class="form-label fw-bold text-dark">Additional Comments (Optional)</label>
+                                <textarea class="form-control rounded-3" id="comments" name="comments" rows="4" placeholder="Share your thoughts..."></textarea>
                             </div>
                         </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    @else
-        <div class="card border-0 bg-light">
-            <div class="card-body text-center py-4">
-                <i class="fas fa-info-circle text-primary fs-4 mb-3"></i>
-                <h5 class="text-dark">No updates yet</h5>
-                <p class="text-muted mb-0">Task updates will appear here once available</p>
-            </div>
-        </div>
-    @endif
-</div>
-
-</div>
-@if($issue->issue_status == 'Resolved' && !$issue->hasFeedbackFrom(auth()->user()))
-<!-- Feedback Modal -->
-<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title" id="feedbackModalLabel">Provide Feedback</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="feedbackForm" action="{{ route('feedback.submit', $issue->issue_id) }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-4 text-center">
-                        <h6>How would you rate the resolution of this issue?</h6>
-                        <div class="rating-stars mt-3">
-                            @for($i = 5; $i >= 1; $i--)
-                                <input type="radio" id="star{{ $i }}" name="rating" value="{{ $i }}" {{ $i == 5 ? 'checked' : '' }}>
-                                <label for="star{{ $i }}" title="{{ $i }} star"><i class="fas fa-star"></i></label>
-                            @endfor
+                        <div class="modal-footer border-top-0">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                <i class="fas fa-paper-plane me-1"></i> Submit Feedback
+                            </button>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="comments" class="form-label">Additional comments (optional)</label>
-                        <textarea class="form-control" id="comments" name="comments" rows="3"></textarea>
-                    </div>
+                    </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Submit Feedback</button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
-@endif
 
-@push('scripts')
-<script>
-    // Auto-show modal if conditions are met
-    document.addEventListener('DOMContentLoaded', function() {
-        @if($issue->issue_status == 'Resolved' && !$issue->hasFeedbackFrom(auth()->user()))
-            var feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
-            feedbackModal.show();
-        @endif
-    });
-    @if(session('swal_error'))
-    Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: '{{ session('swal_error') }}',
-        confirmButtonColor: '#4361ee',
-    });
+        @push('styles')
+            <style>
+                /* General Styles */
+                body {
+                    background-color: #f8f9fa;
+                    font-family: 'Inter', sans-serif;
+                }
 
-  @endif
-</script>
-@endpush
+                /* Card Styles */
+                .card {
+                    transition: all 0.3s ease;
+                }
 
+                .card:hover {
+                    transform: translateY(-2px);
+                }
 
+                /* Badge Styles */
+                .badge {
+                    font-weight: 500;
+                }
+
+                /* Timeline Styles */
+                .timeline {
+                    position: relative;
+                    padding-left: 20px;
+                }
+
+                .timeline::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    bottom: 0;
+                    left: 12px;
+                    width: 2px;
+                    background: #e9ecef;
+                }
+
+                .timeline-item {
+                    position: relative;
+                    padding-bottom: 30px;
+                }
+
+                .timeline-item:last-child {
+                    padding-bottom: 0;
+                }
+
+                .timeline-badge {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    transform: translateX(-50%);
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: white;
+                    border: 3px solid;
+                    z-index: 1;
+                }
+
+                .timeline-content {
+                    margin-left: 30px;
+                    padding-left: 15px;
+                }
+
+                /* Rating Stars */
+                .rating-stars {
+                    display: inline-flex;
+                    direction: rtl;
+                    unicode-bidi: bidi-override;
+                    gap: 5px;
+                }
+
+                .rating-stars input {
+                    display: none;
+                }
+
+                .rating-stars label {
+                    color: #ddd;
+                    font-size: 2rem;
+                    padding: 0 2px;
+                    cursor: pointer;
+                    transition: color 0.3s ease;
+                }
+
+                .rating-stars input:checked ~ label,
+                .rating-stars label:hover,
+                .rating-stars label:hover ~ label {
+                    color: #ffc107;
+                }
+
+                /* Hover Effects */
+                .hover-shadow:hover {
+                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+                }
+
+                /* Custom Colors */
+                .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
+                .bg-success-subtle { background-color: rgba(40, 167, 69, 0.1) !important; }
+                .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
+                .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1) !important; }
+                .bg-info-subtle { background-color: rgba(23, 162, 184, 0.1) !important; }
+                .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1) !important; }
+                .bg-purple-subtle { background-color: rgba(111, 66, 193, 0.1) !important; }
+
+                /* Button Styles */
+                .btn {
+                    font-weight: 500;
+                    padding: 0.5rem 1.5rem;
+                }
+
+                .btn-primary {
+                    background-color: #0d6efd;
+                    border-color: #0d6efd;
+                }
+
+                .btn-primary:hover {
+                    background-color: #0b5ed7;
+                    border-color: #0a58ca;
+                }
+
+                .btn-outline-primary {
+                    color: #0d6efd;
+                    border-color: #0d6efd;
+                }
+
+                .btn-outline-primary:hover {
+                    background-color: #0d6efd;
+                    color: white;
+                }
+
+                /* Avatar Styles */
+                .avatar {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 600;
+                }
+
+                /* Alert Styles */
+                .alert {
+                    border-radius: 0.5rem;
+                }
+
+                /* Form Control Styles */
+                .form-control {
+                    border-radius: 0.5rem;
+                    border: 1px solid #dee2e6;
+                    padding: 0.5rem 1rem;
+                }
+
+                .form-control:focus {
+                    border-color: #86b7fe;
+                    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+                }
+            </style>
+        @endpush
+
+        @push('scripts')
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Show Bootstrap modal if feedback is needed
+                    @if($issue->issue_status == 'Resolved' && !$issue->hasFeedbackFrom(auth()->user()))
+                        var feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+                        feedbackModal.show();
+                    @endif
+
+                    // Star rating logic
+                    function updateStars(rating) {
+                        document.querySelectorAll('.rating-stars label').forEach(function(label) {
+                            var starValue = parseInt(label.getAttribute('for').replace('star', ''));
+                            label.querySelector('i').style.color = (starValue <= rating) ? '#ffc107' : '#ddd';
+                        });
+                        document.getElementById('ratingValue').textContent = rating + (rating == 1 ? ' Star' : ' Stars');
+                    }
+
+                    // Set initial stars
+                    updateStars(5);
+
+                    // Listen for star click
+                    document.querySelectorAll('.rating-stars input').forEach(function(input) {
+                        input.addEventListener('change', function() {
+                            updateStars(parseInt(this.value));
+                        });
+                    });
+
+                    // Feedback form submission
+                    var feedbackForm = document.getElementById('feedbackFormBootstrap');
+                    if (feedbackForm) {
+                        feedbackForm.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            var checkedInput = document.querySelector('.rating-stars input:checked');
+                            var rating = checkedInput ? checkedInput.value : 5;
+                            var comments = document.getElementById('comments') ? document.getElementById('comments').value : '';
+                            
+                            // Get CSRF token
+                            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                            
+                            var submitBtn = this.querySelector('button[type="submit"]');
+                            if (submitBtn) submitBtn.disabled = true;
+
+                            fetch("{{ route('feedback.submit', $issue->issue_id) }}", {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    rating: rating,
+                                    comments: comments
+                                })
+                            })
+                            .then(async response => {
+                                if (submitBtn) submitBtn.disabled = false;
+                                let data = null;
+                                let text = await response.text();
+                                try {
+                                    data = JSON.parse(text);
+                                } catch (err) {
+                                    throw new Error('Server returned an invalid response. Please contact support.');
+                                }
+                                if (!response.ok) {
+                                    throw new Error((data && data.message) ? data.message : 'Failed to submit feedback.');
+                                }
+                                return data;
+                            })
+                            .then(data => {
+                                var modalEl = document.getElementById('feedbackModal');
+                                if (modalEl) {
+                                    var modal = bootstrap.Modal.getInstance(modalEl);
+                                    if (modal) modal.hide();
+                                }
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Feedback Submitted!',
+                                    text: 'Thank you for your valuable feedback.',
+                                    confirmButtonText: 'OK',
+                                    customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                                    buttonsStyling: false
+                                }).then(() => { window.location.reload(); });
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error!',
+                                    text: error.message,
+                                    confirmButtonText: 'OK',
+                                    customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                                    buttonsStyling: false
+                                });
+                            });
+                        });
+                    }
+                });
+            </script>
+        @endpush
 @endsection
-
-@push('styles')
-<style>
-     .timeline::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 12px;
-        width: 2px;
-        background-color: #e9ecef;
-    }
-    .timeline-item:last-child {
-        padding-bottom: 0 !important;
-    }
-    /* Rating stars styling */
-    .rating-stars {
-        display: inline-block;
-        direction: rtl; /* Right to left */
-        unicode-bidi: bidi-override;
-    }
-    .rating-stars input {
-        display: none;
-    }
-    .rating-stars label {
-        color: #ddd;
-        font-size: 2rem;
-        padding: 0 5px;
-        cursor: pointer;
-    }
-    .rating-stars input:checked ~ label,
-    .rating-stars label:hover,
-    .rating-stars label:hover ~ label {
-        color: #ffc107; /* Gold/yellow color */
-    }
-    .rating-stars input:checked + label:hover,
-    .rating-stars input:checked ~ label:hover,
-    .rating-stars label:hover ~ input:checked ~ label,
-    .rating-stars input:checked ~ label:hover ~ label {
-        color: #ffc107;
-    }
-    .timeline {
-        position: relative;
-        padding-left: 40px;
-    }
-    .timeline-item {
-        position: relative;
-    }
-    .timeline-badge {
-        position: absolute;
-        left: -20px;
-        top: 0;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        z-index: 1;
-    }
-    .timeline-content {
-        position: relative;
-        margin-left: 20px;
-        border-left: 3px solid #dee2e6;
-        padding-left: 20px;
-    }
-    .timeline-item:last-child .timeline-content {
-        border-left-color: transparent;
-    }
-    .symbol {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    .symbol-35px {
-        width: 35px;
-        height: 35px;
-    }
-    .symbol-circle {
-        border-radius: 50%;
-    }
-    .symbol-label {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 500;
-        width: 100%;
-        height: 100%;
-    }
-</style>
-@endpush

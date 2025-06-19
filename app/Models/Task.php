@@ -10,10 +10,11 @@ use App\Models\User;
 use App\Models\Admin;
 use App\Models\Location;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 class Task extends Model
 {
     use HasFactory;
-    public $timestamps = false;
+    public $timestamps = true;
     // Specify the table name if it's different from the model name
     protected $table = 'task';
 
@@ -45,15 +46,29 @@ class Task extends Model
 
     public function assignee()
     {
-        return $this->belongsTo(User::class, 'assignee_id');
+        return $this->belongsTo(User::class, 'assignee_id', 'user_id');
     }
 
     public function admin()
     {
-        return $this->belongsTo(User::class, 'admin_id');
+        return $this->belongsTo(User::class, 'admin_id', 'user_id');
     }
+
     public function updates()
     {
         return $this->hasMany(TaskUpdate::class, 'task_id');
+    }
+
+    public function getIssueIcon()
+    {
+        return match($this->issue->issue_type) {
+            'Plumbing' => 'fa-faucet-drip',
+            'Electrical' => 'fa-bolt-lightning',
+            'Furniture' => 'fa-couch',
+            'HVAC' => 'fa-fan',
+            'Internet' => 'fa-network-wired',
+            'Cleaning' => 'fa-broom',
+            default => 'fa-circle-exclamation'
+        };
     }
 }

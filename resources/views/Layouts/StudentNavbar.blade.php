@@ -3,28 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="ajax-url" content="{{ url('/') }}">
     <title>@yield('title', 'Dashboard') - Maintenance System</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Poppins Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('./css/global.css') }}">
-    
- 
+
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f8f9fa;
         }
+        .user-avatar {
+    width: 36px;  /* Increased from 32px */
+    height: 36px; /* Increased from 32px */
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px; /* Adjusted font size */
+    color: #4b5563;
+    margin-right: 0.5rem;
+}
 
         .navbar {
             padding: 1rem;
@@ -122,12 +137,17 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-                <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('Student.dashboard') }}">
+                <x-cloudinary-image 
+                    public-id="images" 
+                    alt="Company Logo"
+                    class="me-2"
+                    style="height: 30px; width: auto;"
+                />
                 <i class="fas fa-tools me-2"></i>
-            OCM
+                OCM
             </a>
-            
+
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <i class="fas fa-bars"></i>
             </button>
@@ -135,27 +155,27 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
+                        <a class="nav-link {{ Request::routeIs('Student.dashboard') ? 'active' : '' }}" href="{{ route('Student.dashboard') }}">
                             <i class="fas fa-home me-2"></i>Home
                         </a>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('Student.createissue') ? 'active' : '' }}" 
+                        <a class="nav-link {{ Request::routeIs('Student.createissue') ? 'active' : '' }}"
                            href="{{ route('Student.createissue') }}">
-                            <i class="fas fa-plus-circle me-2"></i>Report Issue
+                            <i class="fas fa-plus-circle me-2"></i>New Issue
                         </a>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <a class="nav-link {{ Request::routeIs('Student.view_issues') ? 'active' : '' }}" 
+                        <a class="nav-link {{ Request::routeIs('Student.view_issues') ? 'active' : '' }}"
                            href="{{ route('Student.view_issues') }}">
                             <i class="fas fa-tasks me-2"></i>Issue History
                         </a>
                     </li>
-                    
+
                     <li class="nav-item position-relative">
-                        <a class="nav-link {{ Request::routeIs('notifications.index') ? 'active' : '' }}" 
+                        <a class="nav-link {{ Request::routeIs('notifications.index') ? 'active' : '' }}"
                            href="{{ route('notifications.index') }}">
                             <i class="fas fa-bell me-2"></i>Notifications
                             @auth
@@ -169,32 +189,33 @@
                     </li>
 
                     <!-- User Menu -->
-                    @auth
-                        <li class="nav-item dropdown ms-lg-3">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" 
-                               id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <div class="user-avatar">
-                                    {{ strtoupper(substr(Auth::user()->username, 0, 1)) }}
-                                </div>
-                                <span class="d-none d-lg-block">{{ Auth::user()->username }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('profile') }}">
-                                        <i class="fas fa-user me-2"></i>Profile
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item text-danger">
-                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
+                @auth
+    <li class="nav-item dropdown ms-lg-3">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
+           id="userDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+                {{ strtoupper(substr(Auth::user()->first_name, 0, 1)) }}{{ strtoupper(substr(Auth::user()->last_name, 0, 1)) }}
+            </div>
+            <span class="d-none d-lg-block">{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li>
+                <a class="dropdown-item" href="{{ route('profile') }}">
+                    <i class="fas fa-user me-2"></i>Profile
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+
                     @else
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('login') }}">
@@ -251,7 +272,7 @@
         if (logoutForm) {
             logoutForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
+
                 Swal.fire({
                     title: 'Are you sure?',
                     text: "You will be logged out of the system!",

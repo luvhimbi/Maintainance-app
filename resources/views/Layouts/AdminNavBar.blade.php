@@ -32,159 +32,473 @@
             background-color: #f8f9fa;
             font-size: 0.9rem;
             color: #495057;
+            min-height: 100vh;
         }
-        .navbar {
-            padding: 0.5rem 1rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 260px;
+            background: #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
-        .navbar-brand {
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .sidebar-brand img {
+            height: 30px;
+            width: auto;
+            margin-right: 0.5rem;
+        }
+
+        .sidebar-brand span {
             font-weight: 600;
             color: #3a7bd5;
+            font-size: 1.1rem;
         }
-        .nav-link {
-            font-weight: 500;
-            padding: 0.5rem 0.75rem;
+
+        .sidebar-menu {
+            padding: 1rem 0;
+            list-style: none;
+            margin: 0;
+        }
+
+        .sidebar-item {
+            margin: 0.25rem 0;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
             color: #495057;
+            text-decoration: none;
             transition: all 0.2s ease;
         }
-        .nav-link:hover, .nav-link:focus {
+
+        .sidebar-link:hover, .sidebar-link.active {
+            background: #f1f7fe;
             color: #3a7bd5;
         }
+
+        .sidebar-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .sidebar-dropdown {
+            list-style: none;
+            padding-left: 3.5rem;
+            margin: 0;
+            display: none;
+        }
+
+        .sidebar-dropdown.show {
+            display: block;
+        }
+
+        .sidebar-dropdown .sidebar-link {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 260px;
+            padding: 2rem;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* Top Bar Styles */
+        .topbar {
+            background: #fff;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .notification-badge {
+            position: relative;
+            display: inline-block;
+        }
+
+        .notification-badge a {
+            color: #495057;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .notification-badge a:hover {
+            background: #f1f7fe;
+            color: #3a7bd5;
+        }
+
+        .notification-badge .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            padding: 0.25em 0.5em;
+            font-size: 0.65rem;
+            border-radius: 10px;
+            border: 2px solid #fff;
+        }
+
+        .user-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .user-dropdown:hover {
+            background: #f1f7fe;
+        }
+
+        .user-dropdown img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-dropdown .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-dropdown .user-name {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .user-dropdown .user-role {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
         .dropdown-menu {
             border: none;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             border-radius: 8px;
-            padding: 0.5rem 0;
-            font-size: 0.85rem;
+            padding: 0.5rem;
+            min-width: 200px;
         }
+
         .dropdown-item {
-            padding: 0.5rem 1.25rem;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
             transition: all 0.2s ease;
         }
+
         .dropdown-item:hover {
-            background-color: #f1f7fe;
+            background: #f1f7fe;
             color: #3a7bd5;
         }
-        .badge {
-            font-size: 0.65rem;
-            font-weight: 500;
-            padding: 0.25em 0.5em;
+
+        .dropdown-item i {
+            width: 16px;
+            text-align: center;
         }
-        .container {
-            max-width: 1400px;
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+            border-color: #eee;
         }
-        .navbar-nav .nav-item {
-            margin: 0 0.25rem;
+
+        /* Responsive Styles */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .topbar {
+                margin-left: 0;
+            }
         }
-        .dropdown-toggle::after {
-            margin-left: 0.3em;
-            vertical-align: 0.15em;
+
+        /* Toggle Button */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #495057;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar-toggle {
+                display: block;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light sticky-top bg-white">
-        <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="{{ route('admin.dashboard') }}">
-                <img src="{{ asset('images/images.png') }}" alt="Company Logo" class="me-2" style="height: 30px; width: auto;">
-                <i class="fas fa-tools me-2"></i> <span class="fw-bold" style="color: #3a7bd5;">OCM</span>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <a class="navbar-brand" href="#" style="font-size: 1.5rem; color: #2563eb;">
+                <x-cloudinary-image
+                    public-id="images"
+                    alt="Company Logo"
+                    class="me-2"
+                    style="height: 30px; width: auto;"
+                />
+                <i class="fas fa-tools me-2"></i>OCM
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-lg-center">
-                    <!-- Dashboard Link -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin.dashboard') }}">
-                            <i class="fas fa-home me-1"></i> Dashboard
-                        </a>
-                    </li>
-                    <!-- Maintenance Tasks Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="tasksDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-tools me-1"></i> Maintenance
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="tasksDropdown">
-                            <li><a class="dropdown-item" href="{{ route('admin.tasks.view') }}">
-                                <i class="fas fa-tasks me-2"></i> Manage Tasks
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.locations.index') }}">
-                                <i class="fa-solid fa-location-dot me-2"></i> Locations
-                            </a></li>
-                        </ul>
-                    </li>
-                    <!-- User Management Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-users-cog me-1"></i> Users
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="usersDropdown">
-                            <li><a class="dropdown-item" href="{{ route('admin.students.index') }}">
-                                <i class="fas fa-user-graduate me-2"></i> Personnel (students, staff)
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.technicians.index') }}">
-                                <i class="fas fa-user-tie me-2"></i> Maintenance Staff
-                            </a></li>
-                        </ul>
-                    </li>
-                    <!-- Reports -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-chart-bar me-2"></i> Reports
-                        </a>
-                    </li>
-                    <!-- Notifications -->
-                    <li class="nav-item position-relative">
-                        <a class="nav-link">
-                            <i class="fas fa-bell me-2"></i> Notifications
-                            @auth
-                                @if(auth()->user()->unreadNotifications->count() > 0)
-                                    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
-                                        {{ auth()->user()->unreadNotifications->count() }}
-                                    </span>
-                                @endif
-                            @endauth
-                        </a>
-                    </li>
-                    <!-- User Dropdown -->
-                    @auth
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <div class="me-2 d-none d-lg-inline">
-                                    <span>{{ Auth::user()->username }}</span>
-                                </div>
-                                <i class="fas fa-user-circle" style="font-size: 1.25rem;"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="{{ route('adminProfile') }}">
-                                    <i class="fas fa-user me-2"></i> Profile
-                                </a></li>
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item text-danger">
-                                            <i class="fas fa-sign-out-alt me-2"></i> Logout
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    @else
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ route('login') }}">
-                                <i class="fas fa-sign-in-alt me-1"></i> Login
-                            </a>
-                        </li>
-                    @endauth
-                </ul>
-            </div>
         </div>
-    </nav>
+        <ul class="sidebar-menu">
+            <!-- Dashboard -->
+            <li class="sidebar-item">
+                <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Maintenance -->
+            <li class="sidebar-item">
+                <a href="#maintenanceSubmenu" class="sidebar-link" data-bs-toggle="collapse" role="button">
+                    <i class="fas fa-tools"></i>
+                    <span>Maintenance </span>
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </a>
+                <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.tasks.*') || request()->routeIs('admin.locations.*') ? 'show' : '' }}" id="maintenanceSubmenu">
+                    <li>
+                        <a href="{{ route('admin.tasks.view') }}" class="sidebar-link {{ request()->routeIs('admin.tasks.*') ? 'active' : '' }}">
+                            <i class="fas fa-tasks"></i>
+                            <span>Manage Tasks</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.buildings.index') }}" class="sidebar-link {{ request()->routeIs('admin.buildings.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-building"></i>
+                            <span>Manage Buildings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('admin.floors.index') }}" class="sidebar-link {{ request()->routeIs('admin.floors.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>Manage Floors</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- Users -->
+            <li class="sidebar-item">
+                <a href="#usersSubmenu" class="sidebar-link" data-bs-toggle="collapse" role="button">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Manage Users</span>
+                    <i class="fas fa-chevron-down ms-auto"></i>
+                </a>
+                <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.students.*') || request()->routeIs('admin.technicians.*') || request()->routeIs('staff.*') ? 'show' : '' }}" id="usersSubmenu">
+                    <li class="sidebar-dropdown-item">
+                        <a href="{{ route('admin.students.index') }}" class="sidebar-link {{ request()->routeIs('admin.students.*') ? 'active' : '' }}">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>View Student info</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-dropdown-item">
+                        <a href="{{ route('staff.index') }}" class="sidebar-link {{ request()->routeIs('staff.*') ? 'active' : '' }}">
+                            <i class="fas fa-user"></i>
+                            <span>View Staff info</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-dropdown-item">
+                        <a href="{{ route('admin.technicians.index') }}" class="sidebar-link {{ request()->routeIs('admin.technicians.*') ? 'active' : '' }}">
+                            <i class="fas fa-user-tie"></i>
+                            <span>Manage Technicians</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+<li class="sidebar-item">
+    <a href="#reportsSubmenu" class="sidebar-link" data-bs-toggle="collapse" role="button">
+        <i class="fas fa-chart-bar"></i>
+        <span>Reports</span>
+        <i class="fas fa-chevron-down ms-auto"></i>
+    </a>
+    <ul class="sidebar-dropdown collapse {{ request()->routeIs('admin.reports.*') ? 'show' : '' }}" id="reportsSubmenu">
+        <li>
+            <a href="{{ route('admin.reports.students_and_staff') }}" class="sidebar-link {{ request()->routeIs('admin.reports.students_and_staff') ? 'active' : '' }}">
+                <i class="fas fa-user-tie"></i>
+                <span>Students/Staff Reports</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('admin.reports.tasks') }}" class="sidebar-link {{ request()->routeIs('admin.reports.tasks') ? 'active' : '' }}">
+                <i class="fas fa-tasks"></i>
+                <span>Task Reports</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('admin.reports.technicians') }}" class="sidebar-link {{ request()->routeIs('admin.reports.technicians') ? 'active' : '' }}">
+                <i class="fas fa-user-tie"></i>
+                <span>Technician Reports</span>
+            </a>
+        </li>
+
+
+
+    </ul>
+</li>
+               <li class="sidebar-item">
+                <a href="{{ route('admin.feedbacks.index') }}" class="sidebar-link">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>feedback given on tasks</span>
+                </a>
+            </li>
+
+               <li class="sidebar-item">
+                <a href="{{ route('notify.index') }}" class="sidebar-link">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+            </li>
+        </ul>
+    </div>
 
     <!-- Main Content -->
-    <div class="container mt-4">
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <button class="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="mb-0">@yield('title', 'Dashboard')</h4>
+            </div>
+            <div class="topbar-right">
+                <!-- Notifications -->
+                <div class="notification-badge">
+                    <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-bell"></i>
+                        @auth
+                            @if(auth()->user()->unreadNotifications->count() > 0)
+                                <span class="badge bg-danger">
+                                    {{ auth()->user()->unreadNotifications->count() }}
+                                </span>
+                            @endif
+                        @endauth
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <h6 class="dropdown-header">Notifications</h6>
+                        @auth
+                            @forelse(auth()->user()->unreadNotifications as $notification)
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-bell text-primary"></i>
+                                    <div>
+                                        <p class="mb-0">{{ $notification->data['message'] ?? 'New notification' }}</p>
+                                        <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="dropdown-item text-center text-muted">
+                                    <i class="fas fa-bell-slash mb-2"></i>
+                                    <p class="mb-0">No new notifications</p>
+                                </div>
+                            @endforelse
+                        @endauth
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-center" href="{{ route('notify.index') }}">
+                            <small>View all notifications</small>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- User Menu -->
+                @auth
+                    <div class="dropdown">
+                        <div class="user-dropdown" data-bs-toggle="dropdown">
+                            <img src="{{ asset('images/default-avatar.png') }}" alt="User Avatar" onerror="this.src='https://ui-avatars.com/api/?name='+encodeURIComponent('{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}')+'&background=3a7bd5&color=fff'">
+                            <div class="user-info">
+                                <span class="user-name">{{ Auth::user()->first_name }}</span>
+                                <span class="user-role">{{ ucfirst(Auth::user()->user_role) }}</span>
+                            </div>
+                            <i class="fas fa-chevron-down ms-2"></i>
+                        </div>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('adminProfile') }}">
+                                    <i class="fas fa-user"></i>
+                                    <span>Profile</span>
+                                </a>
+                            </li>
+
+                            <div class="dropdown-divider"></div>
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                        <span>Logout</span>
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                @else
+                    <a href="{{ route('login') }}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Login
+                    </a>
+                @endauth
+            </div>
+        </div>
+
+        <!-- Page Content -->
         @yield('content')
     </div>
 
@@ -192,6 +506,28 @@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.querySelector('.sidebar-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth < 992) {
+                    if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target)) {
+                        sidebar.classList.remove('show');
+                    }
+                }
+            });
+        });
+    </script>
 
     <!-- Logout Confirmation Script -->
     <script>

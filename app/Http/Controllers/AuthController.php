@@ -18,31 +18,43 @@ class AuthController extends Controller
 {
 
 
-    // return the login view 
     public function showLoginForm()
-    {
-        return view('login');
+{
+    // Check if user is already logged in
+    if (Auth::check()) {
+
+        switch (Auth::user()->user_role) {
+            case 'Student':
+            case 'Staff_Member':
+                return redirect()->route('Student.dashboard');
+            case 'Technician':
+                return redirect()->route('technician.dashboard');
+            case 'Admin':
+                return redirect()->route('admin.dashboard');
+            default:
+                return redirect()->route('home');
+        }
     }
-    
-  // Show password reset form (optional)
-  public function showResetForm()
-  {
-      return view('reset-password');
-  }
-  
-    // Handle login form submission
-    public function login(Request $request)
+
+    return view('Login');
+}
+
+public function showResetForm()
+{
+    return view('reset-password');
+}
+
+public function login(Request $request)
 {
     // Validate the request
     $request->validate([
         'email' => 'required|email',
         'password' => 'required',
-        'role' => 'required|in:Student,Technician,Admin',
+        'role' => 'required|in:Student,Staff_Member,Technician,Admin',
     ]);
 
     // Find the user by email
     $user = User::where('email', $request->email)->first();
-   
 
     // Check if the user exists
     if (!$user) {
@@ -54,8 +66,8 @@ class AuthController extends Controller
         return back()->withErrors(['password' => 'Incorrect password.']);
     }
 
-    // Check if the user's role matches the selected role
-    if ($request->role !== $user->user_role ) {
+
+    if ($request->role !== $user->user_role) {
         return back()->withErrors(['role' => 'Invalid role for this user.']);
     }
 
@@ -65,55 +77,53 @@ class AuthController extends Controller
     // Redirect based on role
     switch ($request->role) {
         case 'Student':
+        case 'Staff_Member':
             return redirect()->route('Student.dashboard');
         case 'Technician':
             return redirect()->route('technician.dashboard');
         case 'Admin':
             return redirect()->route('admin.dashboard');
         default:
-            return redirect()->route('home'); // Fallback route
+            return redirect()->route('home');
     }
 }
 
 
 
-  
 
 
    public function sendResetLink(Request $request)
 {
-    // Validate the email
     $request->validate(['email' => 'required|email']);
 
-    // Check if the email exists in the database
     $user = User::where('email', $request->email)->first();
 
     if (!$user) {
-        return back()->withErrors(['email' => 'Email not found.']);
+        // Return JSON for AJAX
+        return response()->json(['errors' => ['email' => ['Email not found.']]], 422);
     }
 
-    // Generate a token
     $token = Str::random(60);
     $hashedToken = Hash::make($token);
 
-  
-    // Store the token in the password_reset_tokens table
     DB::table('password_reset_tokens')->updateOrInsert(
         ['email' => $user->email],
         [
-            'token' => $hashedToken, // Hashed token for security
+            'token' => $hashedToken,
             'created_at' => Carbon::now()
         ]
     );
 
-   // Generate the reset URL using plain token
     $resetUrl = url('/reset-password/' . $token . '?email=' . urlencode($user->email));
-//$2y$12$GLn2QTsw939t2ixSzTyf8./8KFnTP2OXx5KQKeQaYhBGmTDa4zilK
 
-    // Send the reset email
-    Mail::to($user->email)->send(new PasswordResetMail($resetUrl));
+    Mail::to($user->email)->send(new PasswordResetMail(
+        $resetUrl,
+        $user->first_name,
+        $user->last_name
+    ));
 
-    return back()->with('status', 'Reset password link sent. Please check your email!');
+    // Return JSON for AJAX
+    return response()->json(['status' => 'Reset password link sent. Please check your email!']);
 }
 
 public function showResetPasswordForm($token)
@@ -133,12 +143,12 @@ public function resetPassword(Request $request, $token)
         ->where('email', $request->email)
         ->first();
 
- 
+
 
     if (!$reset || !Hash::check($token, $reset->token)) {
         return back()->withErrors(['email' => 'Invalid or expired password reset token.']);
     }
-  
+
     // Update the user's password
     $user = User::where('email', $request->email)->first();
 

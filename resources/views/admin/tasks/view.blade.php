@@ -1,209 +1,690 @@
 @extends('Layouts.AdminNavBar')
-@section('title','View All Tasks')
-@section('content')
-<div class="container task-management-container py-4">
-    <!-- Header Section -->
-    <div class="header-section mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h2 class="page-title mb-1">Task Management</h2>
-                <p class="page-subtitle text-muted">Manage and monitor all technician tasks</p>
-            </div>
-            <div class="overdue-alert badge bg-danger bg-soft-danger">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                Overdue Tasks: {{ $overdueCount }}
-            </div>
-        </div>
-    </div>
 
-    <!-- Task Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr class="table-light">
-                            <th class="ps-4">ID</th>
-                            <th>Issue Details</th>
-                            <th>Technician</th>
-                            <th>Assigned On</th>
-                            <th>Due Date</th>
-                            <th>Status</th>
-                            <th>Priority</th>
-                            <th class="pe-4 text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($tasks as $task)
-                            <tr class="@if($task->issue_status == 'Completed') table-success-light 
-                                      @elseif($task->expected_completion->isPast() && $task->issue_status != 'Completed') table-danger-light @endif">
-                                <!-- Task ID -->
-                                <td class="ps-4 fw-semibold text-muted">#{{ $task->task_id }}</td>
-                                
-                                <!-- Issue Details -->
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-container text-danger me-2">
-                                            <i class="fas fa-exclamation-circle"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-medium">ISSUE-{{ $task->issue_id }}</div>
-                                            <small class="text-muted">
-                                                @if($task->issue)
-                                                    {{ Str::limit($task->issue->title, 25) }}
-                                                @else 
-                                                    N/A
-                                                @endif
-                                            </small>
-                                        </div>
-                                    </div>
-                                </td>
-                                
-                                <!-- Technician -->
-                                <td>
-                                    @if($task->assignee)
+@section('title', 'View All Tasks')
+
+@section('content')
+    <div class="container-fluid py-4"> {{-- Changed to container-fluid for full width, added py-4 --}}
+        <div class="card border-0 shadow-sm rounded-4"> {{-- Added rounded-4 for consistent styling --}}
+            <div class="card-header bg-white border-bottom py-3 px-4 rounded-top-4"> {{-- Added px-4 and rounded-top-4 --}}
+                <div class="row align-items-center g-3"> {{-- Using Bootstrap row for better column control --}}
+                    <div class="col-12 col-md-6"> {{-- Column for title --}}
+                        <h2 class="h5 mb-1 fw-bold text-dark">Task Management</h2>
+                        <p class="text-muted small mb-0">Manage and monitor all technician tasks</p>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-4 offset-lg-2 d-flex flex-column flex-sm-row align-items-center justify-content-end gap-3"> {{-- Added flexbox for alignment --}}
+                        <div class="input-group rounded-pill overflow-hidden shadow-sm-sm" style="min-width: 300px;"> {{-- Added min-width and removed flex-grow-1 --}}
+                            <span class="input-group-text bg-light border-0 ps-3">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="taskSearch" class="form-control border-0 pe-3" placeholder="Search tasks..." aria-label="Search tasks">
+                            <button class="btn btn-outline-secondary border-0" type="button" id="clearSearch">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="overdue-alert badge bg-danger-subtle text-danger py-2 px-3 rounded-pill fw-medium"> {{-- Styled overdue badge --}}
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            Overdue Tasks: {{ $overdueCount }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap gap-2" id="statusFilters">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 active" data-status="all">
+                                <i class="fas fa-list me-1"></i> All Tasks
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-2" data-status="pending">
+                                <i class="fas fa-hourglass-half me-1"></i> Pending
+                            </button>
+                            <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-2" data-status="in-progress">
+                                <i class="fas fa-spinner me-1"></i> In Progress
+                            </button>
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-3 py-2" data-status="completed">
+                                <i class="fas fa-check-circle me-1"></i> Completed
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3 py-2" data-status="overdue">
+                                <i class="fas fa-clock me-1"></i> Overdue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="searchFeedback" class="mt-2 small text-muted text-end" style="display: none;"> {{-- Moved feedback below input group --}}
+                    <span id="resultCount">0</span> tasks found
+                </div>
+                {{-- Removed searchError div --}}
+            </div>
+
+            <div class="card-body p-0">
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show mx-4 mt-3 mb-0 rounded-3 shadow-sm" role="alert"> {{-- Added rounded-3 and shadow-sm --}}
+                        <i class="fas fa-check-circle me-2"></i>
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                <div id="tasksTableContainer" class="{{ $tasks->isEmpty() ? 'd-none' : '' }}"> {{-- Container for table, hidden if no tasks initially --}}
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover"> {{-- Added table-hover for better UX --}}
+                            <thead class="table-light">
+                            <tr>
+                                <th class="ps-4 py-3">ID</th>
+                                <th class="py-3">Issue Details</th>
+                                <th class="py-3">Technician Name</th>
+                                <th class="py-3">Assigned On</th>
+                                <th class="py-3">Due Date</th>
+                                <th class="py-3">Status</th>
+                                <th class="py-3">Priority</th>
+                                <th class="pe-4 text-end py-3">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tasksTableBody">
+                            @forelse($tasks as $task)
+                                <tr class="border-top task-row
+                                    @if($task->issue_status == 'Completed') table-success-light
+                                    @elseif($task->expected_completion->isPast() && $task->issue_status != 'Completed') table-danger-light @endif"
+                                    data-taskid="{{ $task->task_id }}"
+                                    data-issueid="{{ $task->issue_id }}"
+                                    data-issuetitle="{{ strtolower($task->issue->title ?? '') }}"
+                                    data-techname="{{ strtolower($task->assignee->first_name ?? '') . ' ' . strtolower($task->assignee->last_name ?? '') }}"
+                                    data-assignmentdate="{{ $task->assignment_date->format('d M Y') }}"
+                                    data-duedate="{{ $task->expected_completion->format('d M Y') }}"
+                                    data-status="{{ strtolower($task->issue_status) }}"
+                                    data-priority="{{ strtolower($task->priority) }}">
+                                    <td class="ps-4 fw-semibold text-dark task-id">#{{ $task->task_id }}</td>
+
+                                    <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-circle bg-light-primary me-2">
-                                                {{ strtoupper(substr($task->assignee->username, 0, 1)) }}
+                                            <div class="icon-container bg-info-subtle text-info me-2 p-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"> {{-- Styled icon --}}
+                                                <i class="fas fa-exclamation-circle"></i>
                                             </div>
-                                            <span>{{ $task->assignee->username }}</span>
+                                            <div>
+                                                <div class="fw-medium text-dark issue-id">ISSUE-{{ $task->issue_id }}</div>
+                                                <small class="text-muted issue-title">
+                                                    @if($task->issue)
+                                                        {{ Str::limit($task->issue->title, 25) }}
+                                                    @else
+                                                        N/A
+                                                    @endif
+                                                </small>
+                                            </div>
                                         </div>
-                                    @else
-                                        <span class="badge bg-light text-secondary">
-                                            <i class="fas fa-user-times me-1"></i> Unassigned
-                                        </span>
-                                    @endif
-                                </td>
-                                
-                                <!-- Assignment Date -->
-                                <td>
-                                    <div class="text-muted small">
-                                        {{ $task->assignment_date->format('d M Y') }}
-                                    </div>
-                                </td>
-                                
-                                <!-- Due Date with Overdue Warning -->
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="@if($task->expected_completion->isPast() && $task->issue_status != 'Completed') text-danger @else text-muted @endif">
-                                            {{ $task->expected_completion->format('d M Y') }}
-                                        </div>
-                                        @if($task->expected_completion->isPast() && $task->issue_status != 'Completed')
-                                            <span class="badge bg-danger ms-2">
-                                                <i class="fas fa-clock me-1"></i>Overdue
+                                    </td>
+
+                                    <td class="technician-name">
+                                        @if($task->assignee)
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar avatar-sm bg-primary-subtle text-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                    <span class="fw-bold small">{{ substr($task->assignee->first_name, 0, 1) }}{{ substr($task->assignee->last_name, 0, 1) }}</span>
+                                                </div>
+                                                <span class="text-dark fw-medium">{{ $task->assignee->first_name }} {{ $task->assignee->last_name }}</span>
+                                            </div>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary py-1 px-2 rounded-pill fw-medium">
+                                                <i class="fas fa-user-times me-1"></i> Unassigned
                                             </span>
                                         @endif
-                                    </div>
-                                </td>
-                                
-                                <!-- Status -->
-                                <td>
-                                    @php
-                                        $statusClasses = [
-                                            'Completed' => 'success',
-                                            'In Progress' => 'primary',
-                                            'Pending' => 'warning'
-                                        ];
-                                    @endphp
-                                    <span class="badge bg-soft-{{ $statusClasses[$task->issue_status] ?? 'secondary' }} text-{{ $statusClasses[$task->issue_status] ?? 'secondary' }}">
-                                        {{ $task->issue_status }}
-                                        @if($task->expected_completion->isPast() && $task->issue_status != 'Completed')
-                                            <i class="fas fa-exclamation-triangle ms-1"></i>
-                                        @endif
-                                    </span>
-                                </td>
-                                
-                                <!-- Priority -->
-                                <td>
-                                    @php
-                                        $priorityClasses = [
-                                            'High' => 'danger',
-                                            'Medium' => 'warning',
-                                            'Low' => 'success'
-                                        ];
-                                    @endphp
-                                    <span class="badge bg-soft-{{ $priorityClasses[$task->priority] ?? 'secondary' }} text-{{ $priorityClasses[$task->priority] ?? 'secondary' }}">
-                                        <i class="fas fa-flag me-1"></i>
-                                        {{ $task->priority }}
-                                    </span>
-                                </td>
-                                
-                                <!-- Actions -->
-                                <td class="pe-4 text-end">
-                                    <div class="action-buttons">
-                                        <a href="{{ route('tasks.progress.show', $task->task_id) }}" 
-                                            class="btn btn-sm btn-soft-primary"
-                                            data-bs-toggle="tooltip"
-                                            title="View Progress">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    </td>
+
+                                    <td class="assignment-date">
+                                        <div class="text-muted small">
+                                            {{ $task->assignment_date->format('d M Y') }}
+                                        </div>
+                                    </td>
+
+                                    <td class="due-date">
+                                        <div class="d-flex align-items-center">
+                                            <div class="@if($task->expected_completion->isPast() && $task->issue_status != 'Completed') text-danger fw-medium @else text-dark fw-medium @endif">
+                                                {{ $task->expected_completion->format('d M Y') }}
+                                            </div>
+                                            @if($task->expected_completion->isPast() && $task->issue_status != 'Completed')
+                                                <span class="badge bg-danger ms-2 py-1 px-2 rounded-pill fw-medium">
+                                                    <i class="fas fa-clock me-1"></i>Overdue
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    <td class="task-status">
+                                        @php
+                                            $statusClasses = [
+                                                'Completed' => 'success',
+                                                'In Progress' => 'primary',
+                                                'Pending' => 'warning',
+                                                'Open' => 'info',
+                                                'Closed' => 'secondary'
+                                            ];
+                                            $statusIcon = [
+                                                'Completed' => 'fa-check-circle',
+                                                'In Progress' => 'fa-spinner fa-spin',
+                                                'Pending' => 'fa-hourglass-half',
+                                                'Open' => 'fa-folder-open',
+                                                'Closed' => 'fa-times-circle'
+                                            ];
+                                        @endphp
+                                        <span class="badge bg-{{ $statusClasses[$task->issue_status] ?? 'secondary' }}-subtle text-{{ $statusClasses[$task->issue_status] ?? 'secondary' }} py-2 px-3 rounded-pill fw-medium">
+                                            <i class="fas {{ $statusIcon[$task->issue_status] ?? 'fa-info-circle' }} me-1"></i>
+                                            {{ $task->issue_status }}
+                                        </span>
+                                    </td>
+
+                                    <td class="task-priority">
+                                        @php
+                                            $priorityClasses = [
+                                                'High' => 'danger',
+                                                'Medium' => 'warning',
+                                                'Low' => 'success'
+                                            ];
+                                            $priorityIcon = 'fa-flag';
+                                        @endphp
+                                        <span class="badge bg-{{ $priorityClasses[$task->priority] ?? 'secondary' }}-subtle text-{{ $priorityClasses[$task->priority] ?? 'secondary' }} py-2 px-3 rounded-pill fw-medium">
+                                            <i class="fas {{ $priorityIcon }} me-1"></i>
+                                            {{ $task->priority }}
+                                        </span>
+                                    </td>
+
+                                    <td class="pe-4 text-end">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{{ route('tasks.progress.show', $task->task_id) }}"
+                                               class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2"
+                                               data-bs-toggle="tooltip"
+                                               title="View Progress">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if($task->expected_completion->isPast() && $task->issue_status != 'Completed' && $task->assignee)
+                                                <button
+                                                    class="btn btn-sm btn-outline-danger rounded-pill px-3 py-2 send-reminder-btn"
+                                                    data-task-id="{{ $task->task_id }}"
+                                                    data-tech-name="{{ $task->assignee->first_name }} {{ $task->assignee->last_name }}"
+                                                    data-url="{{ route('admin.tasks.sendReminder', $task->task_id) }}"
+                                                    title="Send Reminder to Technician">
+                                                    <i class="fas fa-bell"></i> Send Reminder
+                                                </button>
+                                                <button
+                                                    class="btn btn-sm btn-outline-warning rounded-pill px-3 py-2 reassign-task-btn"
+                                                    data-task-id="{{ $task->task_id }}"
+                                                    data-url="{{ route('admin.tasks.reassign', $task->task_id) }}"
+                                                    data-issue-id="{{ $task->issue_id }}"
+                                                    title="Reassign Task">
+                                                    <i class="fas fa-random"></i> Reassign
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                {{-- This empty state will be handled by the JS below --}}
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- New Empty State for no tasks or no results --}}
+                <div id="noTasksFoundState" class="text-center py-5 px-3 {{ $tasks->isNotEmpty() ? 'd-none' : '' }}"> {{-- Initially hidden if tasks exist --}}
+                    <div class="empty-state-icon mb-4">
+                        <i class="fas fa-tasks fa-4x text-muted"></i> {{-- Updated icon --}}
+                    </div>
+                    <h4 class="fw-bold mb-2 text-dark" id="emptyStateHeading">No Tasks Found</h4>
+                    <p class="text-muted mb-4" id="emptyStateText">There are no maintenance tasks to display.</p>
+                    <button class="btn btn-outline-secondary rounded-pill px-4 py-2 mt-2 d-none" id="resetEmptyStateFilters">
+                        <i class="fas fa-sync-alt me-1"></i> Reset Filters
+                    </button>
+                </div>
+
+                {{-- Conditional pagination links --}}
+                @if ($tasks instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $tasks->hasPages())
+                    <div class="card-footer bg-transparent border-0 pt-3 px-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                Showing {{ $tasks->firstItem() }} to {{ $tasks->lastItem() }} of {{ $tasks->total() }} entries
+                            </div>
+                            <div>
+                                {{ $tasks->links('pagination::bootstrap-5') }}
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
-    </div>
-</div>
 
-<style>
-    /* Add these new styles */
-    .table-danger-light {
-        background-color: rgba(220, 53, 69, 0.03) !important;
-        border-left: 3px solid #dc3545;
-    }
+        <style>
 
-    .overdue-alert {
-        padding: 0.75rem 1.25rem;
-        border-radius: 8px;
-        font-size: 0.9rem;
-    }
+            .card {
+                border: 1px solid #e0e0e0; /* Subtle border for cards */
+                box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05); /* Lighter shadow */
+            }
 
-    .table-danger-light td {
-        position: relative;
-    }
+            .card-header {
+                background-color: #ffffff; /* White background for headers */
+                color: #343a40; /* Dark text */
+                border-bottom: 1px solid #e9ecef; /* Light border at the bottom */
+            }
 
-    .table-danger-light td:first-child::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 3px;
-        background-color: #dc3545;
-    }
+            .card-header h2, .card-header p {
+                color: #343a40 !important; /* Ensure text is dark */
+            }
 
-    .bg-soft-danger {
-        background-color: rgba(220, 53, 69, 0.1);
-    }
-</style>
+            /* Custom subtle badge colors */
+            .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
+            .text-primary { color: #0d6efd !important; }
 
+            .bg-success-subtle { background-color: rgba(40, 167, 69, 0.1) !important; }
+            .text-success { color: #28a745 !important; }
+
+            .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.1) !important; }
+            .text-warning { color: #ffc107 !important; }
+
+            .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1) !important; }
+            .text-danger { color: #dc3545 !important; }
+
+            .bg-info-subtle { background-color: rgba(23, 162, 184, 0.1) !important; }
+            .text-info { color: #17a2b8 !important; }
+
+            .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1) !important; }
+            .text-secondary { color: #6c757d !important; }
+
+            /* Buttons */
+            .btn-primary {
+                background-color: #0d6efd;
+                border-color: #0d6efd;
+            }
+            .btn-primary:hover {
+                background-color: #0b5ed7;
+                border-color: #0a58ca;
+            }
+
+            .btn-outline-secondary {
+                color: #6c757d;
+                border-color: #6c757d;
+                background-color: #ffffff;
+                transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            }
+            .btn-outline-secondary:hover {
+                background-color: #6c757d;
+                color: white;
+                border-color: #6c757d;
+            }
+
+            /* Search input group styling */
+            .input-group.rounded-pill {
+                border: 1px solid #ced4da;
+                border-radius: 2rem;
+                overflow: hidden;
+                transition: all 0.2s ease;
+            }
+            .input-group.rounded-pill:hover {
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            .input-group.rounded-pill:focus-within {
+                box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+                border-color: #0d6efd;
+            }
+            .input-group.rounded-pill .form-control,
+            .input-group.rounded-pill .input-group-text,
+            .input-group.rounded-pill .btn {
+                border: none !important;
+                background-color: white;
+                padding: 0.75rem 1rem;
+            }
+            .input-group.rounded-pill .form-control:focus {
+                box-shadow: none;
+            }
+            .input-group.rounded-pill .input-group-text {
+                padding-left: 1.25rem;
+            }
+            .input-group.rounded-pill .form-control {
+                padding-left: 0.5rem;
+            }
+            .input-group.rounded-pill .btn {
+                padding-right: 1.25rem;
+            }
+            .input-group.rounded-pill .btn:hover {
+                background-color: #f8f9fa;
+            }
+
+            /* Table specific styles */
+            .table thead th {
+                font-weight: 600;
+                color: #495057;
+                border-bottom: 2px solid #e9ecef;
+            }
+            .table tbody tr {
+                transition: background-color 0.2s ease;
+            }
+            .table tbody tr:hover {
+                background-color: #f0f2f5;
+            }
+
+            /* Overdue and Completed row styling */
+            .table-danger-light {
+                background-color: rgba(220, 53, 69, 0.03) !important; /* Very light red */
+                border-left: 4px solid #dc3545; /* Red left border */
+            }
+            .table-success-light {
+                background-color: rgba(40, 167, 69, 0.03) !important; /* Very light green */
+                border-left: 4px solid #28a745; /* Green left border */
+            }
+
+            /* Search highlight */
+            .search-highlight {
+                background-color: #FFF9C4;
+                padding: 0 2px;
+                border-radius: 3px;
+                display: inline;
+            }
+
+            /* Ensure these elements maintain their design during search */
+            .avatar, .icon-container, .badge {
+                position: relative;
+                z-index: 1;
+            }
+
+            .avatar *, .icon-container *, .badge * {
+                position: relative;
+                z-index: 2;
+            }
+
+            /* Empty state styling */
+            .empty-state-icon {
+                width: 80px;
+                height: 80px;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(108, 117, 125, 0.1); /* Secondary subtle for empty */
+                border-radius: 50%;
+            }
+            .empty-state-icon i {
+                color: #6c757d; /* Muted color for icon */
+            }
+        </style>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize tooltips
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                });
+
+                // Task search functionality
+                const searchInput = document.getElementById('taskSearch');
+                const clearButton = document.getElementById('clearSearch');
+                const tasksTableBody = document.getElementById('tasksTableBody');
+                const tasksTableContainer = document.getElementById('tasksTableContainer');
+                const noTasksFoundState = document.getElementById('noTasksFoundState');
+                const emptyStateHeading = document.getElementById('emptyStateHeading');
+                const emptyStateText = document.getElementById('emptyStateText');
+                const resetEmptyStateFiltersButton = document.getElementById('resetEmptyStateFilters');
+                const searchFeedback = document.getElementById('searchFeedback');
+                const resultCount = document.getElementById('resultCount');
+                const statusFilters = document.getElementById('statusFilters');
+
+                let currentStatus = 'all';
+
+                // Function to filter table rows based on search input and status
+                function filterTasks() {
+                    const searchTerm = searchInput.value.toLowerCase().trim();
+                    let visibleCount = 0;
+
+                    const taskRows = Array.from(tasksTableBody.children).filter(row => row.classList.contains('task-row'));
+
+                    taskRows.forEach(row => {
+                        const taskId = row.dataset.taskid;
+                        const issueId = row.dataset.issueid;
+                        const issueTitle = row.dataset.issuetitle;
+                        const techName = row.dataset.techname;
+                        const assignmentDate = row.dataset.assignmentdate;
+                        const dueDate = row.dataset.duedate;
+                        const status = row.dataset.status;
+                        const priority = row.dataset.priority;
+                        const isOverdue = row.classList.contains('table-danger-light');
+
+                        // Check status filter
+                        let statusMatch = true;
+                        if (currentStatus !== 'all') {
+                            if (currentStatus === 'overdue') {
+                                statusMatch = isOverdue;
+                            } else if (currentStatus === 'in-progress') {
+                                // Show tasks that are in progress, regardless of overdue status
+                                statusMatch = status === 'in progress';
+                            } else {
+                                statusMatch = status === currentStatus;
+                            }
+                        }
+
+                        // Check search term
+                        const searchMatch = !searchTerm ||
+                            taskId.includes(searchTerm) ||
+                            issueId.includes(searchTerm) ||
+                            issueTitle.includes(searchTerm) ||
+                            techName.includes(searchTerm) ||
+                            assignmentDate.includes(searchTerm) ||
+                            dueDate.includes(searchTerm) ||
+                            status.includes(searchTerm) ||
+                            priority.includes(searchTerm);
+
+                        if (statusMatch && searchMatch) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    // Update UI based on visible count
+                    if (visibleCount === 0) {
+                        tasksTableContainer.classList.add('d-none');
+                        noTasksFoundState.classList.remove('d-none');
+
+                        if (searchTerm || currentStatus !== 'all') {
+                            emptyStateHeading.textContent = 'No Matching Tasks Found';
+                            emptyStateText.textContent = 'We couldn\'t find any tasks matching your criteria.';
+                            resetEmptyStateFiltersButton.classList.remove('d-none');
+                            searchFeedback.style.display = 'none';
+                        } else {
+                            emptyStateHeading.textContent = 'No Tasks Found';
+                            emptyStateText.textContent = 'There are no maintenance tasks to display.';
+                            resetEmptyStateFiltersButton.classList.add('d-none');
+                            searchFeedback.style.display = 'none';
+                        }
+                    } else {
+                        tasksTableContainer.classList.remove('d-none');
+                        noTasksFoundState.classList.add('d-none');
+                        searchFeedback.style.display = 'block';
+                        resultCount.textContent = visibleCount;
+                    }
+                }
+
+                // Add event listeners
+                if (searchInput) {
+                    searchInput.addEventListener('input', filterTasks);
+
+                    clearButton.addEventListener('click', function() {
+                        searchInput.value = '';
+                        filterTasks();
+                    });
+
+                    resetEmptyStateFiltersButton?.addEventListener('click', function() {
+                        searchInput.value = '';
+                        currentStatus = 'all';
+                        // Reset status filter buttons
+                        statusFilters.querySelectorAll('button').forEach(btn => {
+                            btn.classList.remove('active');
+                            if (btn.dataset.status === 'all') {
+                                btn.classList.add('active');
+                            }
+                        });
+                        filterTasks();
+                        searchInput.focus();
+                    });
+
+                    document.addEventListener('keydown', function(e) {
+                        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                            e.preventDefault();
+                            searchInput.focus();
+                        }
+                    });
+                }
+
+                // Status filter event listeners
+                statusFilters.querySelectorAll('button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Update active state
+                        statusFilters.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+
+                        // Update current status
+                        currentStatus = this.dataset.status;
+
+                        // Apply filters
+                        filterTasks();
+                    });
+                });
+
+                // Initial call to filterTasks
+                filterTasks();
+            });
+        </script>
+@endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        });
-
-        // Flash overdue rows
-        const overdueRows = document.querySelectorAll('.table-danger-light');
-        overdueRows.forEach(row => {
-            row.style.animation = 'pulseAlert 1.5s infinite';
+document.addEventListener('DOMContentLoaded', function() {
+    // Send Reminder Button Logic
+    document.querySelectorAll('.send-reminder-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.url;
+            const techName = this.dataset.techName;
+            Swal.fire({
+                title: 'Send Reminder?',
+                html: 'Send a reminder to <b>' + techName + '</b> about this overdue task?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Send Reminder',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Sending Reminder...',
+                        html: '<div class="spinner-border text-danger" role="status"></div><br>Please wait while we notify the technician.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        Swal.fire({
+                            icon: data.success ? 'success' : 'error',
+                            title: data.success ? 'Reminder Sent!' : 'Error',
+                            text: data.message || (data.success ? 'Reminder sent successfully.' : 'Failed to send reminder.'),
+                            confirmButtonText: 'OK',
+                            customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                            buttonsStyling: false
+                        });
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to send reminder. Please try again.',
+                            confirmButtonText: 'OK',
+                            customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                            buttonsStyling: false
+                        });
+                    });
+                }
+            });
         });
     });
 
-    // Add pulse animation for overdue tasks
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes pulseAlert {
-            0% { background-color: rgba(220, 53, 69, 0.03); }
-            50% { background-color: rgba(220, 53, 69, 0.08); }
-            100% { background-color: rgba(220, 53, 69, 0.03); }
-        }
-    `;
-    document.head.appendChild(style);
+    // Reassign Task Button Logic
+    document.querySelectorAll('.reassign-task-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.url;
+            const taskId = this.dataset.taskId;
+            Swal.fire({
+                title: 'Reassign Task?',
+                html: 'Are you sure you want to reassign this task to a new technician?<br>This will notify both the old and new technician.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Reassign',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#f39c12',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Reassigning...',
+                        html: '<div class="spinner-border text-warning" role="status"></div><br>Please wait while we reassign the task.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(async response => {
+                        let data = null;
+                        try {
+                            data = await response.json();
+                        } catch (e) {
+                            throw new Error('Server returned an invalid response.');
+                        }
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Failed to reassign task.');
+                        }
+                        return data;
+                    })
+                    .then(data => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Task Reassigned!',
+                            text: data.message || 'Task has been reassigned to a new technician.',
+                            confirmButtonText: 'OK',
+                            customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                            buttonsStyling: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: error.message,
+                            confirmButtonText: 'OK',
+                            customClass: { confirmButton: 'btn btn-primary px-4 py-2 rounded-pill' },
+                            buttonsStyling: false
+                        });
+                    });
+                }
+            });
+        });
+    });
+});
 </script>
-@endsection
+@endpush

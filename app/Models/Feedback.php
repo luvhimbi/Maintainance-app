@@ -15,8 +15,8 @@ public function issue()
 {
     return $this->belongsTo(Issue::class, 'issue_id');
 }
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+  public function user()
+{
+    return $this->belongsTo(User::class, 'user_id'); // Explicitly specify the foreign key
+}
 }

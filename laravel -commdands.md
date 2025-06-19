@@ -1,6 +1,13 @@
--update the update task to  show alerts
--correct save student and maintainace stuff 
--add alert for deleting students ,maintanance and location 
--add proper logic on the person who assigns a task 
--change the student role to user to fit for staff and students to report
-- update the profiles to work
+## to do : commits 
+* i added search and filters to student/staff dashboard 
+* I added search and filter to technician dashboard
+* i added search bar to the student ,task ,staff and technician views 
+
+
+## to do :reports section
+* get the task information data 
+* add filters to them and also design the pdf view , excel view and word view 
+* allow users to download the documents of the reports 
+
+## to do: add Logic to allow issue urgency  level  to be automatically determined by the 
+## application
