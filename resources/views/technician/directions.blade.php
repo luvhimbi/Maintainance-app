@@ -905,10 +905,15 @@ function updateNavigationUI() {
     nextManeuverDistance.textContent = `in ${Math.round(currentStep.distance)} meters`;
 
     // Update total distance and duration
-    const remainingKm = (remainingDistance / 1000).toFixed(1);
+    let remainingDistanceText;
+    if (remainingDistance < 1000) {
+        remainingDistanceText = `${Math.round(remainingDistance)} m remaining`;
+    } else {
+        remainingDistanceText = `${(remainingDistance / 1000).toFixed(1)} km remaining`;
+    }
     const remainingMin = Math.ceil(remainingDistance / (totalDistance / (currentRoute.duration / 60)));
 
-    document.getElementById('total-distance').textContent = `${remainingKm} km remaining`;
+    document.getElementById('total-distance').textContent = remainingDistanceText;
     document.getElementById('total-duration').textContent = `${remainingMin} min remaining`;
 
     // Check if we need to move to next step
@@ -1049,11 +1054,16 @@ function displayRoute(routeData) {
 
     // Update route summary
     const route = routeData.routes[0];
-    const distanceKm = (route.distance / 1000).toFixed(1);
+    let distanceText;
+    if (route.distance < 1000) {
+        distanceText = `${Math.round(route.distance)} m`;
+    } else {
+        distanceText = `${(route.distance / 1000).toFixed(1)} km`;
+    }
     const durationMin = Math.ceil(route.duration / 60);
 
     // Update the route summary display
-    document.getElementById('total-distance').textContent = `${distanceKm} km`;
+    document.getElementById('total-distance').textContent = distanceText;
     document.getElementById('total-duration').textContent = `${durationMin} min`;
 
     // Update route info display
@@ -1070,7 +1080,7 @@ function displayRoute(routeData) {
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <i class="fas fa-road me-2"></i>
-                        <span class="fw-bold">${distanceKm} km</span>
+                        <span class="fw-bold">${distanceText}</span>
                     </div>
                     <div>
                         <i class="fas fa-clock me-2"></i>
@@ -1105,15 +1115,23 @@ function showInstructions(steps) {
         return;
     }
 
-    container.innerHTML = steps.map((step, index) => `
-        <div class="d-flex mb-2">
-            <div class="me-3 text-primary fw-bold">${index + 1}</div>
-            <div>
-                <div>${step.maneuver.instruction}</div>
-                <small class="text-muted">${(step.distance / 1000).toFixed(1)} km · ${Math.ceil(step.duration / 60)} min</small>
+    container.innerHTML = steps.map((step, index) => {
+        let distanceText;
+        if (step.distance < 1000) {
+            distanceText = `${Math.round(step.distance)} m`;
+        } else {
+            distanceText = `${(step.distance / 1000).toFixed(1)} km`;
+        }
+        return `
+            <div class="d-flex mb-2">
+                <div class="me-3 text-primary fw-bold">${index + 1}</div>
+                <div>
+                    <div>${step.maneuver.instruction}</div>
+                    <small class="text-muted">${distanceText} · ${Math.ceil(step.duration / 60)} min</small>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     const instructionsElement = document.getElementById('navigation-instructions');
     if (instructionsElement) {
