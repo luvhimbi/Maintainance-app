@@ -332,57 +332,6 @@
 
             <!-- Sidebar -->
             <div class="col-lg-4">
-                <!-- Location Details Card -->
-                <div class="card shadow-sm border-0 rounded-4 mb-4">
-                    <div class="card-body p-4">
-                        <h5 class="card-title fw-bold d-flex align-items-center mb-3 text-dark">
-                            <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </span>
-                            Location Details
-                        </h5>
-
-                        @if ($task->issue->building)
-                            <div class="d-flex align-items-start mb-3">
-                                <div class="bg-light p-2 rounded-3 me-3">
-                                    <i class="fas fa-building text-muted"></i>
-                                </div>
-                                <div>
-                                    <p class="small text-muted mb-1">Building</p>
-                                    <p class="mb-0 fw-bold text-dark">{{ $task->issue->building->building_name }}</p>
-                                </div>
-                            </div>
-
-                            <div class="d-flex align-items-start mb-3">
-                                <div class="bg-light p-2 rounded-3 me-3">
-                                    <i class="fas fa-layer-group text-muted"></i>
-                                </div>
-                                <div>
-                                    <p class="small text-muted mb-1">Floor</p>
-                                    <p class="mb-0 fw-bold text-dark">Floor {{ $task->issue->floor->floor_number }}</p>
-                                </div>
-                            </div>
-
-                            <div class="d-flex align-items-start">
-                                <div class="bg-light p-2 rounded-3 me-3">
-                                    <i class="fas fa-door-open text-muted"></i>
-                                </div>
-                                <div>
-                                    <p class="small text-muted mb-1">Room</p>
-                                    <p class="mb-0 fw-bold text-dark">Room {{ $task->issue->room->room_number }}</p>
-                                </div>
-                            </div>
-                        @else
-                            <div class="alert alert-light border d-flex align-items-center rounded-3" role="alert">
-                                <i class="fas fa-info-circle text-secondary me-2"></i>
-                                <div>
-                                    <small class="text-muted">No location specified</small>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
                 <!-- Attachments Card -->
                 <div class="card shadow-sm border-0 rounded-4">
                     <div class="card-body p-4">

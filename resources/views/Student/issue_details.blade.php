@@ -252,8 +252,9 @@
                                             $fileExtension = pathinfo($attachment->original_name, PATHINFO_EXTENSION);
                                             $iconClass = 'fa-file';
                                             $bgClass = 'bg-secondary-subtle text-secondary';
+                                            $isImage = in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif']);
 
-                                            if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif'])) {
+                                            if ($isImage) {
                                                 $iconClass = 'fa-file-image';
                                                 $bgClass = 'bg-success-subtle text-success';
                                             } elseif (in_array($fileExtension, ['pdf'])) {
@@ -271,21 +272,28 @@
                                             }
                                         @endphp
                                         <div class="col-12 col-sm-6 col-lg-4">
-                                            <a href="{{ route('files.view', ['id' => $attachment->attachment_id]) }}" target="_blank" class="text-decoration-none">
-                                                <div class="card border-0 bg-light h-100 hover-shadow">
-                                                    <div class="card-body p-3">
-                                                        <div class="d-flex align-items-center">
-                                                            <div class="{{ $bgClass }} p-3 rounded-3 me-3">
-                                                                <i class="fas {{ $iconClass }} fa-lg"></i>
-                                                            </div>
-                                                            <div class="flex-grow-1 overflow-hidden">
-                                                                <p class="mb-0 fw-bold text-truncate text-dark">{{ $attachment->original_name }}</p>
-                                                                <p class="small text-muted mb-0 text-uppercase">{{ $fileExtension }} file</p>
-                                                            </div>
+                                            <div class="card border-0 bg-light h-100 hover-shadow">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="{{ $bgClass }} p-3 rounded-3 me-3">
+                                                            <i class="fas {{ $iconClass }} fa-lg"></i>
+                                                        </div>
+                                                        <div class="flex-grow-1 overflow-hidden">
+                                                            <p class="mb-0 fw-bold text-truncate text-dark">{{ $attachment->original_name }}</p>
+                                                            <p class="small text-muted mb-0 text-uppercase">{{ $fileExtension }} file</p>
+                                                            @if($isImage)
+                                                                <div class="mt-2">
+                                                                    <a href="{{ route('files.view', ['id' => $attachment->attachment_id]) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                                                                </div>
+                                                            @else
+                                                                <div class="mt-2">
+                                                                    <a href="{{ route('files.view', ['id' => $attachment->attachment_id]) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                                                                </div>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </a>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -304,30 +312,6 @@
 
             <!-- Sidebar -->
             <div class="col-lg-4">
-                <!-- Location Details Card -->
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-body p-4">
-                        <h5 class="card-title fw-bold d-flex align-items-center mb-3 text-dark">
-                            <span class="bg-primary bg-opacity-10 text-primary p-2 rounded-3 me-2">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </span>
-                            Location Details
-                        </h5>
-                        <div class="mb-3">
-                            <label class="form-label text-muted">Building</label>
-                            <p class="mb-0 fw-bold">{{ $issue->building->building_name ?? 'N/A' }}</p>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted">Floor</label>
-                            <p class="mb-0 fw-bold">Floor {{ $issue->floor->floor_number ?? 'N/A' }}</p>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted">Room</label>
-                            <p class="mb-0 fw-bold">Room {{ $issue->room->room_number ?? 'N/A' }}</p>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Technician Details Card -->
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body p-4">

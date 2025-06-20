@@ -21,12 +21,13 @@
                     </div>
 
                     @if($overdueCount > 0)
-                        <div class="alert alert-danger mt-3 d-flex align-items-center rounded-3 shadow-sm" role="alert"> {{-- Added rounded-3 and shadow-sm --}}
+                        <div class="alert alert-danger alert-dismissible fade show mt-3 d-flex align-items-center rounded-3 shadow-sm" role="alert"> {{-- Added alert-dismissible fade show --}}
                             <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
                             <div>
                                 <h5 class="alert-heading mb-1 fw-bold">You have {{ $overdueCount }} overdue task(s)!</h5>
                                 <p class="mb-0">Please prioritize these tasks immediately.</p>
                             </div>
+                            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
                 </div>
